@@ -589,7 +589,8 @@ tr.detail td{background:#f7faff; white-space:normal}
 .user-sum:hover{background:var(--accent-soft)}
 .user-sum .user-name{display:block}
 /* Biblioteca: pestañas Mis actividades / Unidades */
-.subnav{max-width:1080px; margin:var(--sp-4) auto 0; padding:0 16px; display:flex; gap:6px}
+.subnav{max-width:1080px; margin:var(--sp-4) auto 0; padding:0 16px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none}
+.subnav a{flex:none; white-space:nowrap}
 .subnav a{padding:8px 16px; border-radius:999px; text-decoration:none; font-weight:600; font-size:14px; color:var(--muted); background:var(--card); border:1px solid var(--border)}
 .subnav a.active{background:var(--primary); border-color:var(--primary); color:#fff}
 .nav .nav-ico{display:none}
@@ -662,9 +663,9 @@ td.pics .pic{font-size:24px; margin-right:6px}
 .tpl-txt b{font-size:19px; font-weight:600; color:var(--ink)}
 .tpl-txt span{font-size:14.5px; line-height:1.35; color:#6b7685}
 @media (max-width:760px){
-  .tpl-list{grid-template-columns:1fr}
+  .tpl-list{grid-template-columns:minmax(0,1fr)}
   .tpl-head{padding:14px 16px} .tpl-head h1{font-size:22px} .tpl-body{padding:14px 12px 16px}
-  .tpl-search{justify-content:flex-start} .tpl-search > span{display:none} .tpl-search input{max-width:none}
+  .tpl-search{justify-content:flex-start; min-width:0; flex-basis:100%} .tpl-search > span{display:none} .tpl-search input{max-width:none}
   .tpl-sort{justify-content:flex-start; font-size:15px}
   .tpl-card{min-height:92px; padding:12px} .tpl-ico{flex-basis:64px; width:64px; height:64px}
 }
@@ -1035,7 +1036,7 @@ button.uw-type:focus-visible{outline:none; box-shadow:0 0 0 3px var(--accent)}
 /* Selector de plantillas por propósito (2026-11-19): 3 columnas, íconos grandes */
 .tpl-body{margin-top:4px}
 .tpl-group{margin:var(--sp-5) 0 var(--sp-3); font-size:18px}
-.tpl-body .tpl-list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.tpl-body .tpl-list{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
 .tpl-body .tpl-card{border-radius:14px; box-shadow:0 0 0 1px var(--line), var(--shadow-sm)}
 .tpl-body .tpl-ico{flex-basis:88px; width:88px; height:88px}
 .page-head .grade-search{min-width:min(320px,100%)}

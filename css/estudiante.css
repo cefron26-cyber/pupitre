@@ -311,3 +311,43 @@ a.practice-card:hover{box-shadow:0 0 0 2px var(--accent)}
 .rl-prize > :first-child{width:36px; height:30px; overflow:hidden; border-radius:6px; display:grid; place-items:center}
 .rl-prize > :first-child svg{width:30px; height:30px}
 @media (max-width:560px){ .rl-prize .small{display:none} }
+
+/* ---------- Ajustes para pantallas pequeñas (2026-11-20) ----------
+   Nada puede ser más ancho que la pantalla: si algo se sale, el navegador del celular aleja toda la página. */
+html,body{overflow-x:clip}
+.retos-locked{grid-template-columns:minmax(0,1fr)}
+.retos-locked li{flex-wrap:wrap; row-gap:6px; min-width:0}
+.retos-locked li b,.retos-locked li .rl-txt .small{white-space:normal}
+.rl-txt{flex:1 1 200px}
+.retos-locked .badge{white-space:normal}
+.main{min-width:0}
+.app-header .brand{flex:0 1 auto; min-width:0; overflow:hidden}
+.app-header .user-box{flex:none}
+@media (max-width:640px){
+  .brand-name{font-size:20px}
+  .app-header .brand-row{gap:8px}
+  .app-header .brand-mark{width:34px; height:34px}
+  /* Pestañas del estudiante: una sola fila, repartidas; si no caben, se desplazan de lado. */
+  .nav:not(.bottom){flex-wrap:nowrap; overflow-x:auto; padding:4px 6px 0; gap:2px}
+  .nav:not(.bottom) a,[data-modo="juego"] .nav:not(.bottom) a{flex:1 0 auto; text-align:center; padding:10px 8px; font-size:13.5px}
+  .node{width:min(420px, calc(100% - 48px))}
+}
+@media (max-width:480px){
+  /* No hay espacio para el nombre junto a los botones: queda solo el logo. */
+  .app-header .brand-name,.app-header .brand-school{display:none}
+  .app-header .bar{gap:8px; padding:10px}
+  .user-box .btn.sm{padding-left:10px; padding-right:10px}
+  .retos-locked .badge{order:3; margin-left:34px}
+}
+@media (max-width:360px){
+  .nav:not(.bottom) a,[data-modo="juego"] .nav:not(.bottom) a{padding:10px 5px; font-size:12.5px}
+  .xp-chip{padding:6px 9px}
+}
+/* Cofre: el texto nunca se aplasta; si no cabe, el botón baja a su propia fila. */
+.chest-card{flex-wrap:wrap}
+.chest-txt{flex:1 1 180px}
+@media (max-width:960px){
+  .hero{grid-template-columns:1fr}
+  /* Tablet: sin nombre ni avatar en el encabezado para que la marca y los botones quepan. */
+  .app-header .user-box .user-name,.app-header .head-avatar{display:none}
+}

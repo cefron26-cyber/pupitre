@@ -197,6 +197,17 @@ addEventListener('pagehide', () => { if (currentUser) users.touch(currentUser.id
 // Cerrar los menús desplegables (Crear, usuario, "Más") al tocar fuera o con Escape.
 document.addEventListener('click', e => { document.querySelectorAll('details.more[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('details.more[open]').forEach(d => { d.open = false; d.querySelector('summary')?.focus(); }); });
+// Un menú desplegable abierto nunca debe salirse de la pantalla (en celular el botón puede quedar a la izquierda).
+document.addEventListener('toggle', e => {
+  const d = e.target;
+  if (!(d instanceof HTMLDetailsElement) || !d.open) return;
+  const m = d.querySelector(':scope > .more-menu');
+  if (!m) return;
+  m.style.left = m.style.right = '';
+  const r = m.getBoundingClientRect(), W = document.documentElement.clientWidth;
+  if (r.left < 8) { m.style.left = '0'; m.style.right = 'auto'; }
+  else if (r.right > W - 8) { m.style.right = '0'; m.style.left = 'auto'; }
+}, true);
 addEventListener('storage-error', () => toast('No se pudo guardar en este navegador (¿espacio lleno?). Tu avance sigue en pantalla.', 'err'));
 addEventListener('hashchange', router);
 router();
