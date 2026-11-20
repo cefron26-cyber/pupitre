@@ -1,5 +1,6 @@
 // Plantilla Reordenar oraciones: la oración aparece desordenada en una línea y el estudiante arrastra las palabras;
-// se reacomodan en vivo y cada palabra que cae en su lugar se pone verde y queda fija. Tocar dos palabras las cambia.
+// se reacomodan en vivo y la palabra que el estudiante deja en su lugar se pone verde y queda fija (las que solo se
+// corren por el movimiento de otra no se fijan, aunque caigan bien). Tocar dos palabras las cambia.
 // En evaluación (respuestas ocultas) no se fija nada: se ordena y se comprueba al final.
 import { evalMode, neutralFb, el, esc, icons, shuffle } from '../ui.js';
 import { norm } from './fill.js';
@@ -32,8 +33,12 @@ export default {
 
   editor(root, content) {
     const items = structuredClone(content.items);
+    let alFinal = !!content.alFinal;
     const draw = () => {
-      root.innerHTML = `<p class="hint" style="margin:0 0 12px">Escribe cada oración bien ordenada. Se separa por espacios; la puntuación queda pegada a su palabra.</p>`;
+      root.innerHTML = `<p class="hint" style="margin:0 0 12px">Escribe cada oración bien ordenada. Se separa por espacios; la puntuación queda pegada a su palabra.</p>
+        <label class="opt-row" style="margin:0 0 14px;font-weight:600"><input type="checkbox" data-alfinal ${alFinal ? 'checked' : ''} style="width:20px;height:20px">
+          Comprobar al final: no se marca nada mientras ordena; ve si acertó al presionar «Comprobar»</label>`;
+      root.querySelector('[data-alfinal]').onchange = e => { alFinal = e.target.checked; };
       items.forEach((it, i) => {
         const box = el(`<div class="panel editor-item">
           <div class="row between"><div class="num">Oración ${i + 1}</div>
@@ -54,7 +59,7 @@ export default {
     };
     draw();
     return {
-      getContent: () => ({ items: items.map(it => ({ sentence: tokens(it.sentence).join(' ') })) }),
+      getContent: () => ({ items: items.map(it => ({ sentence: tokens(it.sentence).join(' ') })), ...(alFinal ? { alFinal: true } : {}) }),
       validate: () => items.flatMap((it, i) => {
         const n = tokens(it.sentence).length;
         if (!n) return [`Oración ${i + 1}: escríbela.`];
@@ -67,15 +72,19 @@ export default {
 
   render(root, content, saved, { onProgreso, onTerminar }) {
     const total = content.items.length;
-    const hide = evalMode.hide; // en evaluación no se marca nada hasta el final
-    const fresh = i => ({ order: scramble(tokens(content.items[i].sentence)), checked: false });
+    const hide = evalMode.hide; // en evaluación no se marca nada y tampoco se dice al final si estuvo bien
+    // Comprobar al final (opción del docente, o evaluación): sin marcas mientras ordena; se revisa con «Comprobar».
+    const alFinal = hide || !!content.alFinal;
+    const fresh = i => ({ order: scramble(tokens(content.items[i].sentence)), fijas: [], checked: false });
     // Progreso de la versión anterior (palabras en dos zonas): se empieza la oración de nuevo.
     const st = saved?.order ? saved : { i: saved?.i || 0, answers: saved?.answers || [], ...fresh(saved?.i || 0) };
+    if (!Array.isArray(st.fijas)) st.fijas = [];
     const words = () => tokens(content.items[st.i].sentence);
     const save = () => onProgreso({ ...st, done: st.answers.length, total });
 
-    // Una palabra queda fija cuando está en su lugar (se compara el texto: dos "the" valen igual).
-    const fija = k => !hide && norm(words()[st.order[k]]) === norm(words()[k]);
+    // En su lugar: se compara el texto (dos "the" valen igual). Fija: solo los lugares que el estudiante acertó a mano.
+    const enLugar = k => norm(words()[st.order[k]]) === norm(words()[k]);
+    const fija = k => !alFinal && st.fijas.includes(k);
     let linea, sel = null;
     const nodo = wi => linea.querySelector(`[data-wi="${wi}"]`);
     const sinMovimiento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -85,9 +94,9 @@ export default {
       sel = null;
       root.innerHTML = '';
       const wrap = el(`<div class="reorder">
-        <div class="small muted" style="margin-bottom:6px">Oración ${st.i + 1} de ${total} · ${hide ? 'Ordena las palabras y comprueba' : 'Arrastra las palabras hasta ordenar la oración'}</div>
+        <div class="small muted" style="margin-bottom:6px">Oración ${st.i + 1} de ${total} · ${alFinal ? 'Ordena las palabras y comprueba' : 'Arrastra las palabras hasta ordenar la oración'}</div>
         <div class="slots linea" aria-label="Oración desordenada"></div>
-        <div class="fb-slot" role="status" aria-live="polite">${hide && !st.checked ? `<div class="row end" style="margin-top:20px">
+        <div class="fb-slot" role="status" aria-live="polite">${alFinal && !st.checked ? `<div class="row end" style="margin-top:20px">
           <button class="btn" type="button" data-check>Comprobar</button></div>` : ''}</div>
       </div>`);
       linea = wrap.querySelector('.linea');
@@ -139,13 +148,16 @@ export default {
       acomodar();
     };
 
-    // Al soltar: las que quedaron bien se fijan; si todas están bien, la oración está lista.
-    const asentar = () => {
+    // Al soltar: se fijan solo las palabras que movió el estudiante y quedaron bien; si toda la oración está bien, lista.
+    const asentar = movidas => {
+      if (!alFinal) movidas.forEach(wi => {
+        const k = st.order.indexOf(wi);
+        if (enLugar(k) && !st.fijas.includes(k)) { st.fijas.push(k); marcar(nodo(wi), true); }
+      });
       save();
-      if (hide) return;
-      st.order.forEach((wi, k) => { const b = nodo(wi); if (fija(k) && !b.classList.contains('fija')) marcar(b, true); });
-      if (st.order.every((_, k) => fija(k))) {
-        linea.querySelectorAll('.word').forEach(b => { b.disabled = true; });
+      if (alFinal) return;
+      if (st.order.every((_, k) => enLugar(k))) {
+        linea.querySelectorAll('.word').forEach(b => { if (!b.classList.contains('fija')) marcar(b, true); b.disabled = true; });
         setTimeout(() => terminarOracion(true), 500);
       }
     };
@@ -189,7 +201,7 @@ export default {
             const r = b.getBoundingClientRect(), g = ghost.getBoundingClientRect();
             ghost.remove(); b.classList.remove('dragging');
             if (!sinMovimiento()) b.animate([{ transform: `translate(${g.left - r.left}px,${g.top - r.top}px)` }, { transform: 'none' }], { duration: 160, easing: 'ease-out' });
-            asentar();
+            asentar([wi]);
             return;
           }
           if (ev.type !== 'pointercancel') tocar(wi);
@@ -206,7 +218,7 @@ export default {
         e.preventDefault();
         const libres = [...linea.querySelectorAll('.word:not(.fija)')];
         const vecino = libres[libres.indexOf(b) + (e.key === 'ArrowLeft' ? -1 : 1)];
-        if (vecino && mover(wi, +vecino.dataset.wi)) { asentar(); b.focus(); }
+        if (vecino && mover(wi, +vecino.dataset.wi)) { asentar([wi]); b.focus(); }
       });
     };
 
@@ -218,7 +230,7 @@ export default {
       nodo(otro)?.classList.remove('sel');
       if (otro === wi) return;
       intercambiar(otro, wi);
-      asentar();
+      asentar([otro, wi]);
     };
 
     const comprobar = () => {
