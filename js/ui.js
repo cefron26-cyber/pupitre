@@ -232,3 +232,15 @@ export function compressImage(file, max = 400) {
     r.readAsDataURL(file);
   });
 }
+
+// Menús desplegables (⋮, Ajustes): si al abrirse se salen de la pantalla, se anclan del otro lado.
+document.addEventListener('toggle', e => {
+  const d = e.target;
+  if (!(d instanceof HTMLDetailsElement) || !d.open) return;
+  const m = d.querySelector(':scope > .more-menu');
+  if (!m) return;
+  m.style.left = m.style.right = '';
+  const r = m.getBoundingClientRect(), vw = document.documentElement.clientWidth;
+  if (r.left < 8) { m.style.left = '0'; m.style.right = 'auto'; }
+  else if (r.right > vw - 8) { m.style.right = '0'; m.style.left = 'auto'; }
+}, true);

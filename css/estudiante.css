@@ -301,8 +301,6 @@ a.practice-card:hover{box-shadow:0 0 0 2px var(--accent)}
 .scoreboard > .icon-btn{width:auto; padding:0 12px; background:rgba(255,255,255,.85); border-radius:12px}
 .retos-locked li > :last-child{flex:none; width:40px; height:32px; overflow:hidden; border-radius:8px}
 .retos-locked li > :last-child svg{width:32px; height:32px}
-.retos-locked li b{white-space:nowrap}
-.retos-locked li .small{white-space:nowrap}
 .retos-locked li{align-items:center}
 .retos-locked li > :last-child{width:auto; height:auto; overflow:visible; border-radius:0}
 .rl-txt{flex:1; display:flex; flex-direction:column; min-width:0}
@@ -312,6 +310,8 @@ a.practice-card:hover{box-shadow:0 0 0 2px var(--accent)}
 .rl-prize > :first-child svg{width:30px; height:30px}
 @media (max-width:560px){ .rl-prize .small{display:none} }
 
+/* Camino en PC/tablet: el desplazamiento lateral (±56px) cabe dentro del ancho */
+.node{width:min(420px, calc(100% - 112px))}
 /* ---------- Ajustes para pantallas pequeñas (2026-11-20) ----------
    Nada puede ser más ancho que la pantalla: si algo se sale, el navegador del celular aleja toda la página. */
 html,body{overflow-x:clip}

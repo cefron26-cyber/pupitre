@@ -2,6 +2,8 @@
 import { activities, units, assignments, attempts, courses, users, resetDemo } from '../storage.js';
 import { esc, el, $, toast, confirmDialog, fmtDate, fmtAgo, fmtDuration, grade, icons } from '../ui.js';
 import { templates, templateList } from '../templates/index.js';
+import { armarCrucigrama } from '../templates/crossword.js';
+import { letras } from '../templates/wordsearch.js';
 import { mountPlayer } from '../player.js';
 import { progressOf, activityIdsOf, gradeLabel } from '../logic.js';
 import { themePicker, DEFAULT_THEME, themeById } from '../temas.js';
@@ -539,6 +541,7 @@ export function snippet(a) {
     default: return '';
   }
 }
+const cwCache = new Map();
 // Miniatura real (como las de Wordwall): una vista en pequeño de la actividad con su contenido, no arte decorativo.
 export function actThumb(a) {
   const c = a.content || {}, e = x => esc(String(x ?? '')), cut = (x, n) => { x = String(x ?? ''); return x.length > n ? x.slice(0, n - 1) + '…' : x; };
@@ -564,8 +567,15 @@ export function actThumb(a) {
     }
     case 'hangman': body = `<span class="mt-hang">${'<i></i>'.repeat(Math.min(String(c.items?.[0]?.word || '').length, 9))}</span><span class="mt-doc">${e(cut(c.items?.[0]?.hint || '', 30))}</span>`; break;
     case 'crossword': {
-      const w = (c.items || []).slice(0, 3).map(i => String(i.answer || '').toUpperCase());
-      body = `<span class="mt-cw">${w.map((x, k) => `<span style="margin-left:${k * 14}px">${[...x].map(() => '<i></i>').join('')}</span>`).join('')}</span>`;
+      // Un crucigrama de verdad en pequeño (palabras cruzadas); se arma una vez por actividad y se recuerda.
+      const ans = (c.items || []).map(i => String(i.answer || '')).filter(x => letras(x).length >= 2).slice(0, 6);
+      if (!ans.length) { body = `<b class="mt-q">${e(snippet(a))}</b>`; break; }
+      const clave = a.id + '|' + ans.join(',');
+      if (!cwCache.has(clave)) cwCache.set(clave, armarCrucigrama(ans));
+      const L = cwCache.get(clave), px = Math.max(5, Math.min(13, Math.floor(92 / L.h), Math.floor(200 / L.w)));
+      const casillas = new Set();
+      for (const p of L.words) for (let k = 0; k < p.len; k++) casillas.add(p.dir === 'h' ? `${p.r},${p.c + k}` : `${p.r + k},${p.c}`);
+      body = `<span class="mt-cw" style="--px:${px}px;grid-template-columns:repeat(${L.w},${px}px);grid-template-rows:repeat(${L.h},${px}px)">${[...casillas].map(k => { const [r, cc] = k.split(',').map(Number); return `<i style="grid-area:${r + 1}/${cc + 1}"></i>`; }).join('')}</span>`;
       break;
     }
     default: body = `<b class="mt-q">${e(snippet(a))}</b>`;

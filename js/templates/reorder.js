@@ -1,17 +1,23 @@
-// Plantilla Reordenar oraciones: el estudiante ordena las palabras (tocar o arrastrar).
+// Plantilla Reordenar oraciones: la oración aparece desordenada en una línea y el estudiante arrastra las palabras;
+// se reacomodan en vivo y cada palabra que cae en su lugar se pone verde y queda fija. Tocar dos palabras las cambia.
+// En evaluación (respuestas ocultas) no se fija nada: se ordena y se comprueba al final.
 import { evalMode, neutralFb, el, esc, icons, shuffle } from '../ui.js';
 import { norm } from './fill.js';
 
 const tokens = s => s.trim().split(/\s+/).filter(Boolean);
 
+// Desordena procurando que ninguna palabra arranque ya en su lugar (quedaría fija desde el inicio).
 function scramble(words) {
   const idx = words.map((_, i) => i);
   if (words.length < 2) return idx;
-  for (let t = 0; t < 20; t++) {
+  const enSuLugar = s => s.filter((wi, k) => norm(words[wi]) === norm(words[k])).length;
+  let mejor = [...idx].reverse();
+  for (let t = 0; t < 60; t++) {
     const s = shuffle(idx);
-    if (s.map(i => words[i]).join(' ') !== words.join(' ')) return s;
+    if (enSuLugar(s) < enSuLugar(mejor)) mejor = s;
+    if (!enSuLugar(mejor)) break;
   }
-  return idx.reverse();
+  return mejor;
 }
 
 export default {
@@ -61,127 +67,175 @@ export default {
 
   render(root, content, saved, { onProgreso, onTerminar }) {
     const total = content.items.length;
-    const fresh = i => ({ placed: [], pool: scramble(tokens(content.items[i].sentence)) });
-    const st = saved || { i: 0, ...fresh(0), checked: false, answers: [] };
+    const hide = evalMode.hide; // en evaluación no se marca nada hasta el final
+    const fresh = i => ({ order: scramble(tokens(content.items[i].sentence)), checked: false });
+    // Progreso de la versión anterior (palabras en dos zonas): se empieza la oración de nuevo.
+    const st = saved?.order ? saved : { i: saved?.i || 0, answers: saved?.answers || [], ...fresh(saved?.i || 0) };
+    const words = () => tokens(content.items[st.i].sentence);
     const save = () => onProgreso({ ...st, done: st.answers.length, total });
 
-    let slots, pool;
+    // Una palabra queda fija cuando está en su lugar (se compara el texto: dos "the" valen igual).
+    const fija = k => !hide && norm(words()[st.order[k]]) === norm(words()[k]);
+    let linea, sel = null;
+    const nodo = wi => linea.querySelector(`[data-wi="${wi}"]`);
+    const sinMovimiento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const draw = () => {
-      const words = tokens(content.items[st.i].sentence);
+      const w = words();
+      sel = null;
       root.innerHTML = '';
-      const wrap = el(`<div>
-        <div class="small muted" style="margin-bottom:6px">Oración ${st.i + 1} de ${total} · Toca o arrastra las palabras en orden</div>
-        <div class="slots" aria-label="Tu oración"></div>
-        <div class="pool" aria-label="Palabras disponibles"></div>
-        <div class="fb-slot" role="status" aria-live="polite"><div class="row end" style="margin-top:20px">
-          <button class="btn ghost" type="button" data-reset>Reiniciar</button>
-          <button class="btn" type="button" data-check>Comprobar</button></div></div>
+      const wrap = el(`<div class="reorder">
+        <div class="small muted" style="margin-bottom:6px">Oración ${st.i + 1} de ${total} · ${hide ? 'Ordena las palabras y comprueba' : 'Arrastra las palabras hasta ordenar la oración'}</div>
+        <div class="slots linea" aria-label="Oración desordenada"></div>
+        <div class="fb-slot" role="status" aria-live="polite">${hide && !st.checked ? `<div class="row end" style="margin-top:20px">
+          <button class="btn" type="button" data-check>Comprobar</button></div>` : ''}</div>
       </div>`);
-      slots = wrap.querySelector('.slots');
-      pool = wrap.querySelector('.pool');
-      const mk = (wi, where) => {
-        const b = el(`<button class="word" type="button">${esc(words[wi])}</button>`);
+      linea = wrap.querySelector('.linea');
+      st.order.forEach((wi, k) => {
+        const b = el(`<button class="word" type="button">${esc(w[wi])}</button>`);
         b.dataset.wi = wi;
-        if (!st.checked) attachDrag(b, where);
-        else b.disabled = true;
-        return b;
-      };
-      st.placed.forEach(wi => slots.append(mk(wi, 'placed')));
-      st.pool.forEach(wi => pool.append(mk(wi, 'pool')));
-      wrap.querySelector('[data-reset]').onclick = () => { st.pool = [...st.placed, ...st.pool]; st.placed = []; save(); draw(); };
-      wrap.querySelector('[data-check]').onclick = check;
+        if (fija(k)) marcar(b, false);
+        if (st.checked) b.disabled = true; else attach(b);
+        linea.append(b);
+      });
+      wrap.querySelector('[data-check]')?.addEventListener('click', comprobar);
       root.append(wrap);
       if (st.checked) showFeedback();
     };
 
-    // Tocar: mueve entre zonas. Arrastrar (puntero/táctil): inserta en la posición soltada.
-    const attachDrag = (b, where) => {
-      b.draggable = false;
-      b.addEventListener('dragstart', e => e.preventDefault()); // evita el arrastre nativo que cancela el puntero
-      b.addEventListener('pointerdown', e => {
-        if (e.button !== 0) return;
-        e.preventDefault(); // sin selección de texto ni arrastre nativo
-        const sx = e.clientX, sy = e.clientY;
-        let ghost = null, marker = null, target = null, index = 0;
-        const wi = +b.dataset.wi;
+    const marcar = (b, animar) => {
+      b.classList.add('ok', 'fija');
+      if (animar) b.classList.add('recien');
+      b.setAttribute('aria-disabled', 'true');
+      b.setAttribute('aria-label', `${b.textContent}, en su lugar`);
+      b.classList.remove('sel');
+    };
 
+    // Reacomoda los botones según st.order con animación (FLIP): nada se redibuja.
+    const acomodar = () => {
+      const antes = new Map([...linea.children].map(b => [b, b.getBoundingClientRect()]));
+      st.order.forEach(wi => linea.append(nodo(wi)));
+      if (sinMovimiento()) return;
+      for (const [b, r] of antes) {
+        const n = b.getBoundingClientRect(), dx = r.left - n.left, dy = r.top - n.top;
+        if (dx || dy) b.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { id: 'acomodo', duration: 180, easing: 'cubic-bezier(.2,.8,.3,1)' });
+      }
+    };
+
+    // Mueve la palabra wi al lugar de otra, solo entre las que no están fijas (las fijas no se corren).
+    const mover = (wi, destinoWi) => {
+      const libres = st.order.map((_, k) => k).filter(k => !fija(k));
+      const seq = libres.map(k => st.order[k]);
+      const a = seq.indexOf(wi), b = seq.indexOf(destinoWi);
+      if (a < 0 || b < 0 || a === b) return false;
+      seq.splice(a, 1); seq.splice(b, 0, wi);
+      libres.forEach((k, j) => { st.order[k] = seq[j]; });
+      acomodar();
+      return true;
+    };
+    const intercambiar = (x, y) => {
+      const a = st.order.indexOf(x), b = st.order.indexOf(y);
+      [st.order[a], st.order[b]] = [y, x];
+      acomodar();
+    };
+
+    // Al soltar: las que quedaron bien se fijan; si todas están bien, la oración está lista.
+    const asentar = () => {
+      save();
+      if (hide) return;
+      st.order.forEach((wi, k) => { const b = nodo(wi); if (fija(k) && !b.classList.contains('fija')) marcar(b, true); });
+      if (st.order.every((_, k) => fija(k))) {
+        linea.querySelectorAll('.word').forEach(b => { b.disabled = true; });
+        setTimeout(() => terminarOracion(true), 500);
+      }
+    };
+
+    const attach = b => {
+      const wi = +b.dataset.wi;
+      b.draggable = false;
+      b.addEventListener('dragstart', e => e.preventDefault());
+      b.addEventListener('pointerdown', e => {
+        if (e.button !== 0 || b.classList.contains('fija') || st.checked) return;
+        e.preventDefault();
+        const sx = e.clientX, sy = e.clientY;
+        let ghost = null, dx = 0, dy = 0;
         const move = ev => {
-          if (!ghost && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 8) return;
+          if (!ghost && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
           if (!ghost) {
             const r = b.getBoundingClientRect();
-            ghost = b.cloneNode(true); ghost.classList.add('ghost');
+            dx = sx - r.left; dy = sy - r.top;
+            ghost = b.cloneNode(true); ghost.classList.add('ghost'); ghost.classList.remove('sel');
             ghost.style.width = r.width + 'px';
             document.body.append(ghost);
             b.classList.add('dragging');
-            marker = el('<i class="drop-marker"></i>');
+            if (sel !== null) nodo(sel)?.classList.remove('sel');
+            sel = null;
           }
-          ghost.style.left = ev.clientX - ghost.offsetWidth / 2 + 'px';
-          ghost.style.top = ev.clientY - ghost.offsetHeight / 2 + 'px';
-          const over = document.elementFromPoint(ev.clientX, ev.clientY);
-          target = over?.closest('.slots') || over?.closest('.pool') || null;
-          marker.remove();
-          if (!target) return;
-          const kids = [...target.querySelectorAll('.word:not(.dragging)')];
-          index = kids.length;
-          for (let k = 0; k < kids.length; k++) {
-            const r = kids[k].getBoundingClientRect();
-            const sameRow = ev.clientY >= r.top - 6 && ev.clientY <= r.bottom + 6;
-            if ((sameRow && ev.clientX < r.left + r.width / 2) || ev.clientY < r.top - 6) { index = k; break; }
-          }
-          target.insertBefore(marker, kids[index] || null);
+          ghost.style.left = ev.clientX - dx + 'px';
+          ghost.style.top = ev.clientY - dy + 'px';
+          // La palabra libre que está bajo el dedo cede su lugar en el acto.
+          const t = [...linea.querySelectorAll('.word:not(.fija):not(.dragging)')].find(x => {
+            const r = x.getBoundingClientRect();
+            return ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top - 4 && ev.clientY <= r.bottom + 4;
+          });
+          // (mientras una palabra todavía se desliza no se vuelve a mover: evita que tiemble)
+          if (t && !t.getAnimations().some(a => a.id === 'acomodo')) mover(wi, +t.dataset.wi);
         };
         const up = ev => {
           window.removeEventListener('pointermove', move);
           window.removeEventListener('pointerup', up);
           window.removeEventListener('pointercancel', up);
-          if (ev.type === 'pointercancel') { ghost?.remove(); marker?.remove(); b.classList.remove('dragging'); return; }
-          if (!ghost) { // fue un toque
-            if (where === 'pool') { st.pool.splice(st.pool.indexOf(wi), 1); st.placed.push(wi); }
-            else { st.placed.splice(st.placed.indexOf(wi), 1); st.pool.push(wi); }
-            save(); draw(); return;
+          if (ghost) {
+            const r = b.getBoundingClientRect(), g = ghost.getBoundingClientRect();
+            ghost.remove(); b.classList.remove('dragging');
+            if (!sinMovimiento()) b.animate([{ transform: `translate(${g.left - r.left}px,${g.top - r.top}px)` }, { transform: 'none' }], { duration: 160, easing: 'ease-out' });
+            asentar();
+            return;
           }
-          ghost.remove(); marker.remove(); b.classList.remove('dragging');
-          if (!target) return;
-          const from = where === 'pool' ? st.pool : st.placed;
-          from.splice(from.indexOf(wi), 1);
-          const to = target.classList.contains('slots') ? st.placed : st.pool;
-          to.splice(Math.min(index, to.length), 0, wi);
-          save(); draw();
+          if (ev.type !== 'pointercancel') tocar(wi);
         };
         window.addEventListener('pointermove', move);
         window.addEventListener('pointerup', up);
         window.addEventListener('pointercancel', up);
       });
-      // Teclado: Enter/Espacio también mueven (el click sintético no pasa por pointerdown)
+      // Teclado: Enter/Espacio elige y cambia; las flechas corren la palabra un lugar.
       b.addEventListener('keydown', e => {
-        if (e.key !== 'Enter' && e.key !== ' ') return;
+        if (b.classList.contains('fija') || st.checked) return;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tocar(wi); return; }
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
         e.preventDefault();
-        const wi = +b.dataset.wi;
-        if (where === 'pool') { st.pool.splice(st.pool.indexOf(wi), 1); st.placed.push(wi); }
-        else { st.placed.splice(st.placed.indexOf(wi), 1); st.pool.push(wi); }
-        save(); draw();
-        root.querySelector(where === 'pool' ? '.pool .word' : '.slots .word:last-child')?.focus();
+        const libres = [...linea.querySelectorAll('.word:not(.fija)')];
+        const vecino = libres[libres.indexOf(b) + (e.key === 'ArrowLeft' ? -1 : 1)];
+        if (vecino && mover(wi, +vecino.dataset.wi)) { asentar(); b.focus(); }
       });
     };
 
-    const check = () => {
-      const words = tokens(content.items[st.i].sentence);
-      if (st.pool.length) {
-        const slot = root.querySelector('.fb-slot');
-        slot.querySelector('.hint')?.remove();
-        slot.prepend(el(`<p class="hint" style="color:var(--danger);text-align:right">Usa todas las palabras.</p>`));
-        return;
-      }
-      const given = st.placed.map(i => words[i]).join(' ');
-      st.answers.push({ item: st.i, question: content.items[st.i].sentence, given, correct: norm(given) === norm(words.join(' ')) });
+    // Tocar una palabra la elige; tocar otra las cambia de lugar.
+    const tocar = wi => {
+      const b = nodo(wi);
+      if (sel === null) { sel = wi; b.classList.add('sel'); return; }
+      const otro = sel; sel = null;
+      nodo(otro)?.classList.remove('sel');
+      if (otro === wi) return;
+      intercambiar(otro, wi);
+      asentar();
+    };
+
+    const comprobar = () => {
+      const w = words();
+      terminarOracion(norm(st.order.map(i => w[i]).join(' ')) === norm(w.join(' ')));
+    };
+
+    const terminarOracion = correct => {
+      if (st.checked) return;
+      const w = words();
+      st.answers.push({ item: st.i, question: content.items[st.i].sentence, given: st.order.map(i => w[i]).join(' '), correct });
       st.checked = true; save(); draw();
     };
 
     const showFeedback = () => {
       const a = st.answers.find(x => x.item === st.i);
-      const hide = evalMode.hide;
-      if (!hide) slots.classList.add(a.correct ? 'ok' : 'bad');
+      if (!hide) linea.classList.add(a.correct ? 'ok' : 'bad');
       const last = st.i === total - 1;
       const fb = el(`<div class="feedback ${hide ? 'neutral' : a.correct ? 'ok' : 'bad'}">
         ${hide ? neutralFb() : `<span>${a.correct ? '¡Perfecto!' : `Correcta: <b>${esc(content.items[st.i].sentence)}</b>`}</span>`}
@@ -192,7 +246,7 @@ export default {
     };
 
     const next = () => {
-      if (st.i < total - 1) { st.i++; Object.assign(st, fresh(st.i), { checked: false }); save(); draw(); return; }
+      if (st.i < total - 1) { st.i++; Object.assign(st, fresh(st.i)); save(); draw(); return; }
       onTerminar({ score: st.answers.filter(a => a.correct).length, maxScore: total, answers: st.answers });
     };
 

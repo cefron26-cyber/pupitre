@@ -86,7 +86,7 @@ export async function unitWizard(root, { user }) {
 
   const pintarPasos = () => {
     $('#pasos', root).innerHTML = PASOS.map((p, i) =>
-      `<li class="${i === s.paso ? 'now' : i < s.paso ? 'done' : ''}" ${i === s.paso ? 'aria-current="step"' : ''}><span>${i < s.paso ? '✓' : i + 1}</span>${p}</li>`).join('');
+      `<li class="${i === s.paso ? 'now' : i < s.paso ? 'done' : ''}" ${i === s.paso ? 'aria-current="step"' : ''}><span>${i < s.paso ? '✓' : i + 1}</span><em class="uw-lbl">${p}</em></li>`).join('');
   };
   const pie = (sig = 'Siguiente', { opcional = false } = {}) => `<p class="errors" id="err" hidden role="alert"></p>
     <div class="row between uw-foot">

@@ -8,16 +8,29 @@ const FILAS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
 const valida = s => /^[\p{L}\s'-]+$/u.test(s.trim());
 const base = ch => letras(ch); // "é" → "E"; espacio/guion → ""
 
-// Dibujo en partes: se muestran tantas como errores, repartidas según las vidas.
+// Dibujo en 10 partes (escena con pasto, horca de madera y un personaje con cara). Se arma una sola vez;
+// cada error enciende la parte siguiente (solo esa se anima) y la cara cambia según lo cerca que está de perder.
+const MADERA = 'fill="#c58b4f" stroke="#6b4423" stroke-width="3" stroke-linejoin="round"';
+const PIEL = '#ffd3ad', TINTA = '#3a2a20', CAMISA = 'var(--hm-camisa, #4f7cff)', PANTALON = '#34405a';
 const PARTES = [
-  '<path d="M14 112h66" class="hm-base"/>', '<path d="M30 112V10" class="hm-base"/>', '<path d="M30 10h52" class="hm-base"/>',
-  '<path d="M82 10v14" class="hm-base"/>', '<circle cx="82" cy="34" r="10"/>', '<path d="M82 44v30"/>',
-  '<path d="M82 52l-14 12"/>', '<path d="M82 52l14 12"/>', '<path d="M82 74l-12 18"/>', '<path d="M82 74l12 18"/>',
+  `<ellipse cx="100" cy="190" rx="94" ry="13" fill="#86cf63"/><path d="M18 186q5-9 9 0M58 189q4-7 8 0M156 185q5-9 9 0M176 189q3-6 6 0" stroke="#4e9a35" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  `<rect x="20" y="176" width="46" height="13" rx="4" ${MADERA}/><rect x="36" y="22" width="14" height="158" rx="3" ${MADERA}/><path d="M43 40v120" stroke="#a36f3c" stroke-width="2" stroke-dasharray="10 14"/>`,
+  `<rect x="30" y="16" width="118" height="14" rx="3" ${MADERA}/><circle cx="43" cy="23" r="2.5" fill="#6b4423"/>`,
+  `<path d="M50 64L84 30" stroke="#6b4423" stroke-width="12" stroke-linecap="round"/><path d="M50 64L84 30" stroke="#c58b4f" stroke-width="6" stroke-linecap="round"/><path d="M132 30v22" stroke="#b08850" stroke-width="4" stroke-linecap="round"/><path d="M132 30v22" stroke="#e2c48e" stroke-width="2" stroke-dasharray="3 3"/>`,
+  `<circle cx="132" cy="70" r="17" fill="${PIEL}" stroke="${TINTA}" stroke-width="3"/><path d="M116 66q4-16 16-17 13 0 17 15-8-7-17-6-9 0-16 8z" fill="#5a3a22"/><circle cx="125.5" cy="71" r="2.4" fill="${TINTA}"/><circle cx="138.5" cy="71" r="2.4" fill="${TINTA}"/><circle cx="121" cy="77" r="3" fill="#ff9d9d" opacity=".7"/><circle cx="143" cy="77" r="3" fill="#ff9d9d" opacity=".7"/><path data-boca d="M126 78q6 5 12 0" stroke="${TINTA}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+  `<rect x="119" y="88" width="26" height="40" rx="10" fill="${CAMISA}" stroke="${TINTA}" stroke-width="3"/><path d="M127 89l5 7 5-7" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>`,
+  `<path d="M121 96l-16 20" stroke="${TINTA}" stroke-width="10" stroke-linecap="round"/><path d="M121 96l-16 20" stroke="${CAMISA}" stroke-width="5" stroke-linecap="round"/><circle cx="104" cy="118" r="4.5" fill="${PIEL}" stroke="${TINTA}" stroke-width="2.5"/>`,
+  `<path d="M143 96l16 20" stroke="${TINTA}" stroke-width="10" stroke-linecap="round"/><path d="M143 96l16 20" stroke="${CAMISA}" stroke-width="5" stroke-linecap="round"/><circle cx="160" cy="118" r="4.5" fill="${PIEL}" stroke="${TINTA}" stroke-width="2.5"/>`,
+  `<path d="M126 126l-6 30" stroke="${TINTA}" stroke-width="11" stroke-linecap="round"/><path d="M126 126l-6 30" stroke="${PANTALON}" stroke-width="6" stroke-linecap="round"/><ellipse cx="116" cy="159" rx="8" ry="4.5" fill="${TINTA}"/>`,
+  `<path d="M138 126l6 30" stroke="${TINTA}" stroke-width="11" stroke-linecap="round"/><path d="M138 126l6 30" stroke="${PANTALON}" stroke-width="6" stroke-linecap="round"/><ellipse cx="148" cy="159" rx="8" ry="4.5" fill="${TINTA}"/>`,
 ];
+// Orden de pintado: el cuerpo va detrás de la cabeza y de los brazos.
+const CAPAS = [0, 1, 2, 3, 5, 8, 9, 6, 7, 4];
+const BOCAS = { feliz: 'M126 78q6 5 12 0', serio: 'M126 79.5h12', preocupado: 'M126 81q6-5 12 0', triste: 'M125 83q7-8 14 0' };
+const visiblesDe = (errores, vidas) => Math.max(0, PARTES.length - vidas) + errores; // con menos de 10 vidas el andamio ya está
 function dibujo(errores, vidas) {
-  // Con menos de 10 vidas, el andamio arranca dibujado y cada error suma una parte de la figura.
-  const visibles = Math.max(0, PARTES.length - vidas) + errores;
-  return `<svg viewBox="0 0 110 120" class="hm-svg" aria-hidden="true">${PARTES.map((p, k) => k < visibles ? p : '').join('')}</svg>`;
+  const vis = visiblesDe(errores, vidas);
+  return `<svg viewBox="0 0 200 205" class="hm-svg" aria-hidden="true">${CAPAS.map(k => `<g class="hm-p ${k < vis ? 'on' : ''}" data-p="${k}">${PARTES[k]}</g>`).join('')}</svg>`;
 }
 
 export default {
@@ -98,10 +111,13 @@ export default {
       const hint = (item().hint || '').trim();
       const wrap = el(`<div class="hm">
         <div class="small muted" style="margin-bottom:12px">Palabra ${st.i + 1} de ${total} · Toca las letras o usa el teclado</div>
-        ${hint ? `<p class="q-title hm-hint">${esc(hint)}</p>` : ''}
         <div class="hm-play">
-          <div class="hm-fig">${dibujo(errores(), vidas)}<div class="hm-lives" data-lives></div></div>
-          <div class="hm-word" data-word aria-live="polite"></div>
+          <div class="hm-fig">${dibujo(errores(), vidas)}</div>
+          <div class="hm-side">
+            <p class="hm-hint">${hint ? esc(hint) : '&nbsp;'}</p>
+            <div class="hm-word" data-word aria-live="polite"></div>
+            <div class="hm-lives" data-lives></div>
+          </div>
         </div>
         <div class="hm-keys" aria-label="Teclado">${FILAS.map(f => `<div class="hm-row">${[...f].map(l => `<button class="hm-key" type="button" data-l="${l}" aria-label="Letra ${l}">${l}</button>`).join('')}</div>`).join('')}</div>
         <div class="fb-slot" role="status" aria-live="polite"></div>
@@ -120,10 +136,14 @@ export default {
 
     const pintar = () => {
       ui.word.innerHTML = palabraHTML(st.over && !hide());
-      ui.fig.querySelector('svg').outerHTML = dibujo(errores(), vidas);
-      const quedan = vidas - errores();
-      ui.lives.textContent = `${'♥'.repeat(Math.max(0, quedan))}${'♡'.repeat(Math.min(vidas, errores()))}`;
+      // Solo se enciende lo nuevo: lo ya dibujado no vuelve a animarse.
+      const err = errores(), vis = visiblesDe(err, vidas), quedan = Math.max(0, vidas - err);
+      ui.fig.querySelectorAll('.hm-p').forEach(g => g.classList.toggle('on', +g.dataset.p < vis));
+      const cara = st.over && !gano() ? 'triste' : st.over ? 'feliz' : quedan <= 1 ? 'preocupado' : quedan <= vidas / 2 ? 'serio' : 'feliz';
+      ui.fig.querySelector('[data-boca]')?.setAttribute('d', BOCAS[cara]);
+      ui.lives.innerHTML = Array.from({ length: vidas }, (_, k) => `<i class="${k < quedan ? 'on' : ''}"></i>`).join('');
       ui.lives.setAttribute('aria-label', `Te quedan ${quedan} intentos`);
+      ui.lives.setAttribute('role', 'img');
     };
 
     const adivinar = l => {

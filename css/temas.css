@@ -362,6 +362,10 @@
 .escenario.tematico[data-tema] .match-item.matched,.escenario.tematico[data-tema] .classify-card.ok{background:var(--f1, none) center/100% 100% no-repeat; color:var(--t-ink); filter:drop-shadow(0 0 3px var(--ok)) drop-shadow(0 0 8px var(--ok))}
 .escenario.tematico[data-tema] .match-item.wrong,.escenario.tematico[data-tema] .classify-card.bad{background:var(--f1, none) center/100% 100% no-repeat; color:var(--t-ink); filter:drop-shadow(0 0 3px var(--bad)) drop-shadow(0 0 8px var(--bad))}
 .escenario.tematico[data-tema] .slots .word{background:var(--f2, none) center/100% 100% no-repeat, var(--acc)}
+/* Reordenar en una línea: las libres son fichas normales; las que están en su lugar, verdes y fijas */
+.escenario.tematico .slots.linea .word{background:var(--t-bg); color:var(--t-ink)}
+.escenario.tematico[data-tema] .slots.linea .word{background:var(--f1, none) center/100% 100% no-repeat, var(--c-bg); color:var(--t-ink)}
+.escenario.tematico .slots.linea .word.fija,.escenario.tematico[data-tema] .slots.linea .word.fija{background:var(--ok); color:var(--ok-ink); filter:drop-shadow(0 0 3px var(--ok)); transform:none}
 .escenario.tematico[data-tema] .mem-card .back{background:var(--f1, none) center/100% 100% no-repeat; border:0; box-shadow:none; filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
 .escenario.tematico[data-tema] .mem-card{aspect-ratio:4/3}
 
@@ -569,12 +573,11 @@
 .escenario.tematico .ws-cell.miss{background:var(--bad); color:var(--bad-ink)}
 .escenario.tematico .ws-word{font-family:var(--t-font); box-shadow:var(--t-sh); border-radius:min(var(--t-r),14px)}
 .escenario.tematico .ws-word.done{background:var(--ok); color:var(--ok-ink)}
-.escenario.tematico .hm-play{padding:14px 20px; border-radius:22px; background:var(--e-panel); box-shadow:0 8px 22px rgba(0,0,0,.18)}
-.escenario.tematico .hm-svg{stroke:var(--e-panel-ink)}
-.escenario.tematico .hm-svg path:not(.hm-base),.escenario.tematico .hm-svg circle{stroke:var(--bad)}
+.escenario.tematico .hm-play{background:var(--e-panel); border:0; box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.escenario.tematico .hm-hint{color:var(--e-panel-ink); font-family:var(--t-font); font-size:clamp(18px,2.8cqi,30px)}
+.escenario.tematico .hm-svg{--hm-camisa:var(--acc)}
 .escenario.tematico .hm-slot,.escenario.tematico .hm-sym{color:var(--e-panel-ink); border-color:var(--e-panel-ink); font-family:var(--t-font)}
 .escenario.tematico .hm-slot.reveal{color:var(--bad-txt)}
-.escenario.tematico .hm-lives{color:var(--bad)}
 .escenario.tematico .hm-key{background:var(--t-bg); color:var(--t-ink); border:var(--t-bd); border-radius:min(var(--t-r),12px); box-shadow:var(--t-sh); font-family:var(--t-font); font-size:clamp(16px,2.4cqi,24px); height:clamp(44px,6.4cqi,58px); flex-basis:clamp(30px,6.4cqi,60px)}
 .escenario.tematico .hm-key.ok,.escenario.tematico .hm-key.k-ok{background:var(--ok); color:var(--ok-ink); box-shadow:none}
 .escenario.tematico .hm-key.bad,.escenario.tematico .hm-key.k-bad{background:rgba(0,0,0,.14); color:rgba(0,0,0,.42); box-shadow:none; text-decoration:line-through}
@@ -665,6 +668,9 @@ body.inmersivo .juego-main{max-width:none; padding:0; margin:0}
 }
 .player.inmersivo{position:relative}
 .player.inmersivo:not(.tematico) .feedback.franja{position:fixed}
+/* Al revisar, la plantilla redibuja y su bloque repetía la entrada (con transform): mientras duraba, la franja
+   quedaba anclada a ese bloque, a media pantalla, y luego saltaba abajo. Con la franja puesta no hay entrada. */
+.escenario .stage > *:has(.feedback.franja){animation:none !important; transform:none !important}
 /* Aventura pixel: el contador/instrucción en letra normal (la pixel larga no se lee) */
 .escenario[data-tema="pixel"] .stage > div > .small.muted:first-child{font-family:var(--font); font-size:15px; background:#fff; color:#13213f; letter-spacing:0}
 /* Presentar: cada pregunta es una "actividad" de 1, así que el "Pregunta 1 de 1" de la plantilla sobra (el contador está abajo) */
@@ -741,3 +747,11 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .player.inmersivo .feedback.franja.bad .btn{background:#e5484d !important; box-shadow:0 5px 0 #b3261e !important}
 /* El aviso inicial va abajo para no tapar la instrucción */
 .juego-aviso{top:auto; bottom:20px}
+
+/* ---------- Auditoría de layout PC/teléfono (2026-11-20) ---------- */
+/* La barra de arriba (salir, sonido) queda sobre la portada */
+.player.inmersivo.tematico .player-top{z-index:6}
+/* Pizarra: los grupos de Clasificar también en tiza, para que se lea su nombre */
+.escenario[data-tema="pizarra"] .bin{background:rgba(0,0,0,.18) !important; color:#f6f3e7 !important; border:2px dashed rgba(246,243,231,.6) !important}
+/* Nubes: texto largo de Emparejar dentro de la nube */
+.escenario[data-tema="cielo"] .match-item{padding-top:18px; padding-bottom:12px; line-height:1.1}
