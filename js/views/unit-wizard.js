@@ -6,7 +6,7 @@ import { gradeLabel } from '../logic.js';
 import { esc, $, $$, toast, confirmDialog, icons } from '../ui.js';
 import { templates } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
-import { estadoIA, generar, TIPOS_IA } from '../ia.js';
+import { estadoIA, generar, TIPOS_IA, asegurarClave } from '../ia.js';
 
 // Sin el ícono de destellos (estereotipo de IA, revisión 2026-11-19).
 const SPARK = '';
@@ -277,6 +277,11 @@ export async function unitWizard(root, { user }) {
     async function correr() {
       if (corriendo) return;
       corriendo = true;
+      if (!(await asegurarClave())) {
+        corriendo = false;
+        lista.forEach(x => { if (x.estado === 'pendiente') { x.estado = 'error'; x.error = 'Falta tu clave de Gemini.'; } });
+        dibujar(); terminar(); return;
+      }
       $('#gTit', form).textContent = 'Creando la unidad…';
       for (const x of lista) {
         if (x.estado !== 'pendiente') continue;

@@ -1,6 +1,7 @@
-// Reproductor de las voces de Microsoft (Audio y Dictado). Pide el MP3 a nuestro servidor (/api/voz)
-// y lo guarda en memoria; si no hay servidor, internet o edge-tts, usa la voz del navegador (speak).
-import { speak, stopSpeaking, ttsAvailable } from './ui.js';
+// Reproductor de voces (Audio y Dictado). Con servidor propio: voces neuronales de Microsoft (MP3 de /api/voz).
+// Sin servidor (GitHub Pages): voces del navegador, una distinta por personaje (mujer, hombre, niña, acento
+// británico, abuelos…), con tono y velocidad propios para que los diálogos se distingan.
+import { stopSpeaking, ttsAvailable } from './ui.js';
 import { VOCES, VOZ_DEFECTO, esVoz } from './voces.mjs';
 
 export { VOCES, VOZ_DEFECTO };
@@ -34,6 +35,7 @@ export function prepararVoz(segmentos, velocidad = 1) {
 
 let actual = null; // { audio, fin }
 export function detenerVoz() {
+  turno++;
   stopSpeaking();
   if (actual) { actual.audio.pause(); actual.fin(false); actual = null; }
 }
@@ -47,10 +49,8 @@ export async function reproducirVoz(segmentos, { velocidad = 1, onInicio, onAvan
     if (e.message !== 'sin-voz') console.warn('[Voz]', e.message);
   }
   if (!url) {
-    // Respaldo: voz del navegador.
     if (!ttsAvailable()) return { ok: false, microsoft: false };
-    onInicio?.();
-    const ok = await speak(segmentos.map(s => s.texto).join('\n'), { rate: velocidad });
+    const ok = await hablarNavegador(segmentos, velocidad, { onInicio, onAvance });
     return { ok, microsoft: false };
   }
   return new Promise(resolve => {
@@ -63,4 +63,74 @@ export async function reproducirVoz(segmentos, { velocidad = 1, onInicio, onAvan
     audio.onerror = () => { if (actual === yo) actual = null; yo.fin(false); };
     audio.play().then(() => onInicio?.()).catch(() => { if (actual === yo) actual = null; yo.fin(false); });
   });
+}
+
+// ---------- Voces del navegador ----------
+// Para cada voz del catálogo: género de la voz base, acento, tono (pitch 0-2) y ajuste de velocidad.
+const PERFIL = {
+  nina: ['f', 'US', 1.5, 0.95, 0], nina_uk: ['f', 'GB', 1.5, 0.95, 0],
+  nino: ['m', 'US', 1.55, 0.97, 0], nino_uk: ['m', 'GB', 1.55, 0.97, 0],
+  mujer: ['f', 'US', 1, 1, 0], mujer2: ['f', 'US', 1.08, 1, 1], mujer3: ['f', 'US', 0.94, 1, 2], mujer_uk: ['f', 'GB', 1, 1, 0],
+  hombre: ['m', 'US', 1, 1, 0], hombre2: ['m', 'US', 0.92, 1, 1], hombre3: ['m', 'US', 1.06, 1, 2], hombre_uk: ['m', 'GB', 1, 1, 0],
+  abuela: ['f', 'GB', 0.85, 0.85, 1], abuelo: ['m', 'US', 0.7, 0.85, 1],
+  narradora: ['f', 'US', 1, 0.97, 1], narrador: ['m', 'US', 0.95, 0.97, 1],
+};
+// Nombres de voces conocidas (Windows, macOS, iOS, Android, Chrome, Edge) para adivinar el género.
+const FEM = /female|woman|jenny|aria|ava|emma|michelle|ana\b|libby|sonia|maisie|samantha|zira|susan|hazel|karen|moira|tessa|victoria|allison|serena|kate|fiona|catherine|nicky|joanna|salli|kimberly|ivy|amy|emily|natasha|clara|jane|nancy|sara|google us english$/i;
+const MAS = /\bmale|\bman\b|guy|andrew|brian|ryan|christopher|eric|thomas|david|mark|daniel|alex|fred|george|james|aaron|arthur|gordon|oliver|rishi|tom\b|matthew|joey|justin|roger|steffan|william|liam/i;
+const generoDe = v => (MAS.test(v.name) && !/female/i.test(v.name) ? 'm' : FEM.test(v.name) ? 'f' : '?');
+
+function vocesIngles() {
+  const v = speechSynthesis.getVoices().filter(x => /^en[-_]/i.test(x.lang) || x.lang === 'en');
+  // Primero las naturales/en línea (suenan mejor), luego las locales.
+  return v.sort((a, b) => /natural|online|enhanced|premium/i.test(b.name) - /natural|online|enhanced|premium/i.test(a.name));
+}
+
+// Elige la voz del navegador y su tono para una voz del catálogo. Si el dispositivo no tiene una voz de ese
+// género, se usa cualquiera en inglés y el tono hace la diferencia (más grave para hombres).
+export function vozNavegador(id) {
+  const [gen, acento, tono, vel, n] = PERFIL[id] || PERFIL.mujer;
+  const todas = vocesIngles();
+  const deAcento = todas.filter(x => new RegExp(`en[-_]${acento}`, 'i').test(x.lang));
+  const pool = deAcento.length ? deAcento : todas;
+  const mismas = pool.filter(x => generoDe(x) === gen).length ? pool.filter(x => generoDe(x) === gen) : todas.filter(x => generoDe(x) === gen);
+  const voice = mismas.length ? mismas[n % mismas.length] : (pool.find(x => /en[-_]US/i.test(x.lang)) || pool[0] || null);
+  const ajusteTono = !mismas.length && gen === 'm' ? -0.35 : 0; // sin voz masculina: más grave
+  return { voice, pitch: Math.max(0.1, Math.min(2, tono + ajusteTono)), rate: vel, lang: voice?.lang || (acento === 'GB' ? 'en-GB' : 'en-US') };
+}
+
+let turno = 0;
+function decir(texto, perfil, velocidad) {
+  return new Promise(resolve => {
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = perfil.lang; u.pitch = perfil.pitch; u.rate = Math.max(0.5, Math.min(2, velocidad * perfil.rate));
+    if (perfil.voice) u.voice = perfil.voice;
+    // Chrome a veces no dispara onend: tope de tiempo estimado para no quedarse esperando.
+    const cap = setTimeout(() => resolve(true), (texto.split(/\s+/).length * 550) / u.rate + 4000);
+    u.onend = () => { clearTimeout(cap); resolve(true); };
+    u.onerror = e => { clearTimeout(cap); resolve(e.error === 'interrupted' || e.error === 'canceled' ? null : false); };
+    speechSynthesis.speak(u);
+  });
+}
+
+// Las voces del navegador cargan después de abrir la página (Chrome): esperar un momento la lista.
+const listas = () => (speechSynthesis.getVoices().length ? Promise.resolve()
+  : new Promise(r => { const t = setTimeout(r, 1200); speechSynthesis.addEventListener('voiceschanged', () => { clearTimeout(t); r(); }, { once: true }); }));
+
+async function hablarNavegador(segmentos, velocidad, { onInicio, onAvance } = {}) {
+  const yo = ++turno;
+  stopSpeaking();
+  await listas();
+  const segs = segmentos.filter(s => s.texto?.trim());
+  if (!segs.length) return false;
+  onInicio?.();
+  for (let i = 0; i < segs.length; i++) {
+    if (yo !== turno) return false;
+    onAvance?.(i / segs.length);
+    const r = await decir(segs[i].texto.trim(), vozNavegador(esVoz(segs[i].voz) ? segs[i].voz : VOZ_DEFECTO), velocidad);
+    if (r === null || yo !== turno) return false; // detenido
+    if (r === false) { onAvance?.(0); return false; }
+  }
+  onAvance?.(0);
+  return true;
 }

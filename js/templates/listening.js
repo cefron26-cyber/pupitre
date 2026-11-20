@@ -100,8 +100,9 @@ export default {
       if (ok || !root.isConnected) return;
       const a = $('[data-aviso]');
       a.hidden = false;
-      a.textContent = ttsAvailable() ? 'Las voces de Microsoft no están disponibles ahora: se usará la voz del navegador (una sola voz).'
-        : 'Este navegador no tiene voz y las voces de Microsoft no están disponibles. Sube un archivo de audio.';
+      if (ttsAvailable()) a.style.color = 'var(--muted)';
+      a.textContent = ttsAvailable() ? 'Se usan las voces de este dispositivo: cada personaje con una voz y un tono distintos. Pueden sonar un poco diferente en el celular de cada estudiante.'
+        : 'Este navegador no tiene voces en inglés. Sube un archivo de audio o abre la plataforma en Chrome o Edge.';
     });
     const probar = $('[data-try]');
     let sonando = false;

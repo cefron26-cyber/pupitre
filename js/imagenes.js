@@ -1,15 +1,41 @@
 // Buscador de imágenes de internet para los editores de Emparejar y Memoria.
-// Habla con nuestro servidor (/api/imagenes); si no hay servidor, el botón no aparece.
+// Con servidor propio usa /api/imagenes; sin servidor (GitHub Pages) busca directo en Openverse
+// (imágenes con licencia libre, API pública y gratuita que permite consultas desde el navegador).
 // elegirImagen(consulta) → { image: dataURL ≤ 400 px, credit } o null si se cancela.
 import { el, esc, $, compressImage } from './ui.js';
 
 // Solo se aceptan imágenes incrustadas (data:image). Evita que un texto raro se cuele en el atributo src.
 export const safeSrc = s => (/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(s || '') ? s : '');
 
+const OPENVERSE = 'https://api.openverse.org/v1/images';
 let estado;
-export function buscadorDisponible() {
+const conServidor = () => {
   estado ??= fetch('/api/ia/estado', { cache: 'no-store' }).then(r => (r.ok ? r.json() : {})).then(j => !!j.imagenes).catch(() => false);
   return estado;
+};
+// Siempre hay buscador: el del servidor o Openverse.
+export const buscadorDisponible = async () => true;
+
+// → [{ id, titulo, credito, src }]
+async function buscarImagenes(texto) {
+  if (await conServidor()) {
+    const r = await fetch(`/api/imagenes?q=${encodeURIComponent(texto)}`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'No se pudo buscar.');
+    return j.resultados.map(it => ({ ...it, src: `/api/imagenes/ver/${encodeURIComponent(it.id)}` }));
+  }
+  let r;
+  try { r = await fetch(`${OPENVERSE}/?q=${encodeURIComponent(texto)}&page_size=20&mature=false`); }
+  catch { throw new Error('No hay conexión a internet.'); }
+  if (r.status === 429) throw new Error('Demasiadas búsquedas seguidas. Espera un minuto.');
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error('No se pudo buscar. Intenta de nuevo.');
+  return (j.results || []).filter(x => x.id && x.thumbnail).map(x => ({
+    id: x.id,
+    titulo: x.title || texto,
+    credito: `${x.title || 'Imagen'}${x.creator ? ` · ${x.creator}` : ''} · CC ${String(x.license || '').toUpperCase()} ${x.license_version || ''} (Openverse)`.trim(),
+    src: `${OPENVERSE}/${encodeURIComponent(x.id)}/thumb/`,
+  }));
 }
 
 export const ICONO_BUSCAR = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
@@ -36,14 +62,12 @@ export function elegirImagen(consulta = '') {
       if (texto.length < 2) return msg('Escribe qué imagen buscas.', true);
       msg('Buscando…');
       try {
-        const r = await fetch(`/api/imagenes?q=${encodeURIComponent(texto)}`);
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(j.error || 'No se pudo buscar.');
-        if (!j.resultados.length) return msg('No encontré imágenes. Prueba con otra palabra (en inglés).');
+        const resultados = await buscarImagenes(texto);
+        if (!resultados.length) return msg('No encontré imágenes. Prueba con otra palabra (en inglés).');
         res.innerHTML = '';
-        for (const it of j.resultados) {
+        for (const it of resultados) {
           const b = el(`<button type="button" class="img-op" title="${esc(it.credito)}">
-            <img src="/api/imagenes/ver/${encodeURIComponent(it.id)}" alt="${esc(it.titulo)}" loading="lazy"></button>`);
+            <img src="${esc(it.src)}" alt="${esc(it.titulo)}" loading="lazy"></button>`);
           b.querySelector('img').onerror = () => b.remove();
           b.onclick = () => tomar(it, b);
           res.append(b);
@@ -55,7 +79,7 @@ export function elegirImagen(consulta = '') {
       d.querySelectorAll('.img-op').forEach(x => (x.disabled = true));
       b.classList.add('cargando');
       try {
-        const r = await fetch(`/api/imagenes/ver/${encodeURIComponent(it.id)}`);
+        const r = await fetch(it.src);
         if (!r.ok) throw new Error('No se pudo traer esa imagen. Prueba con otra.');
         elegido = { image: await compressImage(await r.blob()), credit: it.credito };
         d.close();

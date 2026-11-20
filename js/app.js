@@ -13,6 +13,7 @@ import { unitStart, unitWizard } from './views/unit-wizard.js';
 import { present } from './views/present.js';
 import { DEFAULT_PREFS, avatarSVG, backgroundVars } from './rewards.js';
 import { mundoHTML } from './mundo.js';
+import { configurarClave, claveIA } from './ia.js';
 
 const app = document.getElementById('app');
 
@@ -151,6 +152,12 @@ async function router() {
     if (await confirmDialog('Se borrarán tus resultados, XP, cofres y colección para que puedas hacer todas las actividades otra vez.', 'Reiniciar', true)) {
       await users.resetProgress(currentUser.id); toast('Listo: puedes hacer las actividades de nuevo.'); router();
     }
+  };
+  const ik = $('#ia-clave');
+  if (ik) ik.onclick = async () => {
+    ik.closest('details').open = false;
+    const antes = claveIA(), ahora = await configurarClave();
+    if (ahora !== antes) toast(ahora ? 'Clave guardada en este navegador.' : 'Clave quitada.');
   };
   const rd = $('#reset-demo');
   if (rd) rd.onclick = async () => {

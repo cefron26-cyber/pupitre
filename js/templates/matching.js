@@ -19,7 +19,7 @@ export default {
 
   editor(root, content) {
     const pairs = structuredClone(content.pairs);
-    let buscador = false; // "Buscar imagen en internet" solo si el servidor lo ofrece
+    let buscador = false; // "Buscar imagen en internet" (servidor propio u Openverse)
     buscadorDisponible().then(ok => { if (ok && root.isConnected) { buscador = true; draw(); } });
     const draw = () => {
       root.innerHTML = `<p class="hint" style="margin:0 0 12px">Escribe cada pareja. Al estudiante se le mostrarán las dos columnas desordenadas. Entre ${MIN} y ${MAX} parejas.

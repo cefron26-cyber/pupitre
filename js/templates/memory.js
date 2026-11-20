@@ -16,7 +16,7 @@ export default {
 
   editor(root, content) {
     const pairs = structuredClone(content.pairs);
-    let buscador = false; // botón "Buscar imagen en internet" (solo si el servidor lo ofrece)
+    let buscador = false; // botón "Buscar imagen en internet" (servidor propio u Openverse)
     buscadorDisponible().then(ok => { if (ok && root.isConnected) { buscador = true; draw(); } });
     const draw = () => {
       root.innerHTML = `<p class="hint" style="margin:0 0 12px">Adjunta una imagen y escribe su palabra. Entre ${MIN} y ${MAX} pares. Las imágenes se reducen a 400 px.</p>`;

@@ -1,4 +1,4 @@
-// Barra del editor con "Generar con IA" (todos los tipos menos Memoria; solo si el servidor tiene IA)
+// Barra del editor con "Generar con IA" (todos los tipos menos Memoria; con servidor propio o con la clave de Gemini del docente)
 // e "Importar" (todos los tipos: pegar JSON hecho en un chat, sin gastar API).
 // Nada se guarda solo: el contenido llega al editor para que el docente lo revise.
 import { esc, el, $, toast } from '../ui.js';
