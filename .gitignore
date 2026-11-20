@@ -1,0 +1,11 @@
+# Solo se publica la app estática (GitHub Pages). Lo privado o de desarrollo queda fuera.
+servidor/
+herramientas/
+contexto/
+.claude/
+CLAUDE.md
+serve.mjs
+prueba-cofres*.html
+*.csv
+*.log
+node_modules/

@@ -1,0 +1,304 @@
+/* Modo juego del estudiante: tiene que verse DISTINTO del modo serio (decisión del docente 2026-11-19, tras la segunda
+   revisión): cielo y suelo pixel art, letra de juego (Fredoka; Pixel en cifras cortas), tarjetas de plástico y animaciones.
+   Lo único que comparte con la marca es el azul tinta de los botones. Todo va bajo :root[data-modo="juego"].
+   El fondo equipado llega en --fondo-1/2 y --glow-1..3 (rewards.js). */
+@font-face{font-family:"Pixel"; src:url(../fuentes/press-start-2p-latin-400-normal.woff2) format("woff2"); font-display:swap}
+@font-face{font-family:"Lilita One"; src:url(../fuentes/lilita-one-latin-400-normal.woff2) format("woff2"); font-display:swap}
+@font-face{font-family:"Fredoka"; font-weight:600; src:url(../fuentes/fredoka-latin-600-normal.woff2) format("woff2"); font-display:swap}
+
+:root[data-modo="juego"]{
+  --fondo-1:#5a2cf0; --fondo-2:#2a1585; --glow-1:255,120,200; --glow-2:31,200,240; --glow-3:255,210,63;
+  --tinta:#1a0f4d; --sombra-j:rgba(10,4,40,.45); --suelo:clamp(90px,12vw,150px);
+  --primary:#1f3a68; --primary-hover:#172d52; --accent:#6b3cf5; --accent-soft:#efe9ff; --line:#e6ddff; --border:#cbbdf7;
+  --ink:#1a0f4d; --muted:#5b4b9a; --xp:#ffc21a;
+  --font:"Fredoka","Trebuchet MS",system-ui,sans-serif; --font-brand:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --radius-card:28px; --radius-input:16px;
+  --shadow:inset 0 -5px 0 #ebe4ff, 0 9px 0 #8d78e0, 0 18px 26px var(--sombra-j);
+  --shadow-sm:inset 0 -4px 0 #ebe4ff, 0 6px 0 #a796ea, 0 12px 18px rgba(10,4,40,.3);
+  /* Botones: el azul tinta de la marca, con relieve de plástico */
+  --juego-btn:#1f3a68; --juego-btn-in:#2b4f8c; --juego-btn-sh:#0f1f3d; --juego-btn-ink:#fff;
+}
+[data-modo="juego"] body{
+  font-weight:600; background-color:var(--fondo-2); min-height:100dvh;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(var(--glow-1),.45) 0, transparent 38%),
+    radial-gradient(circle at 92% 30%, rgba(var(--glow-2),.40) 0, transparent 40%),
+    radial-gradient(circle at 30% 100%, rgba(var(--glow-3),.30) 0, transparent 45%),
+    linear-gradient(165deg, var(--fondo-1), var(--fondo-2));
+  background-attachment:fixed;
+}
+/* Cielo pixel art (Nano Banana, img/mundo/cielo.webp) fijo detrás de todo. Con otro fondo de la colección,
+   el cielo toma sus colores (mezcla "luminosity" sobre su degradado). */
+.mundo{position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;
+  background:url(../img/mundo/cielo.webp) center bottom/cover no-repeat, linear-gradient(165deg, var(--fondo-1), var(--fondo-2));
+  background-blend-mode:var(--cielo-blend, normal), normal; image-rendering:pixelated}
+[data-modo="juego"] #app{position:relative; z-index:0; min-height:100dvh; display:flex; flex-direction:column}
+[data-modo="juego"] #app > .main{flex:1 0 auto; width:100%}
+/* Suelo pixel art que se repite a lo ancho al final de la página (img/mundo/suelo.webp) */
+.suelo{flex:none; height:var(--suelo); margin-top:24px; pointer-events:none;
+  background:url(../img/mundo/suelo.webp) left bottom/auto 100% repeat-x; image-rendering:pixelated}
+[data-modo="juego"] .main{padding-bottom:16px}
+
+/* Encabezado: losa blanca de plástico */
+[data-modo="juego"] .app-header{background:#fff; box-shadow:inset 0 -4px 0 #ebe4ff, 0 6px 0 #8d78e0, 0 12px 22px var(--sombra-j); border-radius:0 0 26px 26px}
+[data-modo="juego"] .nav a{border:0; border-radius:14px 14px 0 0; padding:10px 16px; color:var(--muted)}
+[data-modo="juego"] .nav a.active{background:var(--accent-soft); color:var(--primary); box-shadow:inset 0 -4px 0 var(--accent)}
+[data-modo="juego"] .mode-toggle{background:#ffd23f; color:#6b4300; border:0; box-shadow:inset 0 -3px 0 #f0b800, 0 4px 0 #c99a00; transition:transform .1s}
+[data-modo="juego"] .mode-toggle:active{transform:translateY(3px); box-shadow:inset 0 -3px 0 #f0b800, 0 1px 0 #c99a00}
+[data-modo="juego"] .xp-chip{background:#fff4c2; color:#7a4b00; box-shadow:inset 0 -3px 0 #ffe27a}
+[data-modo="juego"] .head-avatar svg{animation:respirar 1.6s steps(2) infinite}
+@keyframes respirar{50%{transform:translateY(-3px)}}
+
+/* Títulos de página en letra de juego con sombra (la pixel queda para cifras cortas) */
+[data-modo="juego"] .page-head h1,[data-modo="juego"] .hero-hi{
+  font-family:"Fredoka","Trebuchet MS",sans-serif; font-weight:600; letter-spacing:0; line-height:1.15; font-size:clamp(24px,4.2vw,34px);
+  color:#ffd23f; text-shadow:3px 3px 0 #e8590c, 5px 5px 0 var(--tinta);
+  animation:caer .6s cubic-bezier(.3,1.6,.5,1) both;
+}
+[data-modo="juego"] .page-head .muted{color:#e9e2ff}
+[data-modo="juego"] .page-head .muted a{color:#fff}
+[data-modo="juego"] .hero-hi{color:#ffd23f}
+[data-modo="juego"] .player > a.small,[data-modo="juego"] .main > .player > a.small{color:#fff}
+@keyframes caer{from{opacity:0; transform:translateY(-24px)}}
+
+/* Botones: bloques de plástico en azul tinta */
+[data-modo="juego"] .btn{
+  background:var(--juego-btn); color:var(--juego-btn-ink); border-radius:16px; font-size:16px;
+  box-shadow:inset 0 -4px 0 var(--juego-btn-in), 0 5px 0 var(--juego-btn-sh), 0 10px 14px rgba(10,4,40,.25);
+  transition:transform .12s, box-shadow .12s, filter .12s;
+}
+[data-modo="juego"] .btn:hover{filter:brightness(1.15); background:var(--juego-btn)}
+[data-modo="juego"] .btn:active{transform:translateY(4px); box-shadow:inset 0 -4px 0 var(--juego-btn-in), 0 1px 0 var(--juego-btn-sh)}
+[data-modo="juego"] .btn.ghost{background:#fff; color:var(--primary); border:0; box-shadow:inset 0 -4px 0 #ebe4ff, 0 5px 0 #b3a3ee, 0 10px 14px rgba(10,4,40,.2)}
+[data-modo="juego"] .btn.ghost:active{box-shadow:inset 0 -4px 0 #ebe4ff, 0 1px 0 #b3a3ee}
+[data-modo="juego"] .btn.danger{background:#ff5f6d; color:#fff; box-shadow:inset 0 -4px 0 #e0414f, 0 5px 0 #a8202d}
+
+/* Tarjetas y filas: bloques blancos con relieve que aparecen rebotando */
+[data-modo="juego"] .list{background:transparent; border:0; gap:var(--sp-3)}
+[data-modo="juego"] .list > .item{border-radius:22px; border:0; background:var(--card); box-shadow:var(--shadow-sm); transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+[data-modo="juego"] .list > .item,[data-modo="juego"] .list > .unit-item{animation:aparecer .5s cubic-bezier(.3,1.6,.5,1) both}
+[data-modo="juego"] .list > :nth-child(2){animation-delay:.07s} [data-modo="juego"] .list > :nth-child(3){animation-delay:.14s}
+[data-modo="juego"] .list > :nth-child(4){animation-delay:.21s} [data-modo="juego"] .list > :nth-child(n+5){animation-delay:.28s}
+@media (hover:hover){ [data-modo="juego"] .list > .item:hover{transform:translateY(-4px) rotate(-.4deg)} }
+@keyframes aparecer{from{opacity:0; transform:translateY(24px) scale(.96)}}
+[data-modo="juego"] .card,[data-modo="juego"] .next-card,[data-modo="juego"] .practice-card,[data-modo="juego"] .juego-card{border:0; border-radius:var(--radius-card); box-shadow:var(--shadow)}
+[data-modo="juego"] .type-icon{border-radius:16px; background:#efe9ff; color:var(--accent); box-shadow:inset 0 -3px 0 #ddd2ff}
+[data-modo="juego"] .badge{border-radius:12px; font-weight:700}
+[data-modo="juego"] .mini-progress,[data-modo="juego"] .progress,[data-modo="juego"] .level-bar{height:14px; background:#e6ddff; box-shadow:inset 0 2px 0 rgba(26,15,77,.12)}
+[data-modo="juego"] .mini-progress i,[data-modo="juego"] .progress > i,[data-modo="juego"] .level-bar i{
+  background:repeating-linear-gradient(-45deg,#ffd23f 0 10px,#ffc21a 10px 20px); box-shadow:inset 0 -3px 0 rgba(0,0,0,.08)}
+[data-modo="juego"] .level-badge{background:#a46bff; color:#fff; box-shadow:inset 0 -3px 0 #7d47e0}
+
+/* Preguntas fuera del escenario: opciones como bloques que se hunden al tocar */
+[data-modo="juego"] .option{border:0; border-radius:18px; box-shadow:inset 0 -4px 0 #ebe4ff, 0 5px 0 #b3a3ee; font-weight:600}
+[data-modo="juego"] .option:hover:not(:disabled){transform:translateY(-2px); background:#fbf9ff}
+[data-modo="juego"] .option:active:not(:disabled){transform:translateY(3px); box-shadow:inset 0 -4px 0 #ebe4ff, 0 1px 0 #b3a3ee}
+[data-modo="juego"] .option.correct{background:#d9fbe9; box-shadow:inset 0 -4px 0 #a5eccb, 0 5px 0 #1f9a62}
+[data-modo="juego"] .option.wrong{background:#ffe3e6; box-shadow:inset 0 -4px 0 #ffc2c9, 0 5px 0 #c4303f}
+[data-modo="juego"] .feedback.ok{animation:pop .35s cubic-bezier(.3,1.8,.5,1)}
+
+/* Portada */
+[data-modo="juego"] .hero-me{background:transparent; box-shadow:none; color:#fff; padding-left:0}
+[data-modo="juego"] .hero-me .small{color:#e9e2ff}
+[data-modo="juego"] .hero-avatar{transform:rotate(-5deg); animation:saltar .7s cubic-bezier(.3,1.6,.5,1) both}
+[data-modo="juego"] .hero-avatar svg{filter:drop-shadow(0 8px 0 rgba(10,4,40,.3)); width:88px; height:88px}
+@keyframes saltar{from{opacity:0; transform:translateY(-40px) rotate(-20deg)}}
+[data-modo="juego"] .chest-card.ready{box-shadow:inset 0 -5px 0 #fff0a8, 0 9px 0 #c99a00, 0 18px 26px var(--sombra-j); background:#fff8d6}
+[data-modo="juego"] .chest-card.ready .chest-mini{animation:menear 1.8s ease-in-out infinite}
+[data-modo="juego"] .chest-mini{width:76px; height:76px}
+@keyframes menear{0%,60%,100%{transform:none} 66%{transform:rotate(-8deg) scale(1.05)} 72%{transform:rotate(7deg) scale(1.05)} 78%{transform:rotate(-5deg)} 84%{transform:rotate(3deg)}}
+[data-modo="juego"] .reward-tile{border:0; box-shadow:inset 0 -4px 0 #ebe4ff, 0 5px 0 color-mix(in srgb,var(--rc),#fff 30%)}
+[data-modo="juego"] .reward-tile.has .rt-prev{animation:aparecer .4s cubic-bezier(.3,1.6,.5,1) both}
+
+/* ---------- El cofre, modo juego ---------- */
+.chest-dialog.juego .ch-tap{transform-origin:50% 90%}
+.chest-dialog.juego [data-phase="drop"] .ch-tap{animation:ch-drop .75s cubic-bezier(.3,.8,.4,1) both}
+.chest-dialog.juego [data-phase="drop"] .ch-shadow{animation:ch-shadow .75s cubic-bezier(.3,.8,.4,1) both}
+.chest-dialog.juego .ch-tap:focus-visible{outline:none}
+.ch-bob{position:absolute; inset:0}
+.chest-dialog.juego [data-phase="wait"] .ch-hint,.chest-dialog.juego [data-phase="shake"] .ch-hint{animation:ch-hint .9s ease-in-out infinite alternate}
+.chest-dialog.juego .ch-tap.hit{animation:ch-shake .4s cubic-bezier(.36,.07,.19,.97)}
+.chest-dialog.juego [data-step="2"] .ch-tap.hit{animation:ch-shake2 .55s cubic-bezier(.36,.07,.19,.97)}
+/* Luz que se escapa por las rendijas: más fuerte en cada toque */
+.chest-dialog.juego [data-phase="shake"] .ch-rays{opacity:.35; animation:ch-spin 9s linear infinite}
+.chest-dialog.juego [data-step="2"] .ch-rays{opacity:.6}
+.chest-dialog.juego [data-phase="shake"] .chest.art .ch-closed{filter:drop-shadow(0 0 18px color-mix(in srgb,var(--rc),#fff 30%))}
+.chest-dialog.juego [data-step="2"] .chest.art .ch-closed{filter:drop-shadow(0 0 34px color-mix(in srgb,var(--rc),#fff 30%)) brightness(1.08)}
+/* Suspenso épico */
+.chest-dialog.juego [data-phase="epic"] .ch-tap{animation:ch-shake .22s linear infinite}
+.chest-dialog.juego [data-phase="epic"] .ch-rays{opacity:.9; animation:ch-spin 2.5s linear infinite}
+.chest-dialog.juego [data-phase="epic"] .ch-hint{color:#e2c4ff; font-size:28px; animation:ch-hint .3s ease-in-out infinite alternate}
+.chest-dialog.juego [data-phase="epic"] .chest.art .ch-closed{filter:drop-shadow(0 0 50px #c08bff) brightness(1.15)}
+/* Estalla: la tapa sale volando, destello, rayo de luz y confeti de cubos */
+.chest-dialog.juego [data-phase="burst"] .ch-closed,.chest-dialog.juego [data-phase="reward"] .ch-closed{opacity:0}
+.chest-dialog.juego [data-phase="burst"] .ch-body,.chest-dialog.juego [data-phase="reward"] .ch-body{opacity:1}
+.chest-dialog.juego [data-phase="burst"] .ch-lid,.chest-dialog.juego [data-phase="reward"] .ch-lid{opacity:1; animation:ch-lid .8s cubic-bezier(.2,.7,.4,1) forwards}
+.chest-dialog.juego [data-phase="burst"] .ch-tap,.chest-dialog.juego [data-phase="reward"] .ch-tap{animation:ch-pop .35s cubic-bezier(.3,1.6,.5,1)}
+.chest-dialog.juego [data-phase="burst"] .ch-flash{animation:ch-flash .45s ease-out}
+.chest-dialog.juego [data-phase="burst"] .ch-beam,.chest-dialog.juego [data-phase="reward"] .ch-beam{animation:ch-beam .6s ease-out forwards}
+.chest-dialog.juego [data-phase="burst"] .ch-rays,.chest-dialog.juego [data-phase="reward"] .ch-rays{opacity:1; animation:ch-spin 14s linear infinite}
+.chest-dialog.juego .ch-cube{position:absolute; left:50%; top:52%; width:var(--s); height:var(--s); margin:calc(var(--s) / -2); border-radius:3px; z-index:4;
+  background:var(--c); box-shadow:inset 0 -3px 0 rgba(0,0,0,.2), inset 0 3px 0 rgba(255,255,255,.4); animation:ch-cube 1s cubic-bezier(.2,.8,.4,1) forwards}
+/* Premio: la carta sale del cofre girando */
+.chest-dialog.juego [data-phase="reward"] .ch-card{animation:ch-card .75s cubic-bezier(.3,1.4,.5,1) both}
+.chest-dialog.juego [data-phase="reward"] .ch-tap{opacity:.35; transform:translateY(90px) scale(.7); transition:transform .5s .1s, opacity .5s .1s; animation:none}
+.chest-dialog.juego [data-phase="reward"] .ch-shadow{opacity:0; transition:opacity .4s}
+.chest-dialog.juego .ch-actions .btn{font-size:18px; min-height:52px; padding:0 26px}
+.chest-dialog.juego.r-epic [data-phase="reward"] .ch-card-in,.chest-dialog.juego.r-legendary [data-phase="reward"] .ch-card-in{animation:ch-glow 1.2s ease-in-out infinite alternate}
+.chest-dialog.juego .ch-hint{font-family:"Pixel",monospace; font-weight:400; font-size:clamp(13px,3.6vw,18px); color:#fff; text-shadow:2px 2px 0 var(--tinta,#1a0f4d)}
+
+/* ---------- Cofre: rareza en curso (2026-11-16) ----------
+   El fondo toma el color de la rareza mostrada (data-cur en el diálogo); arriba, la rareza en letras blancas
+   con contorno negro y tres "?" que se gastan con cada toque. La pantalla se sacude con cada golpe. */
+.chest-dialog.juego{
+  background-color:#1b6fd1;
+  background-image:radial-gradient(circle at 50% 42%,rgba(255,255,255,.38) 0,transparent 55%),
+    radial-gradient(circle at 50% 115%,rgba(0,0,0,.5) 0,transparent 62%),
+    repeating-conic-gradient(rgba(255,255,255,.05) 0 25%,transparent 0 50%);
+  background-size:auto,auto,56px 56px;
+  transition:background-color .45s ease;
+}
+.chest-dialog.juego[data-cur="rare"]{background-color:#16a35c}
+.chest-dialog.juego[data-cur="epic"]{background-color:#7a2fe0}
+.chest-dialog.juego[data-cur="legendary"]{background-color:#e08700}
+.ch-top{position:absolute; z-index:3; top:max(7%,34px); left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:14px; pointer-events:none; transition:opacity .3s}
+.ch-rlabel,.ch-qs i{
+  font-family:"Lilita One","Fredoka",system-ui,sans-serif; font-weight:400; color:#fff;
+  text-shadow:3px 0 0 #000,-3px 0 0 #000,0 3px 0 #000,0 -3px 0 #000,2px 2px 0 #000,-2px 2px 0 #000,2px -2px 0 #000,-2px -2px 0 #000,0 6px 0 #000;
+}
+.ch-rlabel{font-size:clamp(38px,11vw,60px); line-height:1; letter-spacing:1px; text-transform:uppercase}
+.ch-rlabel.up{animation:ch-rl-up .55s cubic-bezier(.3,1.6,.5,1)}
+.ch-qs{display:flex; gap:12px}
+.ch-qs i{
+  font-style:normal; width:clamp(44px,12vw,56px); aspect-ratio:1; display:grid; place-items:center; font-size:clamp(28px,8vw,36px);
+  border-radius:14px; border:3px solid #000; background:color-mix(in srgb,var(--rc),#fff 25%);
+  box-shadow:inset 0 -6px 0 color-mix(in srgb,var(--rc),#000 30%),0 4px 0 #000;
+  transition:background-color .3s, color .2s;
+}
+.ch-qs i.used{animation:ch-q-use .4s cubic-bezier(.3,1.4,.5,1) forwards; color:transparent; text-shadow:none; background:rgba(0,0,0,.28); box-shadow:inset 0 4px 0 rgba(0,0,0,.25),0 4px 0 #000}
+[data-phase="drop"] .ch-top{opacity:0}
+[data-phase="burst"] .ch-top,[data-phase="reward"] .ch-top{opacity:0}
+.chest-dialog.juego .chest-stage.quake1{animation:ch-quake1 .32s linear}
+.chest-dialog.juego .chest-stage.quake2{animation:ch-quake2 .42s linear}
+.chest-dialog.juego .chest-stage.quake3{animation:ch-quake3 .5s linear}
+.chest-dialog.juego .chest-stage.rc-up .ch-glow{animation:ch-glow-up .7s ease-out}
+.chest-dialog.juego .chest-stage.rc-up .ch-rays{opacity:.8; animation:ch-spin 6s linear infinite}
+/* Toque 3 sin subida: el cofre se hincha temblando y estalla */
+.chest-dialog.juego [data-phase="charge"] .ch-tap{animation:ch-charge .42s ease-in both}
+.chest-dialog.juego [data-phase="charge"] .ch-rays{opacity:.85; animation:ch-spin 3s linear infinite}
+.chest-dialog.juego [data-phase="charge"] .chest.art .ch-closed{filter:drop-shadow(0 0 44px color-mix(in srgb,var(--rc),#fff 40%)) brightness(1.12)}
+.chest-dialog.juego .chest-stage[data-phase="epic"]{animation:ch-quake1 .25s linear infinite}
+
+@keyframes ch-rl-up{0%{transform:scale(2.2) rotate(-6deg); opacity:0} 60%{transform:scale(.9) rotate(2deg); opacity:1} 100%{transform:none}}
+@keyframes ch-q-use{0%{transform:scale(1)} 35%{transform:scale(1.45) rotate(12deg)} 100%{transform:scale(.82)}}
+@keyframes ch-quake1{20%{transform:translate(-4px,2px)} 40%{transform:translate(4px,-2px)} 60%{transform:translate(-3px,-1px)} 80%{transform:translate(2px,1px)}}
+@keyframes ch-quake2{15%{transform:translate(-9px,4px)} 30%{transform:translate(8px,-5px)} 45%{transform:translate(-7px,-3px)} 60%{transform:translate(6px,3px)} 80%{transform:translate(-3px,1px)}}
+@keyframes ch-quake3{10%{transform:translate(-15px,8px) rotate(-.6deg)} 25%{transform:translate(14px,-9px) rotate(.6deg)} 40%{transform:translate(-11px,-6px)} 55%{transform:translate(9px,6px)} 75%{transform:translate(-5px,2px)} 90%{transform:translate(2px,-1px)}}
+@keyframes ch-charge{0%{transform:none} 25%{transform:scale(1.06,.94) rotate(-3deg)} 50%{transform:scale(1.1,.92) rotate(3deg)} 75%{transform:scale(1.16,.9) rotate(-3deg)} 100%{transform:scale(1.22,.86)}}
+
+@keyframes ch-drop{0%{transform:translateY(-110vh)} 60%{transform:translateY(0) scale(1.15,.85)} 78%{transform:translateY(-14px) scale(.95,1.06)} 100%{transform:none}}
+@keyframes ch-shadow{0%{transform:scale(.3); opacity:0} 60%{transform:scale(1.15)} 100%{transform:none}}
+@keyframes ch-hint{to{transform:scale(1.08)}}
+@keyframes ch-shake{20%{transform:rotate(-7deg) scale(1.04)} 40%{transform:rotate(6deg) scale(1.04)} 60%{transform:rotate(-4deg)} 80%{transform:rotate(3deg)}}
+@keyframes ch-shake2{10%{transform:translateY(-18px) rotate(-9deg) scale(1.08)} 30%{transform:rotate(9deg) scale(1.08)} 50%{transform:rotate(-7deg)} 70%{transform:rotate(5deg)} 90%{transform:rotate(-2deg)}}
+@keyframes ch-spin{to{transform:rotate(360deg)}}
+@keyframes ch-lid{0%{transform:none} 100%{transform:translate(-30%,-120vh) rotate(-260deg)}}
+@keyframes ch-pop{0%{transform:scale(1.25,.8)} 100%{transform:none}}
+@keyframes ch-flash{0%{opacity:.95} 100%{opacity:0}}
+@keyframes ch-beam{0%{opacity:0; transform:scaleX(.2)} 30%{opacity:1; transform:scaleX(1.2)} 100%{opacity:.5; transform:scaleX(1)}}
+@keyframes ch-cube{0%{transform:translate(0,0) rotate(0); opacity:1} 100%{transform:translate(var(--x),var(--y)) rotate(var(--rt)); opacity:0}}
+@keyframes ch-card{0%{opacity:0; transform:translateY(120px) scale(.2) rotateY(540deg)} 70%{opacity:1; transform:translateY(-12px) scale(1.12) rotateY(0)} 100%{opacity:1; transform:none}}
+@keyframes ch-glow{to{box-shadow:0 0 0 5px var(--rc), 0 10px 0 color-mix(in srgb,var(--rc),#000 35%), 0 0 110px var(--rc)}}
+
+/* Respeto a "reducir movimiento": sin cubos flotantes ni rebotes (el cofre ya usa el modo serio en ese caso). */
+@media (prefers-reduced-motion: reduce){
+  [data-modo="juego"] *{animation:none !important; transition:none !important}
+}
+
+/* Textos que quedan directamente sobre el fondo morado */
+[data-modo="juego"] .main > .player > .row h1{color:#fff; text-shadow:0 3px 0 var(--tinta)}
+[data-modo="juego"] .main > .player > p.muted,[data-modo="juego"] .main > .player > p.small,
+[data-modo="juego"] .main > .player > a.small,[data-modo="juego"] .main > .player > .row .small,
+[data-modo="juego"] .task-group,[data-modo="juego"] details.done-group > summary{color:#e9e2ff}
+[data-modo="juego"] .main > .player > a.small{color:#fff}
+[data-modo="juego"] .passage-body{font-weight:500}
+[data-modo="juego"] .next-card{border-left-color:var(--xp)}
+[data-modo="juego"] .stars .off{color:#d9d0f7}
+[data-modo="juego"] .reto-ico{background:#efe9ff}
+
+/* ---------- Cofre: reposo vivo y subida de rareza (2026-11-17) ----------
+   Reposo (wait/shake): flota suave, la sombra respira con él, un brillo barre la silueta, un halo del color
+   de la rareza late detrás y chispitas titilan alrededor. Subida de rareza (.chest.morph): se pone blanco,
+   se achica y vuelve de golpe con el color nuevo, con anillo de onda y estrellas. */
+.chest-dialog.juego [data-phase="wait"] .ch-bob,.chest-dialog.juego [data-phase="shake"] .ch-bob{animation:ch-float 2.4s ease-in-out infinite}
+.chest-dialog.juego [data-phase="wait"] .ch-shadow,.chest-dialog.juego [data-phase="shake"] .ch-shadow{animation:ch-shadow-float 2.4s ease-in-out infinite}
+.ch-glow{position:absolute; left:50%; top:50%; width:min(90vw,440px); aspect-ratio:1; transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:1; opacity:0;
+  background:radial-gradient(circle,color-mix(in srgb,var(--rc),#fff 35%) 0,color-mix(in srgb,var(--rc),transparent 40%) 32%,transparent 66%)}
+.chest-dialog.juego [data-phase="wait"] .ch-glow,.chest-dialog.juego [data-phase="shake"] .ch-glow{animation:ch-glow-pulse 2.4s ease-in-out infinite}
+.chest-dialog.juego [data-phase="epic"] .ch-glow,.chest-dialog.juego [data-phase="charge"] .ch-glow{opacity:.9; animation:ch-glow-pulse .35s ease-in-out infinite}
+
+.ch-shine{display:none}
+.chest-dialog.juego .chest.art .ch-shine{display:block; position:absolute; inset:0; pointer-events:none;
+  -webkit-mask:var(--mask) center/contain no-repeat; mask:var(--mask) center/contain no-repeat;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.75) 50%,transparent 60%) no-repeat; background-size:300% 100%;
+  background-position:120% 0; animation:ch-shine 3s ease-in-out infinite}
+.chest-dialog.juego [data-phase="drop"] .ch-shine,.chest-dialog.juego [data-phase="burst"] .ch-shine,.chest-dialog.juego [data-phase="reward"] .ch-shine{display:none}
+
+.ch-sparks{position:absolute; left:50%; top:50%; width:min(80vw,380px); aspect-ratio:1; transform:translate(-50%,-50%); pointer-events:none; z-index:3; opacity:0; transition:opacity .4s}
+.chest-dialog.juego [data-phase="wait"] .ch-sparks,.chest-dialog.juego [data-phase="shake"] .ch-sparks,.chest-dialog.juego [data-phase="epic"] .ch-sparks{opacity:1}
+.ch-sparks i{position:absolute; width:16px; height:16px; background:#fff; clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);
+  filter:drop-shadow(0 0 4px var(--rc)); opacity:0; animation:ch-twinkle 1.8s ease-in-out infinite}
+.ch-sparks i:nth-child(1){left:8%; top:30%}
+.ch-sparks i:nth-child(2){left:86%; top:22%; animation-delay:.3s; width:12px; height:12px}
+.ch-sparks i:nth-child(3){left:18%; top:72%; animation-delay:.7s}
+.ch-sparks i:nth-child(4){left:80%; top:66%; animation-delay:1.1s; width:20px; height:20px}
+.ch-sparks i:nth-child(5){left:50%; top:4%; animation-delay:.5s; width:12px; height:12px}
+.ch-sparks i:nth-child(6){left:2%; top:52%; animation-delay:1.4s; width:10px; height:10px}
+.ch-sparks i:nth-child(7){left:92%; top:46%; animation-delay:.9s; width:10px; height:10px}
+
+.chest-dialog.juego .chest{transform-origin:50% 60%}
+.chest-dialog.juego .chest.morph{animation:ch-morph .62s cubic-bezier(.4,0,.2,1)}
+.ch-ring{position:absolute; left:50%; top:50%; width:min(60vw,280px); aspect-ratio:1; transform:translate(-50%,-50%) scale(0); border-radius:50%; pointer-events:none; z-index:3; opacity:0;
+  border:10px solid #fff; box-shadow:0 0 24px var(--rc), inset 0 0 24px var(--rc)}
+.ch-ring.go{animation:ch-ring .55s ease-out}
+.ch-star{position:absolute; left:50%; top:50%; width:var(--s); height:var(--s); margin:calc(var(--s) / -2); z-index:4; pointer-events:none; background:var(--c);
+  clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%); filter:drop-shadow(0 0 6px #fff);
+  animation:ch-star .8s cubic-bezier(.15,.8,.3,1) forwards}
+
+@keyframes ch-float{0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-14px) rotate(1.5deg)}}
+@keyframes ch-shadow-float{0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(.82); opacity:.65}}
+@keyframes ch-glow-pulse{0%,100%{opacity:.45; transform:translate(-50%,-50%) scale(.92)} 50%{opacity:.8; transform:translate(-50%,-50%) scale(1.05)}}
+@keyframes ch-glow-up{0%{opacity:1; transform:translate(-50%,-50%) scale(.5)} 100%{opacity:.5; transform:translate(-50%,-50%) scale(1.2)}}
+@keyframes ch-shine{0%,45%{background-position:120% 0} 85%,100%{background-position:-20% 0}}
+@keyframes ch-twinkle{0%,100%{opacity:0; transform:scale(.3) rotate(0)} 50%{opacity:1; transform:scale(1) rotate(45deg)}}
+@keyframes ch-morph{
+  0%{transform:scale(1); filter:brightness(1) invert(0) drop-shadow(0 0 0 #fff)}
+  22%{transform:scale(1.1); filter:brightness(0) invert(1) drop-shadow(0 0 18px #fff)}
+  48%{transform:scale(.55); filter:brightness(0) invert(1) drop-shadow(0 0 26px #fff)}
+  72%{transform:scale(1.18); filter:brightness(1.25) invert(0) drop-shadow(0 0 22px #fff)}
+  86%{transform:scale(.95)}
+  100%{transform:scale(1); filter:brightness(1) invert(0) drop-shadow(0 0 0 #fff)}}
+@keyframes ch-ring{0%{opacity:1; transform:translate(-50%,-50%) scale(.3); border-width:14px} 100%{opacity:0; transform:translate(-50%,-50%) scale(1.7); border-width:2px}}
+@keyframes ch-star{0%{transform:translate(0,0) scale(.2) rotate(0); opacity:1} 70%{opacity:1} 100%{transform:translate(var(--x),var(--y)) scale(1) rotate(180deg); opacity:0}}
+
+/* ---------- Cofre: rareza legendaria (2026-11-17) ----------
+   Colores: común azul, rara verde, épica morada, legendaria dorada. La legendaria sube en cada toque
+   (rara → épica → suspenso "¡¿LEGENDARIO?!" → legendaria). Rayos dorados y carta con brillo dorado que recorre el borde. */
+.chest-dialog.juego[data-cur="legendary"] .ch-rays{
+  background:repeating-conic-gradient(from 0deg,rgba(255,240,150,.75) 0 9deg,transparent 9deg 18deg,rgba(255,200,40,.55) 18deg 27deg,transparent 27deg 36deg)}
+.chest-dialog.juego.r-legendary [data-phase="epic"] .ch-hint{color:#ffe066; font-size:clamp(16px,5.6vw,30px)}
+.chest-dialog.juego.r-legendary [data-phase="epic"] .chest.art .ch-closed{filter:drop-shadow(0 0 55px #ffd23f) brightness(1.2)}
+.chest-dialog.juego.r-legendary [data-phase="epic"] .ch-tap{animation:ch-shake .16s linear infinite}
+.chest-dialog.juego.r-legendary .ch-card-in{border:5px solid transparent; background:linear-gradient(#fff,#fff) padding-box,
+  linear-gradient(110deg,#c98a00,#ffd23f,#fff6c8,#ffd23f,#c98a00) border-box; background-size:100% 100%,300% 100%}
+.chest-dialog.juego.r-legendary [data-phase="reward"] .ch-card-in{animation:ch-glow 1s ease-in-out infinite alternate, ch-legend-border 2.2s linear infinite}
+.chest-dialog.juego.r-legendary .ch-rarity{background:linear-gradient(90deg,#ffb800,#fff07a,#ffb800); color:#5a3a00}
+@keyframes ch-legend-border{to{background-position:0 0,300% 0}}
+/* Legendaria lista ("¡Pulsa para abrir!"): late como un corazón, brilla dorado y los rayos giran rápido. */
+.chest-dialog.juego [data-phase="ready"] .ch-tap{animation:ch-ready .8s ease-in-out infinite}
+.chest-dialog.juego [data-phase="ready"] .ch-glow{opacity:1; animation:ch-glow-pulse .8s ease-in-out infinite}
+.chest-dialog.juego [data-phase="ready"] .ch-rays{opacity:1; animation:ch-spin 4s linear infinite}
+.chest-dialog.juego [data-phase="ready"] .ch-sparks{opacity:1}
+.chest-dialog.juego [data-phase="ready"] .chest.art .ch-closed{filter:drop-shadow(0 0 40px #ffe066) brightness(1.12)}
+.chest-dialog.juego [data-phase="ready"] .ch-hint{color:#fff6b0; font-size:clamp(15px,4.6vw,26px); animation:ch-hint .4s ease-in-out infinite alternate}
+@keyframes ch-ready{0%,100%{transform:scale(1) rotate(0)} 15%{transform:scale(1.08) rotate(-2deg)} 30%{transform:scale(1) rotate(0)} 45%{transform:scale(1.05) rotate(2deg)} 60%{transform:scale(1)}}

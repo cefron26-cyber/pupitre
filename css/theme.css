@@ -1,0 +1,55 @@
+/* Tokens del sistema de diseño. Un skin futuro solo redefine estas variables.
+   Identidad provisional "Pupitre" (2026-11-19, segunda revisión): azul tinta + acento coral, una sola letra (Lexend,
+   pensada para la lectura), esquinas contenidas y casi sin sombras. Fredoka queda solo dentro de las actividades. */
+@font-face{font-family:"Lexend"; font-weight:400; src:url(../fuentes/lexend-latin-400-normal.woff2) format("woff2"); font-display:swap}
+@font-face{font-family:"Lexend"; font-weight:600; src:url(../fuentes/lexend-latin-600-normal.woff2) format("woff2"); font-display:swap}
+@font-face{font-family:"Lexend"; font-weight:700; src:url(../fuentes/lexend-latin-700-normal.woff2) format("woff2"); font-display:swap}
+@font-face{font-family:"Fredoka"; font-weight:600; src:url(../fuentes/fredoka-latin-600-normal.woff2) format("woff2"); font-display:swap}
+:root{
+  --bg:#f6f7f9;
+  --bg-soft:#eef1f5;
+  --card:#ffffff;
+  --ink:#16213d;
+  --muted:#5a6478;
+  --primary:#1f3a68;
+  --primary-hover:#172d52;
+  --accent:#2f5aa8;
+  --accent-soft:#eaf0fa;
+  --brand-warm:#ff6b4a;
+  --brand-warm-soft:#fff0eb;
+  --border:#cfd6e2;
+  --line:#e4e8ef;
+  --danger:#b3261e;
+  --danger-soft:#fdecea;
+  --success:#1b6e3a;
+  --success-soft:#e6f4ea;
+  --warn:#8a5a00;
+  --warn-soft:#fff4dc;
+  --xp:#f2a516;
+
+  --radius-input:6px;
+  --radius-card:8px;
+  --radius-sm:6px;
+  --shadow:0 1px 2px rgba(22,33,61,.06);
+  --shadow-sm:none;
+  --focus:0 0 0 3px rgba(47,90,168,.3);
+  --focus-ring:3px solid var(--accent);
+
+  --font:"Lexend","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  --font-brand:"Lexend","Segoe UI",system-ui,sans-serif;
+  --font-juego:"Fredoka","Lexend",system-ui,sans-serif;
+  --fs-sm:13px;
+  --fs:15px;
+  --fs-lg:18px;
+  --fs-xl:26px;
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+  --tap:44px;
+
+  --dur-fast:.15s;
+  --dur:.3s;
+  --dur-slow:.5s;
+}
+@media (prefers-reduced-motion: reduce){
+  :root{ --dur-fast:0s; --dur:0s; --dur-slow:0s; }
+}

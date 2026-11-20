@@ -1,0 +1,313 @@
+/* Componentes del estudiante (ambos modos): encabezado, portada, cofre, colección.
+   El aspecto "juego" se agrega encima en modo-juego.css. */
+
+/* ---------- Encabezado: botón de modo y avatar ---------- */
+.mode-toggle{
+  display:inline-flex; align-items:center; gap:6px; min-height:36px; padding:0 12px; border-radius:999px; cursor:pointer;
+  border:1px solid var(--border); background:var(--card); color:var(--primary); font:inherit; font-size:13px; font-weight:600; white-space:nowrap;
+}
+.mode-toggle:hover{background:var(--accent-soft)}
+.mode-toggle[aria-disabled="true"]{cursor:help; opacity:.8}
+.head-avatar{display:inline-flex}
+.head-avatar svg{display:block}
+.check{display:flex; gap:10px; align-items:flex-start; margin:4px 0 16px; font-weight:400; cursor:pointer}
+.check input{width:20px; height:20px; margin:1px 0 0; flex:none; accent-color:var(--primary)}
+
+/* ---------- Portada: saludo, nivel y cofre ---------- */
+.hero{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:var(--sp-4); margin-bottom:var(--sp-5)}
+.hero-me,.chest-card{background:var(--card); border-radius:var(--radius-card); box-shadow:var(--shadow); padding:var(--sp-4) var(--sp-5); display:flex; align-items:center; gap:var(--sp-4)}
+.hero-avatar{flex:none}
+.hero-avatar svg{display:block}
+.hero-txt{flex:1; min-width:0}
+.hero-hi{margin:0 0 8px; font-size:22px}
+.level-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.level-badge{font-weight:700; font-size:13px; color:var(--primary); background:var(--accent-soft); padding:3px 10px; border-radius:999px}
+.level-bar{flex:1; min-width:110px; height:10px; border-radius:999px; background:var(--line); overflow:hidden}
+.level-bar i{display:block; height:100%; background:var(--xp); border-radius:inherit}
+
+.chest-card{gap:var(--sp-3)}
+.chest-mini{flex:none; width:64px; height:64px; display:grid; place-items:center}
+.chest-mini img{width:100%; height:100%; object-fit:contain}
+.chest-ico{color:var(--primary)}
+.chest-txt{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
+.chest-card.locked .chest-mini{filter:grayscale(.85) opacity(.6)}
+.chest-card.opened .chest-mini{opacity:.55}
+.result-chest{margin:16px auto 0; max-width:460px; text-align:left; box-shadow:none; border:1px solid var(--line)}
+@media (max-width:760px){ .hero{grid-template-columns:1fr} }
+@media (max-width:420px){
+  .hero-me,.chest-card{padding:var(--sp-3) var(--sp-4)}
+  .hero-avatar svg{width:56px; height:56px}
+  .chest-card{flex-wrap:wrap}
+  .chest-card .btn{flex:1 0 100%}
+}
+
+/* ---------- Colección ---------- */
+.reward-grid{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:var(--sp-3)}
+.reward-tile{display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; padding:var(--sp-3); border-radius:18px; border:1px solid var(--line); background:var(--card)}
+.rt-prev{position:relative; width:72px; height:72px; display:grid; place-items:center; margin-bottom:4px}
+.rt-prev .bg-swatch{width:72px; height:72px}
+.reward-tile.locked .rt-prev > :first-child{filter:grayscale(1) brightness(.75) opacity(.45)}
+.rt-lock{position:absolute; inset:auto 0 0 auto; width:26px; height:26px; border-radius:50%; display:grid; place-items:center; background:var(--ink); color:#fff}
+.rt-name{font-size:14px}
+.rt-rarity{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:color-mix(in srgb,var(--rc),#000 40%)}
+.rt-using{font-size:13px; font-weight:700; color:var(--success); min-height:32px; display:grid; place-items:center}
+.reward-tile .btn.sm{min-height:32px}
+.bg-swatch{display:block; width:100%; height:100%; border-radius:16px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+
+/* ---------- Diálogo del cofre ---------- */
+.chest-dialog{
+  width:100%; max-width:none; height:100%; max-height:none; margin:0; padding:0; border:0; border-radius:0;
+  background:transparent; color:#fff; overflow:hidden;
+}
+.chest-dialog::backdrop{background:rgba(12,6,40,.9); backdrop-filter:blur(3px)}
+.chest-dialog.serio::backdrop{background:rgba(11,15,26,.6)}
+.chest-stage{position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column}
+.ch-tap{position:relative; z-index:2; border:0; background:none; padding:0; cursor:pointer; width:min(62vw,300px); aspect-ratio:1; display:block}
+.ch-tap:focus-visible{outline:3px solid #fff; outline-offset:8px; border-radius:20px}
+.chest{position:absolute; inset:0}
+.chest.art img{position:absolute; left:0; width:100%; user-select:none; -webkit-user-drag:none}
+.chest.art .ch-closed{top:0; height:100%; object-fit:contain}
+.chest.art .ch-body,.chest.art .ch-lid{opacity:0}
+.chest.art .ch-body{top:auto; bottom:3%; left:5%; width:90%}
+.chest.art .ch-lid{top:4%; left:9%; width:82%}
+.ch-hint{position:absolute; bottom:max(14%,90px); left:0; right:0; margin:0; text-align:center; font-size:20px; font-weight:700; text-shadow:0 2px 0 rgba(0,0,0,.35); z-index:3}
+.ch-actions{position:absolute; bottom:max(6%,28px); left:0; right:0; display:flex; justify-content:center; gap:12px; opacity:0; pointer-events:none; z-index:4}
+.ch-shadow{position:absolute; top:calc(50% + min(31vw,150px) - 22px); width:min(46vw,220px); height:28px; border-radius:50%; background:rgba(0,0,0,.35); filter:blur(4px); z-index:1}
+.ch-card{position:absolute; z-index:5; top:50%; left:50%; width:200px; margin:-150px 0 0 -100px; opacity:0; pointer-events:none}
+.ch-card-in{
+  display:flex; flex-direction:column; align-items:center; gap:6px; padding:18px 16px 20px; border-radius:24px; text-align:center;
+  background:#fff; color:#1a0f4d; box-shadow:0 0 0 5px var(--rc), 0 10px 0 color-mix(in srgb,var(--rc),#000 35%), 0 0 60px var(--rc);
+}
+.ch-rarity{font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; padding:3px 12px; border-radius:999px; background:var(--rc); color:#1a0f4d}
+.ch-prev{width:96px; height:96px; display:grid; place-items:center; margin:4px 0}
+.ch-prev .bg-swatch{width:96px; height:96px}
+.ch-name{font-size:20px}
+.ch-kind{font-size:13px; color:#5b4b9a}
+.ch-dup{font-size:13px; font-weight:700; color:#8a5a00; background:#fff4dc; padding:3px 10px; border-radius:999px}
+.ch-flash{position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:6}
+.ch-beam,.ch-rays{position:absolute; left:50%; top:50%; pointer-events:none; opacity:0}
+.ch-beam{width:min(40vw,180px); height:120vh; margin-left:calc(min(40vw,180px) / -2); transform-origin:50% 0; top:-70vh;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--rc),#fff 40%) 30%,#fff 50%,color-mix(in srgb,var(--rc),#fff 40%) 70%,transparent)}
+.ch-rays{width:900px; height:900px; margin:-450px 0 0 -450px;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--rc),transparent 55%) 0 10deg,transparent 10deg 24deg);
+  -webkit-mask:radial-gradient(circle,#000 0,transparent 62%); mask:radial-gradient(circle,#000 0,transparent 62%)}
+
+/* Fases comunes: cuando sale el premio el cofre se aparta y aparecen los botones. */
+[data-phase="reward"] .ch-card{opacity:1; pointer-events:auto}
+[data-phase="reward"] .ch-actions{opacity:1; pointer-events:auto; transition:opacity .3s .2s}
+[data-phase="reward"] .ch-hint{opacity:0}
+
+/* ---------- Modo serio: tapa que se abre y fundido, nada más ---------- */
+.chest-dialog.serio .ch-shadow{display:none}
+.chest-dialog.serio [data-phase="burst"] .ch-closed,.chest-dialog.serio [data-phase="reward"] .ch-closed{opacity:0}
+.chest-dialog.serio [data-phase="burst"] .ch-body,.chest-dialog.serio [data-phase="reward"] .ch-body{opacity:1}
+.chest-dialog.serio .chest.art img{transition:opacity .3s}
+.chest-dialog.serio [data-phase="reward"] .ch-tap{opacity:.3; transform:translateY(90px) scale(.7); transition:opacity .3s, transform .3s}
+.chest-dialog.serio .ch-card{transition:opacity .3s}
+.chest-dialog.serio .ch-card-in{box-shadow:0 0 0 3px var(--rc), 0 10px 30px rgba(0,0,0,.25)}
+
+/* ---------- Cofre de respaldo dibujado con CSS (si falta el arte) ---------- */
+.chest.css .ch-body{position:absolute; left:10%; right:10%; bottom:18%; height:36%; background:#7c4dff; border:5px solid #26215c; border-radius:12px}
+.chest.css .ch-body i{position:absolute; left:42%; width:16%; top:-5px; bottom:-5px; background:#f2a516; border:5px solid #26215c; border-width:0 5px}
+.chest.css .ch-lid{position:absolute; left:10%; right:10%; bottom:52%; height:26%; background:#9b78ff; border:5px solid #26215c; border-radius:50% 50% 10px 10px / 70% 70% 10px 10px; transform-origin:15% 100%}
+.chest.css .ch-lock{position:absolute; left:43%; width:14%; bottom:42%; height:16%; background:#ffd23f; border:5px solid #26215c; border-radius:8px}
+.chest-dialog.serio .chest.css .ch-lid{opacity:1}
+.chest-dialog.serio [data-phase="reward"] .chest.css .ch-lid,.chest-dialog.serio [data-phase="burst"] .chest.css .ch-lid{transform:rotate(-60deg)}
+
+/* ---------- Modo serio: sin sacudidas ni rebotes (solo queda el pulso del botón de audio, que indica que suena) ---------- */
+[data-modo="serio"] .option.wrong,[data-modo="serio"] .match-item.wrong,[data-modo="serio"] .xp-gain,
+[data-modo="serio"] .xp-chip.bump,[data-modo="serio"] .classify-card,[data-modo="serio"] .bin-chip{animation:none}
+
+/* ---------- Celular: encabezado compacto ---------- */
+@media (max-width:640px){
+  .mode-toggle{padding:0 10px; min-height:40px}
+  .mode-toggle span{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+  .head-avatar{display:none}
+}
+@media (max-width:420px){
+  .user-box{gap:6px}
+  .user-box #logout span{display:none}
+}
+
+/* ---------- Presentar en clase (docente): sin encabezado, todo más grande ---------- */
+.presenting .app-header{display:none}
+.presenting .main{max-width:1280px; padding-top:12px}
+.present-bar{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; padding:10px 14px; border-radius:20px; background:var(--card); box-shadow:var(--shadow-sm)}
+.present-title{flex:1; min-width:180px; display:flex; flex-direction:column}
+.present-title b{font-size:18px}
+.present-stage .player{max-width:none}
+.present-stage{zoom:1.3}
+@media (max-width:900px){ .present-stage{zoom:1} }
+.present-done{margin-top:16px}
+/* Flechas para ir y volver entre preguntas, reloj grande de la clase */
+.present-wrap{display:grid; grid-template-columns:64px minmax(0,1fr) 64px; gap:12px; align-items:center}
+.present-arrow{width:64px; height:96px; border:0; border-radius:20px; cursor:pointer; font:inherit; font-size:56px; line-height:1;
+  background:var(--card); color:var(--primary); box-shadow:var(--shadow-sm); transition:transform .1s}
+.present-arrow:hover:not(:disabled){transform:scale(1.06)}
+.present-arrow:active:not(:disabled){transform:scale(.95)}
+.present-arrow:disabled{opacity:.3; cursor:default}
+[data-modo="juego"] .present-arrow{background:#ffd23f; color:#5a3a00; box-shadow:inset 0 -5px 0 #f0b800, 0 6px 0 #c99a00}
+.present-foot{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; color:var(--muted)}
+[data-modo="juego"] .present-foot{color:#fff}
+.present-opt{display:inline-flex; align-items:center; gap:6px; margin:0; font-size:13px; font-weight:600}
+.present-opt select,.present-opt input{width:auto; min-height:36px; padding:0 10px; font-size:13px}
+.present-opt input{width:76px}
+.bigclock{display:flex; align-items:center; gap:10px; padding:8px 14px; border-radius:18px; background:var(--card); box-shadow:var(--shadow-sm); color:var(--primary)}
+.bigclock b{font-size:34px; font-variant-numeric:tabular-nums; min-width:96px; text-align:center}
+.bigclock.warn b{color:var(--danger); animation:pulse .8s ease infinite}
+.bigclock.over{background:var(--danger-soft)}
+.bigclock.over b{color:var(--danger)}
+.present-next{display:flex; align-items:center; justify-content:center; gap:14px; margin-top:16px; font-size:18px; font-weight:700}
+[data-modo="juego"] .present-next{color:#fff}
+/* Cada diapositiva es una pregunta: se ocultan la barra de avance y el "1 de 1" de la plantilla */
+.present-stage .player-top{display:none}
+.present-stage .stage > div > .small.muted:first-child{display:none}
+@media (max-width:700px){
+  .present-wrap{grid-template-columns:44px minmax(0,1fr) 44px; gap:6px}
+  .present-arrow{width:44px; height:72px; font-size:40px}
+}
+
+/* ---------- Revisión 2026-11-16: portada del estudiante ---------- */
+.next-card{display:flex; align-items:center; gap:var(--sp-4); flex-wrap:wrap; background:var(--card); border-radius:var(--radius-card);
+  box-shadow:var(--shadow); padding:var(--sp-4) var(--sp-5); margin-bottom:var(--sp-4); border-left:6px solid var(--accent)}
+.next-card .grow{flex:1 1 220px; min-width:0}
+.next-card .kicker{margin:0; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--accent)}
+.next-card h2{margin:2px 0 4px; font-size:19px}
+.next-card .btn{min-width:150px}
+.due-soon{color:var(--warn); font-weight:700}
+.due-late{color:var(--danger); font-weight:700}
+.task-group{margin:var(--sp-5) 0 var(--sp-2); font-size:15px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px}
+details.done-group > summary{cursor:pointer; list-style:none; font-weight:700; color:var(--muted); margin:var(--sp-5) 0 var(--sp-3); font-size:15px; text-transform:uppercase; letter-spacing:.5px}
+details.done-group > summary::-webkit-details-marker{display:none}
+details.done-group > summary::before{content:"▸ "}
+details.done-group[open] > summary::before{content:"▾ "}
+.practice-card{display:flex; align-items:center; gap:var(--sp-3); flex-wrap:wrap; background:var(--card); border-radius:18px; box-shadow:var(--shadow-sm); padding:var(--sp-3) var(--sp-4); margin-bottom:var(--sp-4)}
+.practice-card .grow{flex:1 1 200px}
+.stars{display:inline-flex; gap:1px; color:var(--xp); font-size:15px; letter-spacing:1px; white-space:nowrap}
+.stars .off{color:var(--line)}
+.level-up{margin:12px auto 0; max-width:460px; border-radius:16px; padding:12px 16px; background:var(--warn-soft); color:var(--warn); font-weight:700; text-align:center}
+.main > .player .btn.sm, .path .btn.sm{min-height:var(--tap)}
+@media (max-width:420px){ .next-card .btn{flex:1 0 100%} }
+
+/* ---------- Retos ---------- */
+.retos{list-style:none; margin:0 0 var(--sp-4); padding:0; display:grid; gap:var(--sp-3)}
+.reto{display:flex; gap:var(--sp-4); align-items:center; background:var(--card); border-radius:20px; box-shadow:var(--shadow-sm); padding:var(--sp-4); flex-wrap:wrap}
+.reto.locked{opacity:.75}
+.reto-ico{flex:none; width:56px; height:56px; border-radius:16px; display:grid; place-items:center; font-size:28px; background:var(--accent-soft); color:var(--primary)}
+.reto.locked .reto-ico{background:var(--line)}
+.reto-txt{flex:1 1 240px; min-width:0}
+.reto-txt p{margin:4px 0}
+.reto-top{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:16px}
+.reto-txt .row{margin-top:8px}
+.reto-src{width:auto; max-width:100%; min-height:40px; font-size:14px}
+.reto-prize{flex:none; display:flex; flex-direction:column; align-items:center; gap:4px; width:88px; text-align:center}
+.reto-prize .bg-swatch{width:48px; height:48px}
+.reto.locked .reto-prize > :first-child{filter:grayscale(1) opacity(.5)}
+.reto-won{display:flex; gap:var(--sp-3); align-items:center; justify-content:center; margin:12px auto 0; max-width:420px; text-align:left; padding:12px; border-radius:16px; background:var(--warn-soft)}
+.reto-won .bg-swatch{width:72px; height:72px}
+.reto-won div{display:flex; flex-direction:column; gap:4px; align-items:flex-start}
+.badge.reto-badge{background:var(--warn-soft); color:var(--warn)}
+
+/* ---------- Mis tareas (revisión 2026-11-19): grupos, racha diaria, "Siguiente" grande con la mascota ---------- */
+.streak-chip{display:inline-flex; align-items:center; gap:4px; margin:2px 0 6px; padding:4px 12px; border-radius:999px;
+  background:#fff; color:#7a4b00; font-weight:700; font-size:14px; box-shadow:inset 0 -3px 0 rgba(0,0,0,.08)}
+.streak-chip:not(.on){color:var(--muted)}
+.streak-chip:not(.on) > span:first-child{filter:grayscale(1); opacity:.6}
+.streak-chip b{font-size:16px}
+.streak-meta{font-weight:600; font-size:12.5px; opacity:.85}
+.next-card{padding:var(--sp-4) var(--sp-5); border:3px solid var(--accent)}
+.next-card h2{font-size:22px}
+.next-card .mini-progress{max-width:320px; margin-top:8px}
+.next-masc{flex:none; width:72px; height:72px; display:grid; place-items:center; border-radius:20px; background:var(--accent-soft)}
+a.practice-card{text-decoration:none; color:inherit}
+a.practice-card:hover{box-shadow:0 0 0 2px var(--accent)}
+.practice-n{min-width:36px; height:36px; padding:0 10px; border-radius:999px; display:grid; place-items:center; background:var(--brand-warm); color:#fff; font-weight:800; font-size:16px}
+.task-group{margin:var(--sp-5) 0 var(--sp-3); font-size:15px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); font-family:var(--font)}
+.task-group span{display:inline-grid; place-items:center; min-width:24px; height:24px; margin-left:6px; border-radius:999px; background:var(--line); color:var(--ink); font-size:13px}
+.task-group.late{color:var(--danger)}
+[data-modo="juego"] .task-group,[data-modo="juego"] details.done-group > summary{color:#fff; text-shadow:0 2px 0 rgba(10,4,40,.35)}
+[data-modo="juego"] .task-group.late{color:#ffd0d0}
+[data-modo="juego"] .next-card{border-color:#ffd23f}
+@media (max-width:560px){ .next-masc{width:56px; height:56px} .next-card{padding:var(--sp-4)} }
+
+/* ---------- Unidad del estudiante como camino (estilo Duolingo, 2026-11-19) ---------- */
+.unit-page{max-width:720px; margin:0 auto}
+.back-link{display:inline-block; margin-bottom:10px; font-weight:600; text-decoration:none}
+[data-modo="juego"] .back-link{color:#fff}
+.unit-banner{position:relative; display:flex; gap:var(--sp-4); padding:var(--sp-5); border-radius:var(--radius-card); background:var(--primary); color:#fff}
+.unit-banner h1{color:#fff; margin:2px 0 6px; font-size:28px}
+.unit-banner .kicker{margin:0; font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; opacity:.85}
+.unit-banner .kicker span{color:inherit}
+.unit-desc{margin:0 0 12px; opacity:.9}
+.unit-prog{display:flex; align-items:center; gap:10px}
+.unit-prog .progress{height:12px; background:rgba(255,255,255,.25)}
+.unit-prog .progress > i{background:#ffd23f}
+.info-tip{position:absolute; top:14px; right:14px}
+.info-tip > summary{list-style:none; cursor:pointer; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font:700 15px/1 Georgia,serif; font-style:italic; background:rgba(255,255,255,.2); color:inherit}
+.info-tip > summary::-webkit-details-marker{display:none}
+.info-tip[open] > p{position:absolute; right:0; top:34px; z-index:5; width:min(300px, 80vw); margin:0; padding:12px 14px; border-radius:12px; background:#fff; color:var(--ink); box-shadow:var(--shadow); font-size:14px; line-height:1.4}
+.unit-done,.unit-late{margin-top:var(--sp-3); padding:10px 14px; border-radius:12px; font-weight:600}
+.unit-done{background:var(--success-soft); color:var(--success)}
+.unit-late{background:var(--danger-soft); color:var(--danger)}
+.unit-go{display:flex; width:100%; margin:var(--sp-4) 0 var(--sp-2); min-height:56px; font-size:18px}
+.path2{list-style:none; margin:var(--sp-5) 0 0; padding:0; display:flex; flex-direction:column; align-items:center; gap:18px}
+.node{display:flex; align-items:center; gap:16px; width:min(420px,100%); transform:translateX(calc(var(--off) * 56px))}
+.node-btn{flex:none; width:84px; height:84px; border-radius:50%; display:grid; place-items:center; text-decoration:none;
+  background:#fff; box-shadow:0 7px 0 #d6d1ea; border:4px solid #e7e3f5; transition:transform var(--dur-fast)}
+.node-btn:hover{transform:translateY(-3px)}
+.node-ico{display:grid; place-items:center; width:54px; height:54px; border-radius:50%; overflow:hidden; font:800 30px/1 var(--font); color:#fff}
+.node-ico svg{width:54px; height:54px}
+.node.done .node-btn{background:#58cc02; border-color:#58cc02; box-shadow:0 7px 0 #46a302}
+.node.next .node-btn{width:100px; height:100px; border-color:#ffd23f; box-shadow:0 7px 0 #e0a800, 0 0 0 8px rgba(255,210,63,.35); animation:pulse-node 1.8s ease-in-out infinite}
+.node.todo .node-btn{opacity:.85}
+.node-txt{display:flex; flex-direction:column; min-width:0; background:var(--card); padding:8px 12px; border-radius:12px; box-shadow:var(--shadow-sm)}
+.node-txt b{font-size:15px}
+.node-txt > span{font-size:13px; color:var(--muted)}
+@keyframes pulse-node{50%{box-shadow:0 7px 0 #e0a800, 0 0 0 14px rgba(255,210,63,.15)}}
+@media (max-width:560px){ .node{transform:translateX(calc(var(--off) * 24px))} .unit-banner{padding:var(--sp-4)} .unit-banner h1{font-size:22px} }
+@media (prefers-reduced-motion: reduce){ .node.next .node-btn{animation:none} }
+.page-head{position:relative}
+.page-head .info-tip{position:static; align-self:center}
+.page-head .info-tip[open] > p{right:16px; top:auto}
+.info-tip.dark > summary{background:var(--accent-soft); color:var(--primary)}
+[data-modo="juego"] .info-tip.dark > summary{background:rgba(255,255,255,.9)}
+.coll-prog{display:flex; align-items:center; gap:10px; width:min(320px,80vw); margin-top:6px}
+.coll-prog .progress{flex:1; height:12px}
+[data-modo="juego"] .coll-prog b{color:#fff}
+.retos-locked{list-style:none; margin:0; padding:0; display:grid; gap:8px}
+.retos-locked li{display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:12px; background:rgba(255,255,255,.75); color:var(--muted)}
+.retos-locked li b{color:var(--ink); flex:1}
+.reward-tile.locked .rt-prev > :not(.rt-lock){filter:brightness(0) opacity(.18)}
+.path-fase{width:min(460px,100%); display:flex; align-items:center; gap:10px; margin-top:8px; color:var(--muted); font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.5px}
+.path-fase::before,.path-fase::after{content:""; flex:1; height:2px; background:currentColor; opacity:.3}
+[data-modo="juego"] .path-fase{color:#fff}
+
+/* ---------- Presentar en clase (2026-11-19): ajustes en un panel, respuesta y marcador por equipos ---------- */
+.present-set{position:relative}
+.present-set > summary{list-style:none}
+.present-set > summary::-webkit-details-marker{display:none}
+.present-panel{right:0; left:auto; width:260px; padding:12px; display:grid; gap:10px}
+.present-panel label{display:grid; gap:4px; margin:0; font-size:13px; color:var(--ink)}
+.present-panel select,.present-panel input{min-height:38px}
+.present-ans{position:relative; z-index:6; margin:14px auto 0; width:fit-content; max-width:90%; padding:12px 22px; border-radius:16px; background:#fff; color:#16213d;
+  font:600 clamp(18px,2.4vw,28px)/1.3 var(--font-brand); box-shadow:0 10px 30px rgba(0,0,0,.25); animation:esc-sube .3s both}
+.present-ans b{color:#1b8a52}
+.present-count{font:700 18px/1 var(--font-brand); padding:6px 14px; border-radius:999px; background:rgba(255,255,255,.9); color:#16213d}
+.scoreboard{display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin:8px auto 0}
+.team{display:flex; align-items:center; gap:10px; padding:6px 8px 6px 14px; border-radius:14px; background:#fff; border-left:6px solid var(--tc); box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.team b{font-size:15px}
+.team-p{font:600 28px/1 var(--font-brand); min-width:36px; text-align:center; color:var(--tc)}
+.team .icon-btn{width:34px; height:34px; font-size:20px}
+.scoreboard > .icon-btn{width:auto; padding:0 12px; background:rgba(255,255,255,.85); border-radius:12px}
+.retos-locked li > :last-child{flex:none; width:40px; height:32px; overflow:hidden; border-radius:8px}
+.retos-locked li > :last-child svg{width:32px; height:32px}
+.retos-locked li b{white-space:nowrap}
+.retos-locked li .small{white-space:nowrap}
+.retos-locked li{align-items:center}
+.retos-locked li > :last-child{width:auto; height:auto; overflow:visible; border-radius:0}
+.rl-txt{flex:1; display:flex; flex-direction:column; min-width:0}
+.rl-txt .small{white-space:normal; color:var(--muted)}
+.rl-prize{display:flex; align-items:center; gap:6px; flex:none}
+.rl-prize > :first-child{width:36px; height:30px; overflow:hidden; border-radius:6px; display:grid; place-items:center}
+.rl-prize > :first-child svg{width:30px; height:30px}
+@media (max-width:560px){ .rl-prize .small{display:none} }

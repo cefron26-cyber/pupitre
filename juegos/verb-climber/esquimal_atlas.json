@@ -1,0 +1,231 @@
+{
+ "image": "esquimal_sheet_1x.png",
+ "frames": {
+  "idle_0": {
+   "x": 2,
+   "y": 2,
+   "w": 24,
+   "h": 24,
+   "group": "personaje"
+  },
+  "idle_1": {
+   "x": 28,
+   "y": 2,
+   "w": 24,
+   "h": 24,
+   "group": "personaje"
+  },
+  "jump": {
+   "x": 54,
+   "y": 2,
+   "w": 24,
+   "h": 24,
+   "group": "personaje"
+  },
+  "fall": {
+   "x": 80,
+   "y": 2,
+   "w": 24,
+   "h": 24,
+   "group": "personaje"
+  },
+  "celebrate": {
+   "x": 106,
+   "y": 2,
+   "w": 24,
+   "h": 24,
+   "group": "personaje"
+  },
+  "dead": {
+   "x": 132,
+   "y": 2,
+   "w": 24,
+   "h": 24,
+   "group": "personaje"
+  },
+  "face_neutral": {
+   "x": 2,
+   "y": 28,
+   "w": 24,
+   "h": 24,
+   "group": "expresiones"
+  },
+  "face_alegre": {
+   "x": 28,
+   "y": 28,
+   "w": 24,
+   "h": 24,
+   "group": "expresiones"
+  },
+  "face_sorprendido": {
+   "x": 54,
+   "y": 28,
+   "w": 24,
+   "h": 24,
+   "group": "expresiones"
+  },
+  "face_asustado": {
+   "x": 80,
+   "y": 28,
+   "w": 24,
+   "h": 24,
+   "group": "expresiones"
+  },
+  "face_derrotado": {
+   "x": 106,
+   "y": 28,
+   "w": 24,
+   "h": 24,
+   "group": "expresiones"
+  },
+  "ice_normal": {
+   "x": 2,
+   "y": 54,
+   "w": 32,
+   "h": 32,
+   "group": "bloques"
+  },
+  "ice_agrietado": {
+   "x": 36,
+   "y": 54,
+   "w": 32,
+   "h": 32,
+   "group": "bloques"
+  },
+  "ice_nieve": {
+   "x": 70,
+   "y": 54,
+   "w": 32,
+   "h": 32,
+   "group": "bloques"
+  },
+  "btn_left": {
+   "x": 2,
+   "y": 88,
+   "w": 32,
+   "h": 32,
+   "group": "controles"
+  },
+  "btn_left_pressed": {
+   "x": 36,
+   "y": 88,
+   "w": 32,
+   "h": 32,
+   "group": "controles"
+  },
+  "btn_right": {
+   "x": 70,
+   "y": 88,
+   "w": 32,
+   "h": 32,
+   "group": "controles"
+  },
+  "btn_right_pressed": {
+   "x": 104,
+   "y": 88,
+   "w": 32,
+   "h": 32,
+   "group": "controles"
+  },
+  "btn_jump": {
+   "x": 138,
+   "y": 88,
+   "w": 48,
+   "h": 32,
+   "group": "controles"
+  },
+  "btn_jump_pressed": {
+   "x": 188,
+   "y": 88,
+   "w": 48,
+   "h": 32,
+   "group": "controles"
+  },
+  "alert": {
+   "x": 2,
+   "y": 122,
+   "w": 16,
+   "h": 16,
+   "group": "error"
+  },
+  "error_screen_ref": {
+   "x": 20,
+   "y": 122,
+   "w": 64,
+   "h": 36,
+   "group": "error"
+  }
+ },
+ "animations": {
+  "idle": {
+   "frames": [
+    "idle_0",
+    "idle_1"
+   ],
+   "fps": 2
+  },
+  "jump": {
+   "frames": [
+    "jump"
+   ]
+  },
+  "fall": {
+   "frames": [
+    "fall"
+   ]
+  },
+  "celebrate": {
+   "frames": [
+    "celebrate"
+   ]
+  },
+  "dead": {
+   "frames": [
+    "dead"
+   ]
+  }
+ },
+ "text_band": {
+  "ice_normal": [
+   1,
+   9
+  ],
+  "ice_agrietado": [
+   1,
+   9
+  ],
+  "ice_nieve": [
+   11,
+   17
+  ]
+ },
+ "palette": {
+  "I": "#7FD8F5",
+  "L": "#B8EEFF",
+  "W": "#FFFFFF",
+  "N": "#1B2A5A",
+  "R": "#E53935",
+  "S": "#E8B48A",
+  "P": "#E8948A",
+  "K": "#0B0B12",
+  "G": "#5A6470",
+  "B": "#3D86DE",
+  "D": "#2850A8",
+  "r": "#9E1B24",
+  "s": "#C9945F",
+  "h": "#F2CFB3",
+  "n": "#E5AA7A",
+  "e": "#9C5A3C",
+  "C": "#FFA3B1",
+  "p": "#FFB3BF",
+  "q": "#7A0C15",
+  "c": "#99D9EA",
+  "k": "#000000",
+  "o": "#3A2410",
+  "Y": "#FFD34E",
+  "y": "#E8A530",
+  "z": "#B5741C",
+  "u": "#FFF4D6",
+  "v": "#EBD7A8"
+ }
+}
