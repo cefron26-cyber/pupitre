@@ -146,6 +146,12 @@ async function router() {
   };
   if (lo) lo.onclick = async () => { await session.logout(); currentUser = null; navigate('#/login'); };
   if (sk) sk.onclick = () => { const h = $('#main h1') || $('#main'); h.tabIndex = -1; h.focus(); };
+  const rp = $('#reset-progress');
+  if (rp) rp.onclick = async () => {
+    if (await confirmDialog('Se borrarán tus resultados, XP, cofres y colección para que puedas hacer todas las actividades otra vez.', 'Reiniciar', true)) {
+      await users.resetProgress(currentUser.id); toast('Listo: puedes hacer las actividades de nuevo.'); router();
+    }
+  };
   const rd = $('#reset-demo');
   if (rd) rd.onclick = async () => {
     if (await confirmDialog('Prototipo: los datos viven en este navegador. Se borrarán todas las actividades, asignaciones y resultados.', 'Reiniciar', true)) {

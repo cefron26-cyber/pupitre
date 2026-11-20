@@ -196,6 +196,14 @@ export const users = {
     for (const c of ['xpLedger', 'chests', 'userRewards', 'events']) remove(c, r => r.userId === id);
     remove('users', x => x.id === id);
   },
+  // Demo (2026-11-19): el estudiante borra su propio avance para volver a hacer las actividades.
+  // Quita intentos, XP, cofres, colección y eventos; conserva la cuenta, el curso y su avatar.
+  async resetProgress(id) {
+    const u = get('users', id); if (!u || u.role !== 'student') return;
+    remove('attempts', t => t.userId === id);
+    for (const c of ['xpLedger', 'chests', 'userRewards', 'events']) remove(c, r => r.userId === id);
+    flush();
+  },
 };
 
 export const courses = {

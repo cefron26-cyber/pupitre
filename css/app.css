@@ -1219,3 +1219,7 @@ h2{font-weight:600}
 .act-thumb.mini .at-k{background:var(--primary); border-color:var(--primary); color:#fff}
 .unit-folder{border-color:#c9d6ee; box-shadow:0 2px 6px rgba(22,33,61,.08)}
 .unit-folder.more{box-shadow:none}
+
+/* Botón del estudiante para borrar su avance (demo, 2026-11-19); en celular solo el ícono */
+.reset-avance span[aria-hidden]{font-size:16px; line-height:1}
+@media (max-width:640px){ .reset-avance .ra-txt{display:none} }
