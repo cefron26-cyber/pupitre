@@ -470,8 +470,12 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
 .cu-luz{position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .5s; z-index:200;
   background:radial-gradient(circle at 50% 18%, rgba(255,226,140,.55) 0, rgba(255,226,140,0) 35%), rgba(20,20,70,.5); mix-blend-mode:multiply}
 .cuarto.noche .cu-luz{opacity:1}
+/* Foto (cuarto.js): destello blanco de cámara */
+.cuarto::after{content:""; position:absolute; inset:0; z-index:400; background:#fff; opacity:0; pointer-events:none}
+.cuarto.flash::after{animation:cu-flash .45s ease-out}
+@keyframes cu-flash{0%{opacity:.9} 100%{opacity:0}}
 /* Botones y paneles */
-.cuarto-acciones{display:flex; gap:12px; justify-content:center; margin:18px 0}
+.cuarto-acciones{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin:18px 0}
 .cuarto-acciones .btn{min-height:52px; min-width:150px; font-size:17px}
 .cuarto-acciones .btn[aria-pressed="true"]{outline:3px solid #ffd23f; outline-offset:2px}
 .cuarto-panel{max-width:960px; margin:0 auto 24px}
@@ -524,4 +528,5 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
   .cu-globo.ve{animation:none; opacity:1; transform:none}
   .cu-planta.mece, .cu-pecera.burbujea .cu-burbujas b, .cu-item.aterriza, .cu-armario.aterriza{animation:none}
   .cu-item.agarrado, .cu-armario.agarrado{transition:none}
+  .cuarto.flash::after{animation:none}
 }

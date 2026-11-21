@@ -78,6 +78,7 @@ export async function cuarto(root, { user }) {
       <button type="button" class="btn" data-panel="armario"><span aria-hidden="true">👕</span> Armario</button>
       <button type="button" class="btn" data-panel="tienda"><span aria-hidden="true">🛒</span> Tienda</button>
       <button type="button" class="btn" id="cu-editar" aria-pressed="false"><span aria-hidden="true">✋</span> Mover muebles</button>
+      <button type="button" class="btn" id="cu-foto"><span aria-hidden="true">📷</span> Foto</button>
     </div>
     <p class="cu-ayuda" id="cu-ayuda" hidden>Agarra un mueble y suéltalo donde quieras; las plantas se pueden poner sobre la mesa.
       Tócalo sin moverlo para voltearlo con 🪞 Espejo. Con el teclado: elige uno con Tab, muévelo con las flechas y voltéalo con la E.
@@ -252,6 +253,66 @@ export async function cuarto(root, { user }) {
     plantas.forEach(p => aterrizar(p, ...p.fin, { rebote: false }));
     if (elegido === el.dataset.id) elegir(el);
   });
+
+  // ---------- Foto del cuarto: se dibuja en un canvas lo que se ve y se descarga como PNG ----------
+  // Recorre las piezas visibles en el orden en que se pintan (z-index; Cebollo con sus capas en el orden del DOM),
+  // con el espejo y la luz de noche. Sin el globo, las burbujas ni los resaltados del editor.
+  async function tomarFoto() {
+    const r0 = sala.getBoundingClientRect(), k = 1600 / r0.width;
+    const lienzo = document.createElement('canvas');
+    lienzo.width = 1600; lienzo.height = Math.round(r0.height * k);
+    const g = lienzo.getContext('2d');
+    g.fillStyle = '#f6efe0'; g.fillRect(0, 0, lienzo.width, lienzo.height);
+    const cargada = img => img.complete && img.naturalWidth ? img : new Promise(ok => { img.onload = img.onerror = () => ok(img); });
+    const pintar = async (img, espejado = false) => {
+      await cargada(img);
+      if (!img.naturalWidth || getComputedStyle(img).opacity === '0') return;
+      const r = img.getBoundingClientRect();
+      const x = (r.left - r0.left) * k, y = (r.top - r0.top) * k, w = r.width * k, h = r.height * k;
+      g.save();
+      if (espejado) { g.translate(x + w, y); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); } else g.drawImage(img, x, y, w, h);
+      g.restore();
+    };
+    await pintar($('.cu-fondo', sala));
+    const cebEl = $('#cu-cebollo', sala);
+    const piezas = [...sala.querySelectorAll('.cu-item, .cu-armario'), cebEl]
+      .map((el, i) => ({ el, i, z: +getComputedStyle(el).zIndex || 0 })).sort((a, b) => a.z - b.z || a.i - b.i);
+    for (const { el } of piezas) {
+      if (el === cebEl) {
+        // sombra de contacto (la del ::before) y luego cuerpo, cabeza y ropa
+        const r = cebEl.getBoundingClientRect();
+        const cx = (r.left + r.width / 2 - r0.left) * k, cy = (r.bottom - r0.top + r.height * .01) * k;
+        const rx = r.width * .35 * k, ry = r.height * .035 * k;
+        g.save(); g.translate(cx, cy); g.scale(1, ry / rx);
+        const sombra = g.createRadialGradient(0, 0, 0, 0, 0, rx);
+        sombra.addColorStop(0, 'rgba(90,55,20,.38)'); sombra.addColorStop(1, 'rgba(90,55,20,0)');
+        g.fillStyle = sombra; g.beginPath(); g.arc(0, 0, rx, 0, Math.PI * 2); g.fill(); g.restore();
+        for (const img of cebEl.querySelectorAll('img')) await pintar(img);
+      } else await pintar($('img', el), el.classList.contains('espejo'));
+    }
+    if (sala.classList.contains('noche')) {
+      g.save(); g.globalCompositeOperation = 'multiply';
+      g.fillStyle = 'rgba(20,20,70,.5)'; g.fillRect(0, 0, lienzo.width, lienzo.height);
+      const luz = g.createRadialGradient(lienzo.width / 2, lienzo.height * .18, 0, lienzo.width / 2, lienzo.height * .18, lienzo.width * .35);
+      luz.addColorStop(0, 'rgba(255,226,140,.55)'); luz.addColorStop(1, 'rgba(255,226,140,0)');
+      g.fillStyle = luz; g.fillRect(0, 0, lienzo.width, lienzo.height); g.restore();
+    }
+    const blob = await new Promise(ok => lienzo.toBlob(ok, 'image/png'));
+    const a = document.createElement('a');
+    const hoy = new Date(), dd = n => String(n).padStart(2, '0');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cuarto-de-cebollo-${hoy.getFullYear()}-${dd(hoy.getMonth() + 1)}-${dd(hoy.getDate())}-${dd(hoy.getHours())}${dd(hoy.getMinutes())}${dd(hoy.getSeconds())}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+  const btnFoto = $('#cu-foto', root);
+  btnFoto.onclick = async () => {
+    btnFoto.disabled = true;
+    sala.classList.remove('flash'); void sala.offsetWidth; sala.classList.add('flash');
+    try { await tomarFoto(); decir(azar(['¡Cheese! 📸', 'Say cheese!', '¡Qué buena foto!'])); toast('Foto guardada en Descargas'); }
+    catch (e) { console.error(e); toast('No se pudo tomar la foto'); }
+    finally { btnFoto.disabled = false; }
+  };
 
   // ---------- Paneles: armario (ropa) y tienda (decoración) ----------
   const cajaPanel = $('#cu-panel', root);
