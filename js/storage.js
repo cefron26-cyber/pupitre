@@ -203,7 +203,7 @@ export const users = {
     remove('attempts', t => t.userId === id);
     for (const c of ['xpLedger', 'chests', 'userRewards', 'compras', 'events']) remove(c, r => r.userId === id);
     // La ropa y la decoración se ganan: vuelven a las de inicio (sin prefs.ropa/cuarto se usan las por defecto).
-    const { ropa, cuarto, avatar, ...prefs } = u.prefs || {};
+    const { ropa, cuarto, posCuarto, espejoCuarto, sobreCuarto, avatar, ...prefs } = u.prefs || {};
     update('users', id, { prefs });
     flush();
   },

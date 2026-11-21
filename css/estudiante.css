@@ -491,6 +491,27 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
 .cu-precio.falta{color:#b3261e}
 .cu-falta{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:10px; border:2px dashed var(--border); border-radius:16px; text-align:center}
 .cu-falta span[aria-hidden]{font-size:28px}
+/* Editor de muebles (cuarto.js): mano abierta mientras no sostiene nada, mano cerrada mientras arrastra. El mueble
+   agarrado se levanta con su sombra; al soltarlo rebota un poco y se queda donde cayó. */
+.cuarto.editando{cursor:grab; box-shadow:0 0 0 4px #ffd23f, 0 8px 0 rgba(10,4,40,.25), var(--shadow)}
+.cuarto.editando .cu-item, .cuarto.editando .cu-armario, .cuarto.editando .cu-cebollo, .cuarto.editando .cu-cebollo *{cursor:grab; touch-action:none}
+.cuarto.editando .cu-item:hover:not(.agarrado), .cuarto.editando .cu-armario:hover:not(.agarrado){filter:drop-shadow(0 0 6px #ffe27a) drop-shadow(0 0 2px #ffd23f)}
+html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
+.cu-item.agarrado, .cu-armario.agarrado{transform:translateY(-3%) scale(1.04); filter:drop-shadow(0 14px 8px rgba(40,20,0,.35)); transition:transform .12s, filter .12s}
+.cu-item.aterriza, .cu-armario.aterriza{animation:cu-aterriza .35s ease-out}
+@keyframes cu-aterriza{0%{transform:translateY(-3%) scale(1.04)} 45%{transform:scale(1.04,.94)} 75%{transform:scale(.98,1.03)} 100%{transform:none}}
+/* Espejo: se voltea solo el dibujo, así no choca con las animaciones de agarrar y soltar. */
+.cu-item.espejo img, .cu-armario.espejo img{transform:scaleX(-1)}
+.cuarto.editando .elegido{outline:3px dashed #ffd23f; outline-offset:2px; border-radius:10px}
+.cu-herr{position:absolute; z-index:260; transform:translate(-50%, calc(-100% - 8px)); display:flex; gap:6px; padding:5px;
+  border-radius:14px; background:#fff; border:3px solid var(--ink, #1a0f4d); box-shadow:0 4px 0 rgba(10,4,40,.2)}
+.cu-herr.abajo{transform:translate(-50%, 8px)}
+.cu-herr[hidden]{display:none}
+.cu-herr button{min-height:40px; padding:0 14px; border:0; border-radius:10px; background:#fff4cc; color:var(--ink, #1a0f4d);
+  font:inherit; font-weight:700; cursor:pointer; white-space:nowrap}
+.cu-herr button:hover{background:#ffe27a}
+.cu-ayuda{max-width:960px; margin:-6px auto 18px; text-align:center; color:var(--muted)}
+.cu-ordenar{margin-left:8px; padding:0; border:0; background:none; font:inherit; font-weight:700; color:var(--primary); text-decoration:underline; cursor:pointer}
 .coll-sub{font-size:15px; margin:14px 0 8px}
 .ropa-icono{display:block; object-fit:contain}
 @media (max-width:560px){
@@ -501,5 +522,6 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
 }
 @media (prefers-reduced-motion: reduce){
   .cu-globo.ve{animation:none; opacity:1; transform:none}
-  .cu-planta.mece, .cu-pecera.burbujea .cu-burbujas b{animation:none}
+  .cu-planta.mece, .cu-pecera.burbujea .cu-burbujas b, .cu-item.aterriza, .cu-armario.aterriza{animation:none}
+  .cu-item.agarrado, .cu-armario.agarrado{transition:none}
 }
