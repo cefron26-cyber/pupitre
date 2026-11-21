@@ -49,8 +49,12 @@ export const ROPA = [
 ];
 // Premios viejos (cubos) → prenda que los reemplaza, para quien ya los había ganado.
 export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona' };
-export const urlRopa = id => `img/cebollo/ropa/${id}.webp`;
-export const urlIconoRopa = id => `img/cebollo/ropa/icono/${id}.webp`;
+// Gorros y gafas: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen vidrio
+// semitransparente para que se vean los ojos debajo.
+const ROPA_PNG = new Set(ROPA.filter(p => p.slot === 'sombrero' || p.slot === 'cara').map(p => p.id));
+export const archivoRopa = id => `${id}.${ROPA_PNG.has(id) ? 'png' : 'webp'}`;
+export const urlRopa = id => `img/cebollo/ropa/${archivoRopa(id)}`;
+export const urlIconoRopa = id => `img/cebollo/ropa/icono/${archivoRopa(id)}`;
 
 // Decoración del cuarto de Cebollo: se compra con monedas (1 moneda por cada XP ganado) y va en un lugar fijo.
 export const LUGARES = { ventana: 'Ventanas', cuadro: 'Cuadros', estante: 'Estantes', planta: 'Plantas', mesa: 'Mesas',
