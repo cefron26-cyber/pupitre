@@ -73,7 +73,7 @@ export const DECO = [
   { id: 'pecera_grande',     name: 'Acuario',            lugar: 'pecera',   precio: 250 },
   { id: 'alfombra_redonda',  name: 'Alfombra menta',     lugar: 'alfombra', precio: 0, free: true },
   { id: 'alfombra_arcoiris', name: 'Alfombra arcoíris',  lugar: 'alfombra', precio: 100 },
-  { id: 'lampara',           name: 'Lámpara de pie',     lugar: 'lampara',  precio: 70 },
+  { id: 'lampara',           name: 'Lámpara de techo',     lugar: 'lampara',  precio: 70 },
 ];
 export const urlDeco = id => `img/cuarto/${id}.webp`;
 

@@ -13,7 +13,7 @@
 
 /* Cebollo mini: busto quieto y vestido (cebolloMini en js/cebollo.js). Se ve del brote al pecho. */
 .ceb-mini{--s:48px; position:relative; display:inline-block; flex:none; width:var(--s); height:var(--s); overflow:hidden; vertical-align:middle}
-.ceb-mini-fig{position:absolute; left:50%; top:calc(var(--s) * .02); height:calc(var(--s) * 800 / 560); aspect-ratio:440/800; transform:translateX(-50%)}
+.ceb-mini-fig{position:absolute; left:50%; top:calc(var(--s) * .1); height:calc(var(--s) * 800 / 600); aspect-ratio:440/800; transform:translateX(-50%)}
 .ceb-mini img{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
 .check{display:flex; gap:10px; align-items:flex-start; margin:4px 0 16px; font-weight:400; cursor:pointer}
 .check input{width:20px; height:20px; margin:1px 0 0; flex:none; accent-color:var(--primary)}
@@ -367,14 +367,20 @@ html,body{overflow-x:clip}
 .cebollo-figura, .cebollo-cabeza, .cebollo-tronco, .cebollo-capas{position:absolute; inset:0}
 .cebollo-figura{transform-origin:50% 100%}
 .cebollo-tronco{transform-origin:50% 100%; animation:cebollo-respira 2.6s ease-in-out infinite}
-/* Ropa: capa de 560x920 = lienzo de 440x800 con 60 px a cada lado y 120 arriba (gorras y sombreros). */
-.cebollo img.cebollo-ropa, .ceb-mini img.cebollo-ropa{left:-13.636%; top:-15%; width:127.273%; height:115%}
+/* Ropa: capa de 560x960 = lienzo de 440x800 con 60 px a cada lado, 120 arriba (gorras) y 40 abajo (suelas). */
+.cebollo img.cebollo-ropa, .ceb-mini img.cebollo-ropa{left:-13.636%; top:-15%; width:127.273%; height:120%}
 .cebollo-cabeza{transform-origin:50% 61.5%; animation:cebollo-cabecea 2.6s ease-in-out infinite}
 .cebollo-cara{opacity:0}
 .cebollo[data-cara="normal"] .cebollo-cara[data-cara="normal"],
 .cebollo[data-cara="parpadeo"] .cebollo-cara[data-cara="parpadeo"],
 .cebollo[data-cara="sorpresa"] .cebollo-cara[data-cara="sorpresa"],
 .cebollo[data-cara="risa"] .cebollo-cara[data-cara="risa"]{opacity:1}
+/* Con sombrero: el brote va encima (cebollo-brote) y el de las caras se oculta (el brote ocupa el 13,1 % de arriba). */
+.cebollo-brote{pointer-events:none}
+.cebollo[data-sombrero="si"] .cebollo-cara, .ceb-mini img.ceb-sin-brote{clip-path:inset(13.1% 0 0 0)}
+/* Con prenda de torso: sin el trocito de cuello de la cabeza (desde la fila 492 de 800), que dejaba un corte recto. */
+.cebollo[data-torso="si"] .cebollo-cara, .ceb-mini img.ceb-sin-cuello{clip-path:inset(0 0 38.5% 0)}
+.cebollo[data-sombrero="si"][data-torso="si"] .cebollo-cara, .ceb-mini img.ceb-sin-brote.ceb-sin-cuello{clip-path:inset(13.1% 0 38.5% 0)}
 .cebollo .cebollo-festejo{width:154.09%; left:-27.05%; opacity:0; transform-origin:50% 100%}
 
 @keyframes cebollo-respira{ 0%,100%{transform:scale(1,1)} 50%{transform:scale(1.012,.985)} }
@@ -433,29 +439,23 @@ html,body{overflow-x:clip}
 /* ---- Cuarto de Cebollo (js/views/cuarto.js) ----
    Escena 4:3 con el fondo del cuarto; cada lugar tiene posición fija (en % de la escena). Arte en img/cuarto/. */
 .monedas{display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:999px; background:#fff4cc; color:#7a5200; font-weight:700; white-space:nowrap; box-shadow:0 3px 0 #e8c25a}
-.cuarto{position:relative; width:100%; max-width:960px; margin:0 auto; aspect-ratio:4/3; border-radius:24px; overflow:hidden;
+.cuarto{position:relative; isolation:isolate; width:min(100%, 960px, calc((100dvh - 230px) * 4 / 3)); min-width:min(100%, 520px); margin:0 auto; aspect-ratio:4/3; border-radius:24px; overflow:hidden;
   box-shadow:0 8px 0 rgba(10,4,40,.25), var(--shadow); background:#f6efe0; container-type:inline-size; user-select:none; -webkit-user-select:none}
 .cu-fondo{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
 .cu-item, .cu-armario{position:absolute; display:block; padding:0; margin:0; border:0; background:none; font:inherit; transform-origin:50% 100%}
-.cu-item img, .cu-armario img{display:block; width:100%; height:auto; pointer-events:none}
+.cu-item img, .cu-armario img{display:block; width:100%; height:100%; pointer-events:none}
+/* Cada objeto llega ya en la perspectiva del cuarto: su caja (left/top/width/height en %) y su z-index los pone
+   cuarto.js con js/cuarto-cajas.js. #cu-deco no crea capa propia, así los z-index compiten con Cebollo. */
+#cu-deco{display:contents}
 button.cu-item, .cu-armario{cursor:pointer; -webkit-tap-highlight-color:transparent}
 button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring); outline-offset:4px; border-radius:12px}
-/* Pared */
-.cu-ventana{left:26%; top:7%; width:21%}
-.cu-cuadro{left:60%; top:9%; width:13%}
-.cu-estante{left:76%; top:14%; width:20%}
-/* Piso (anclados por abajo) */
-.cu-alfombra{left:30%; bottom:3%; width:44%}
-.cu-armario{left:2%; bottom:14%; width:21%}
-.cu-planta{left:22%; bottom:13%; width:10%}
-.cu-lampara{left:89%; bottom:16%; width:9%}
-.cu-mesa{left:70%; bottom:10%; width:19%}
-.cu-silla{left:62%; bottom:7%; width:10%; z-index:2}
-.cu-pecera{left:72%; bottom:10%; width:12%; z-index:1}
-.cuarto[data-mesa="si"] .cu-pecera{bottom:calc(10% + 19% * 4 / 3 * .62)}
-.cu-cebollo{position:absolute; left:50%; bottom:6%; transform:translateX(-50%); z-index:3}
-.cu-cebollo .cebollo{--alto:clamp(150px, 46cqi, 330px)}
-.cu-globo{position:absolute; left:58%; bottom:96%; margin:0; padding:8px 14px; min-width:max-content; border-radius:18px; background:#fff;
+/* Cebollo: parado sobre la alfombra, a la escala con la que se generaron los muebles (42 % del alto, pies al 93 %). */
+.cu-cebollo{position:absolute; left:50%; bottom:12%; height:37%; aspect-ratio:440/800; transform:translateX(-50%)}
+.cu-cebollo .cebollo{--alto:100%; height:100%}
+/* Sombra de contacto de Cebollo en el piso */
+.cu-cebollo::before{content:""; position:absolute; left:15%; right:15%; bottom:-2.5%; height:7%; border-radius:50%;
+  background:radial-gradient(closest-side, rgba(90,55,20,.38), rgba(90,55,20,0)); pointer-events:none}
+.cu-globo{position:absolute; left:53%; bottom:50%; z-index:300; margin:0; padding:8px 14px; min-width:max-content; border-radius:18px; background:#fff;
   border:3px solid var(--ink, #1a0f4d); font-weight:700; font-size:clamp(13px, 2.2cqi, 18px); color:var(--ink, #1a0f4d); opacity:0;
   transform:scale(.4); transform-origin:0 100%; pointer-events:none; box-shadow:0 4px 0 rgba(10,4,40,.2)}
 .cu-globo::after{content:""; position:absolute; left:14px; bottom:-11px; width:14px; height:14px; background:#fff; border:3px solid var(--ink, #1a0f4d);
@@ -471,14 +471,15 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
 .cu-pecera.burbujea .cu-burbujas b{animation:cu-burbuja 1.4s ease-out}
 @keyframes cu-burbuja{0%{opacity:0; transform:translateY(0)} 20%{opacity:1} 100%{opacity:0; transform:translateY(-260%)}}
 .cu-armario:hover, .cuarto.armario-abierto .cu-armario{filter:drop-shadow(0 0 10px #ffe27a)}
-.cu-luz{position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .5s; z-index:4;
-  background:radial-gradient(circle at 93% 55%, rgba(255,220,120,.35) 0, transparent 30%), rgba(20,20,70,.45); mix-blend-mode:multiply}
+.cu-luz{position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .5s; z-index:200;
+  background:radial-gradient(circle at 50% 18%, rgba(255,226,140,.55) 0, rgba(255,226,140,0) 35%), rgba(20,20,70,.5); mix-blend-mode:multiply}
 .cuarto.noche .cu-luz{opacity:1}
 /* Botones y paneles */
 .cuarto-acciones{display:flex; gap:12px; justify-content:center; margin:18px 0}
 .cuarto-acciones .btn{min-height:52px; min-width:150px; font-size:17px}
 .cuarto-acciones .btn[aria-pressed="true"]{outline:3px solid #ffd23f; outline-offset:2px}
 .cuarto-panel{max-width:960px; margin:0 auto 24px}
+.cu-tile.caro .cu-tile-img{opacity:.55}
 .cu-titulo{display:flex; align-items:baseline; gap:12px; margin:0 0 12px}
 .cu-tabs{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px; scrollbar-width:thin}
 .cu-tab{flex:none; min-height:40px; padding:0 16px; border-radius:999px; border:2px solid var(--border); background:var(--card); color:var(--text); font:inherit; font-weight:600; cursor:pointer}
@@ -488,7 +489,6 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
   border:2px solid var(--border); background:var(--card); color:var(--text); font:inherit; text-align:center}
 .cu-tile:hover{border-color:var(--primary)}
 .cu-tile.on{border-color:#2fb36b; background:#eafff2; box-shadow:0 0 0 2px #2fb36b inset}
-.cu-tile.caro{opacity:.6}
 .cu-tile-img{width:84px; height:84px; object-fit:contain}
 .cu-nada{display:grid; place-items:center; font-size:32px; color:var(--muted); border:2px dashed var(--border); border-radius:14px; width:72px; height:72px; margin:6px}
 .cu-precio{font-weight:700; color:#7a5200}
@@ -498,7 +498,7 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
 .coll-sub{font-size:15px; margin:14px 0 8px}
 .ropa-icono{display:block; object-fit:contain}
 @media (max-width:560px){
-  .cuarto{border-radius:16px}
+  .cuarto{width:calc(100% + 32px); min-width:0; margin:0 -16px; border-radius:0}
   .cuarto-acciones .btn{flex:1; min-width:0}
   .cu-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
   .cu-tile-img{width:64px; height:64px}

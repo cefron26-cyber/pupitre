@@ -6,6 +6,15 @@ import { ROPA, SLOTS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet } f
 import { crearCebollo, cebolloMini } from '../cebollo.js';
 import { prefsOf } from './student.js';
 import { esc, $, toast } from '../ui.js';
+import { CAJAS, PISO_CEBOLLO } from '../cuarto-cajas.js';
+
+// Caja de cada objeto en % del cuarto (sale de herramientas/arte/recortar_cuarto.py, con su sombra incluida).
+// Profundidad: lo que se apoya más abajo en el piso tapa a lo de atrás; la alfombra siempre queda bajo Cebollo.
+const caja = (id, lugar) => {
+  const [x, y, w, h] = CAJAS[id] || [0, 0, 0, 0];
+  const z = lugar === 'alfombra' ? 1 : lugar === 'lampara' ? 95 : Math.round(y + h);
+  return `left:${x}%;top:${y}%;width:${w}%;height:${h}%;z-index:${z}`;
+};
 
 const FRASES = ['¡Hola, {n}!', 'Hello, {n}!', '¿Practicamos inglés hoy?', 'I love my room!', '¡Me gusta mi cuarto!',
   'Let\'s learn together!', '¡Tú puedes!', 'Good job today!', '¿Me compras una planta?', 'How are you?'];
@@ -28,8 +37,9 @@ export async function cuarto(root, { user }) {
     <div class="cuarto" id="cuarto">
       <img class="cu-fondo" src="img/cuarto/cuarto.webp" alt="" draggable="false">
       <div id="cu-deco"></div>
-      <button type="button" class="cu-armario" id="cu-armario" aria-label="Abrir el armario"><img src="img/cuarto/armario.webp" alt="" draggable="false"></button>
-      <div class="cu-cebollo" id="cu-cebollo"><p class="cu-globo" id="cu-globo" role="status" aria-live="polite"></p></div>
+      <button type="button" class="cu-armario" id="cu-armario" aria-label="Abrir el armario" style="${caja('armario')}"><img src="img/cuarto/armario.webp" alt="" draggable="false"></button>
+      <div class="cu-cebollo" id="cu-cebollo" style="z-index:${PISO_CEBOLLO}"></div>
+      <p class="cu-globo" id="cu-globo" role="status" aria-live="polite"></p>
       <div class="cu-luz" aria-hidden="true"></div>
     </div>
     <div class="cuarto-acciones">
@@ -58,10 +68,9 @@ export async function cuarto(root, { user }) {
       const d = DECO.find(x => x.id === puesto[l]);
       if (!d) return '';
       const toca = ['pecera', 'lampara', 'planta'].includes(l);
-      return `<${toca ? 'button type="button"' : 'span'} class="cu-item cu-${l}" data-lugar="${l}" data-id="${d.id}" ${toca ? `aria-label="${esc(d.name)}"` : 'aria-hidden="true"'}>
+      return `<${toca ? 'button type="button"' : 'span'} class="cu-item cu-${l}" data-lugar="${l}" data-id="${d.id}" style="${caja(d.id, l)}" ${toca ? `aria-label="${esc(d.name)}"` : 'aria-hidden="true"'}>
         <img src="${urlDeco(d.id)}" alt="" draggable="false">${l === 'pecera' ? '<i class="cu-burbujas"><b></b><b></b><b></b></i>' : ''}</${toca ? 'button' : 'span'}>`;
     }).join('');
-    sala.dataset.mesa = puesto.mesa ? 'si' : 'no';
     sala.querySelectorAll('button.cu-item').forEach(b => b.onclick = () => {
       const l = b.dataset.lugar;
       if (l === 'lampara') { sala.classList.toggle('noche'); decir(sala.classList.contains('noche') ? '¡Qué acogedor!' : '¡Buenos días!'); }
@@ -73,12 +82,12 @@ export async function cuarto(root, { user }) {
   $('#cu-armario', root).onclick = () => abrir('armario');
 
   // ---------- Paneles: armario (ropa) y tienda (decoración) ----------
-  const caja = $('#cu-panel', root);
+  const cajaPanel = $('#cu-panel', root);
   function abrir(cual) {
-    if (panel === cual) { panel = null; caja.hidden = true; marcar(); return; }
+    if (panel === cual) { panel = null; cajaPanel.hidden = true; marcar(); return; }
     panel = cual; pestana = cual === 'armario' ? 'torso' : 'ventana';
-    caja.hidden = false; pintarPanel(); marcar();
-    caja.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    cajaPanel.hidden = false; pintarPanel(); marcar();
+    cajaPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     if (cual === 'armario') { sala.classList.add('armario-abierto'); decir(azar(['¿Qué me pongo?', 'Choose my clothes!'])); }
     else sala.classList.remove('armario-abierto');
   }
@@ -108,12 +117,12 @@ export async function cuarto(root, { user }) {
           <img class="cu-tile-img" src="${urlDeco(d.id)}" alt=""><b>${esc(d.name)}</b>${accion}</button></li>`;
       }).join('');
     }
-    caja.innerHTML = `<h2 class="cu-titulo">${panel === 'armario' ? 'Armario' : 'Tienda'}${panel === 'tienda' ? ` <span class="small muted">Tienes 🪙 ${monedas}</span>` : ''}</h2>
+    cajaPanel.innerHTML = `<h2 class="cu-titulo">${panel === 'armario' ? 'Armario' : 'Tienda'}${panel === 'tienda' ? ` <span class="small muted">Tienes 🪙 ${monedas}</span>` : ''}</h2>
       ${pest}<ul class="cu-grid">${lista}</ul>`;
-    caja.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { pestana = b.dataset.tab; pintarPanel(); });
-    caja.querySelectorAll('[data-ropa]').forEach(b => b.onclick = () => ponerRopa(pestana, b.dataset.ropa));
-    caja.querySelectorAll('[data-quitar]').forEach(b => b.onclick = () => ponerRopa(pestana, null));
-    caja.querySelectorAll('[data-deco]').forEach(b => b.onclick = () => tocarDeco(b.dataset.deco));
+    cajaPanel.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { pestana = b.dataset.tab; pintarPanel(); });
+    cajaPanel.querySelectorAll('[data-ropa]').forEach(b => b.onclick = () => ponerRopa(pestana, b.dataset.ropa));
+    cajaPanel.querySelectorAll('[data-quitar]').forEach(b => b.onclick = () => ponerRopa(pestana, null));
+    cajaPanel.querySelectorAll('[data-deco]').forEach(b => b.onclick = () => tocarDeco(b.dataset.deco));
   }
 
   async function ponerRopa(slot, id) {
