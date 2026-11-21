@@ -2,7 +2,7 @@
 // (tienda) y cambiarle la ropa (armario). Cada lugar del cuarto lleva un objeto a la vez (prefs.cuarto[lugar]).
 // Monedas = XP ganado − lo gastado (storage.compras). La ropa sale del cofre y de los retos (colección).
 import { xp, users, userRewards, compras, events } from '../storage.js';
-import { ROPA, SLOTS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet } from '../rewards.js';
+import { ROPA, SLOTS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO } from '../rewards.js';
 import { crearCebollo, cebolloMini } from '../cebollo.js';
 import { prefsOf } from './student.js';
 import { esc, $, toast } from '../ui.js';
@@ -18,7 +18,7 @@ export async function cuarto(root, { user }) {
   let ropa = { ...prefs.ropa }, puesto = { ...prefs.cuarto };
   const nombre = esc(user.name.split(' ')[0]);
   const ropaMia = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
-  const decoMia = new Set([...DECO.filter(d => d.free).map(d => d.id), ...(await compras.list(user.id)).map(c => c.itemId)]);
+  const decoMia = new Set([...DECO.filter(d => d.free || DESBLOQUEADO).map(d => d.id), ...(await compras.list(user.id)).map(c => c.itemId)]);
   let monedas = (await xp.total(user.id)) - (await compras.gastado(user.id));
   let panel = null, pestana = null;
 

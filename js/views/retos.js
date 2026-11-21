@@ -6,7 +6,7 @@ import { esc, el, $, icons, fmtDuration } from '../ui.js';
 import { templates } from '../templates/index.js';
 import { mountPlayer } from '../player.js';
 import { RETOS, RETO_XP, retoPassed, itemCount, quizFromAnswers, activityIdsOf, progressOf } from '../logic.js';
-import { byId, rewardPreview, ownedSet } from '../rewards.js';
+import { byId, rewardPreview, ownedSet, DESBLOQUEADO } from '../rewards.js';
 import { levelOf, levelCost, chestState, openDailyChest, equipar } from './student.js';
 
 // XP que falta para llegar a un nivel.
@@ -45,7 +45,7 @@ export async function retosList(root, { user }) {
   const xpToday = id => done.some(t => t.reto === id && sameDay(t.finishedAt));
 
   const card = r => {
-    const open = level >= r.level;
+    const open = DESBLOQUEADO || level >= r.level;
     const prize = byId(r.reward);
     const b = best(r.id);
     const src = r.id === 'reloj' ? fin.acts : r.id === 'maraton' ? fin.unitsDone : null;
@@ -66,7 +66,7 @@ export async function retosList(root, { user }) {
     </li>`;
   };
   const tcard = a => {
-    const open = level >= a.challengeLevel, tpl = templates[a.type], id = 'act:' + a.id, b = best(id);
+    const open = DESBLOQUEADO || level >= a.challengeLevel, tpl = templates[a.type], id = 'act:' + a.id, b = best(id);
     return `<li class="reto ${open ? 'open' : 'locked'}" data-id="${id}">
       <div class="reto-ico" aria-hidden="true">${open ? tpl.icon : '🔒'}</div>
       <div class="reto-txt"><div class="reto-top"><b>${esc(a.title)}</b><span class="badge ${open ? 'done' : 'todo'}">Nivel ${a.challengeLevel}</span></div>
@@ -77,7 +77,7 @@ export async function retosList(root, { user }) {
   };
 
   // Escalera: primero los abiertos, luego los bloqueados en una lista compacta. Las reglas, en el ⓘ.
-  const abiertos = RETOS.filter(r => level >= r.level), cerrados = RETOS.filter(r => level < r.level);
+  const abiertos = RETOS.filter(r => DESBLOQUEADO || level >= r.level), cerrados = RETOS.filter(r => !DESBLOQUEADO && level < r.level);
   root.innerHTML = `<div class="page-head"><div><h1>Retos</h1>
       <p class="muted">Nivel ${level} · ${abiertos.length} de ${RETOS.length} abiertos</p></div>
       <details class="info-tip dark"><summary aria-label="Cómo funcionan los retos">i</summary><p>Los retos se abren al subir de nivel. No cuentan para la nota: dan ${RETO_XP} XP por acierto (una vez al día cada reto) y, si lo superas, un premio que no sale del cofre.</p></details></div>
@@ -101,7 +101,7 @@ export async function retoPlay(root, { user, params, query }) {
   let activity, clock = { mode: 'none' }, name, goal = '', teacherAct = null;
 
   if (auto) {
-    if (level < auto.level) return fail(`Este reto se abre en el nivel ${auto.level}.`);
+    if (!DESBLOQUEADO && level < auto.level) return fail(`Este reto se abre en el nivel ${auto.level}.`);
     name = auto.name; goal = auto.goal;
     const done = await attempts.doneByUser(user.id);
     if (id === 'reloj') {
@@ -127,7 +127,7 @@ export async function retoPlay(root, { user, params, query }) {
     teacherAct = await activities.get(id.slice(4));
     const grades = await courses.gradesOf(user.courseIds);
     if (!teacherAct || !teacherAct.challengeLevel || !grades.includes(teacherAct.grade)) return fail('Este reto ya no está disponible.');
-    if (level < teacherAct.challengeLevel) return fail(`Este reto se abre en el nivel ${teacherAct.challengeLevel}.`);
+    if (!DESBLOQUEADO && level < teacherAct.challengeLevel) return fail(`Este reto se abre en el nivel ${teacherAct.challengeLevel}.`);
     activity = teacherAct; name = 'Reto de tu docente';
   } else return fail('Este reto no existe.');
 
