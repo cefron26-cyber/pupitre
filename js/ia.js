@@ -9,7 +9,9 @@ import { el, esc, $ } from './ui.js';
 export { TIPOS_IA, validarContenido };
 
 const CLAVE_LS = 'plat.ia.clave';
-const MODELOS = ['gemini-flash-latest', 'gemini-2.5-flash'];
+// Mismos modelos que el servidor (servidor/ia.mjs): si uno no responde, no tiene cuota o está saturado, se prueba el siguiente.
+const MODELOS = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
+const ESPERA_MS = 45_000; // tope por modelo: antes no había y el botón se quedaba en "Generando…" para siempre
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 export const claveIA = () => { try { return localStorage.getItem(CLAVE_LS) || ''; } catch { return ''; } };
@@ -126,21 +128,26 @@ async function conGemini(pedido, signal) {
     generationConfig: { responseMimeType: 'application/json', responseJsonSchema: REGLAS[p.tipo].esquema, temperature: 0.8 },
   };
   const pedir = async (modelo, body) => {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ESPERA_MS);
+    const cortar = () => ctl.abort();
+    signal?.addEventListener('abort', cortar, { once: true });
     try {
       return await fetch(`${API}/${modelo}:generateContent`, {
-        method: 'POST', signal,
+        method: 'POST', signal: ctl.signal,
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': clave },
         body: JSON.stringify(body),
       });
     } catch (e) {
-      if (e.name === 'AbortError') throw e;
+      if (signal?.aborted) throw e;   // el docente canceló
+      if (e.name === 'AbortError') return { status: 504, ok: false, json: async () => ({}) };   // tardó demasiado
       throw new Error('No hay conexión a internet o Gemini no responde. Intenta de nuevo.');
-    }
+    } finally { clearTimeout(t); signal?.removeEventListener('abort', cortar); }
   };
   let r, modelo;
   for (modelo of MODELOS) {
     r = await pedir(modelo, cuerpo);
-    if (r.status !== 404) break; // modelo no disponible: probar el siguiente
+    // Sin el modelo (404), sin cuota (429), saturado (5xx) o colgado (504): probar el siguiente.
+    if (![404, 429, 500, 503, 504].includes(r.status)) break;
   }
   let j = await r.json().catch(() => ({}));
   // Si el modelo no acepta el esquema como parámetro, se le manda dentro del texto (modo JSON simple).
@@ -152,7 +159,8 @@ async function conGemini(pedido, signal) {
   }
   if (!r.ok) {
     const msg = j.error?.message || '';
-    if (r.status === 429) throw new Error('Se agotó la cuota gratuita de Gemini por ahora. Intenta en un minuto.');
+    if (r.status === 429) throw new Error(/day|día|quota/i.test(msg) ? 'Se agotó la cuota de Gemini de tu clave (por hoy o por falta de créditos). Intenta más tarde.' : 'Se agotó la cuota gratuita de Gemini por ahora. Intenta en un minuto.');
+    if (r.status === 504) throw new Error('Gemini tardó demasiado en responder. Prueba con menos preguntas o intenta de nuevo.');
     if (/api key|API_KEY/i.test(msg) || r.status === 401 || r.status === 403) {
       guardarClave('');
       throw new Error('Gemini no aceptó la clave. Revisa que la copiaste completa y vuelve a intentarlo.');
