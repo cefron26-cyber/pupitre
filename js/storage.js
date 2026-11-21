@@ -89,8 +89,16 @@ export function flush() {
 addEventListener('pagehide', flush);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
 // Otra pestaña cambió los datos o la sesión: recargar desde el navegador para no pisar sus cambios.
+// Lo que importa para repintar: todo menos el registro de eventos y la "última conexión". Si solo cambió eso,
+// no se repinta: cada pestaña registra "abrió sección" al pintar, y con dos pestañas abiertas se repintaban una a la
+// otra sin parar (la página volvía arriba y el cuarto salía del modo de mover muebles). Arreglado 2026-11-21.
+const firma = db => JSON.stringify(db, (k, v) => k === 'events' || k === 'lastSeenAt' ? undefined : v);
 addEventListener('storage', e => {
-  if (e.key === DB_KEY) { clearTimeout(pending); pending = null; cache = null; dispatchEvent(new CustomEvent('plat-external', { detail: 'db' })); }
+  if (e.key === DB_KEY) {
+    const antes = cache ? firma(cache) : null;
+    clearTimeout(pending); pending = null; cache = null;
+    if (antes === null || firma(load()) !== antes) dispatchEvent(new CustomEvent('plat-external', { detail: 'db' }));
+  }
   if (e.key === SESSION_KEY) dispatchEvent(new CustomEvent('plat-external', { detail: 'session' }));
 });
 
