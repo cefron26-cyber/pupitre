@@ -10,7 +10,7 @@
 // Memoria no: lleva imágenes.
 export const TIPOS_IA = ['quiz', 'matching', 'fill', 'listening', 'reorder', 'classify', 'reading', 'dictation', 'wordsearch', 'hangman', 'crossword'];
 // min 1: los ejercicios del asistente de unidades son cortos (≈ 2 preguntas). El formulario del editor sigue pidiendo 3+.
-export const CANTIDAD = { min: 1, max: 15 };
+export const CANTIDAD = { min: 1, max: 20 };
 
 const txt = s => String(s ?? '').trim().replace(/\s+/g, ' ');
 const clave = s => txt(s).toLowerCase();
@@ -47,7 +47,8 @@ const quiz = {
     const f = { multiple: 'All questions are multiple choice with exactly 3 distractors (tf = false).',
       tf: 'All items are True/False statements (tf = true, answer "True" or "False", about half of each).',
       mixto: 'Mix: about 70% multiple choice with 3 distractors and 30% True/False statements.' }[p.formato] || 'All questions are multiple choice with exactly 3 distractors (tf = false).';
-    return `Create a quiz with exactly ${p.cantidad} questions. ${f} True/False statements must be checkable without any extra text: general knowledge about the topic, or "Is this sentence correct?" style grammar statements (e.g. 'The sentence "She go to school" is correct.'); never statements about an unknown person's life. Distractors must be plausible for the level, clearly wrong, and never synonyms of the answer. Only one correct answer per question.`;
+    return `Create a quiz with exactly ${p.cantidad} questions. ${f} True/False statements must be checkable without any extra text: general knowledge about the topic, or "Is this sentence correct?" style grammar statements (e.g. 'The sentence "She go to school" is correct.'); never statements about an unknown person's life. Distractors must be plausible for the level, clearly wrong, and never synonyms of the answer. Only one correct answer per question.
+IMPORTANT: if the topic or the teacher notes describe how the questions should look (for example "sentences where the student chooses the correct spelling": then each "q" is a different, natural sentence with a gap ___, like "Tom is ___ in the park.", and the options are spellings of the missing word), follow that format exactly instead of asking "What is…?" questions. Every question uses a different sentence and a different target word: never use the same correct answer twice in the quiz.`;
   },
   convertir(o) {
     return {
@@ -394,6 +395,8 @@ export function limpiarPedido(b = {}) {
     // Ficha de la unidad (asistente): vocabulario y gramática que deben aparecer. Opcionales.
     vocabulario: txt(b.vocabulario).slice(0, 600),
     gramatica: txt(b.gramatica).slice(0, 400),
+    // Elementos ya generados que no se deben repetir (cuando la app pide los que faltaron). Opcional.
+    evitar: txt(b.evitar).slice(0, 2500),
   };
 }
 

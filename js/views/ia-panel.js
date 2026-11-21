@@ -18,7 +18,7 @@ const OPCION = {
 };
 // Campo "Cantidad": nombre, valor inicial y máximo por tipo.
 const CANT = { matching: ['Cantidad', 6, 10], listening: ['Preguntas', 5, 10], reading: ['Preguntas', 5, 10], reorder: ['Oraciones', 6, 15], classify: ['Cantidad', 8, 12], dictation: ['Cantidad', 8, 15], wordsearch: ['Palabras', 10, 15], hangman: ['Palabras', 6, 15], crossword: ['Palabras', 8, 15] };
-const cant = t => CANT[t] || ['Cantidad', 8, 15];
+const cant = t => CANT[t] || ['Cantidad', 8, 20];
 const EJEMPLO_TEMA = {
   quiz: 'Ej. present simple con rutinas diarias',
   matching: 'Ej. animales de la granja',
@@ -148,7 +148,11 @@ function abrirGenerar(o) {
     err.hidden = !falta.length; err.textContent = falta.join(' ');
     if (falta.length) return;
     const v = $('#iaOp', d)?.value;
-    const pedido = { tipo: tpl.type, tema, grado, cantidad: Number($('#iaCant', d).value), notas: $('#iaNotas', d).value,
+    // La cantidad no pasa del máximo del tipo (antes se podía escribir 20 y llegaban 15 sin avisar).
+    const [, , maxCant] = cant(tpl.type);
+    const cantidad = Math.max(3, Math.min(maxCant, Math.round(Number($('#iaCant', d).value) || 8)));
+    $('#iaCant', d).value = cantidad;
+    const pedido = { tipo: tpl.type, tema, grado, cantidad, notas: $('#iaNotas', d).value,
       ...(!op ? {} : op.name === 'banco' ? { banco: v === 'si' } : { [op.name]: v }) };
     ctl = new AbortController();
     go.disabled = true; go.innerHTML = '<span class="ia-spin" aria-hidden="true"></span> Generando…';

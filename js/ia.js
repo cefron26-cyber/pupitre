@@ -9,9 +9,11 @@ import { el, esc, $ } from './ui.js';
 export { TIPOS_IA, validarContenido };
 
 const CLAVE_LS = 'plat.ia.clave';
-// Mismos modelos que el servidor (servidor/ia.mjs): si uno no responde, no tiene cuota o está saturado, se prueba el siguiente.
-const MODELOS = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
+// Mismos modelos que el servidor (servidor/ia.mjs). Primero el más rápido y gratuito (lite): para estas actividades
+// basta y responde en segundos (probado 2026-11-21: quiz coherente en 9 s). Los otros quedan de respaldo.
+const MODELOS = ['gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-3.8-flash'];
 const ESPERA_MS = 45_000; // tope por modelo: antes no había y el botón se quedaba en "Generando…" para siempre
+const ESCALON_MS = 6000; // si un modelo no ha contestado en este tiempo, se lanza también el siguiente
 const API = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 export const claveIA = () => { try { return localStorage.getItem(CLAVE_LS) || ''; } catch { return ''; } };
@@ -68,9 +70,35 @@ export function configurarClave({ motivo = '' } = {}) {
 
 // pedido = { tipo, tema, grado, cantidad, formato?, relacion?, banco?, notas?, vocabulario?, gramatica? }
 // → { titulo, contenido, instruccion, modelo }. Lanza Error con un mensaje en español listo para mostrar.
+// Lista que debe tener tantos elementos como pidió el docente (las demás actividades tienen su propio largo).
+const LISTA = { quiz: ['questions', x => x.q], fill: ['items', x => x.text], reorder: ['items', x => x.sentence], dictation: ['items', x => x.text] };
+
 export async function generar(pedido, { signal } = {}) {
   const { servidor } = await estadoIA();
-  const j = servidor ? await conServidor(pedido, signal) : await conGemini(pedido, signal);
+  const pedir = pp => servidor ? conServidor(pp, signal) : conGemini(pp, signal);
+  const j = await pedir(pedido);
+  // A veces el modelo entrega menos de los pedidos (p. ej. 15 de 20): se piden los que faltan, sin repetir, y se juntan.
+  const [clave, texto] = LISTA[pedido.tipo] || [];
+  const quiere = Math.round(Number(pedido.cantidad) || 0);
+  // Quiz de opción múltiple: dos preguntas con la misma respuesta correcta (p. ej. "eating" dos veces) cuentan como una;
+  // la repetida se quita y entra en las que faltan.
+  const respuesta = x => (!x.tf && x.options ? String(x.options[x.correct] || '').toLowerCase().trim() : null);
+  const sinRepetir = l => { if (pedido.tipo !== 'quiz') return l; const vistas = new Set();
+    return l.filter(x => { const r = respuesta(x); if (!r) return true; if (vistas.has(r)) return false; vistas.add(r); return true; }); };
+  if (clave) j.contenido = { ...j.contenido, [clave]: sinRepetir(j.contenido?.[clave] || []) };
+  for (let vuelta = 0; clave && vuelta < 2; vuelta++) {
+    const lista = j.contenido?.[clave] || [];
+    const falta = quiere - lista.length;
+    if (falta <= 0 || signal?.aborted) break;
+    try {
+      const usadas = lista.map(x => respuesta(x)).filter(Boolean);
+      const extra = await pedir({ ...pedido, cantidad: Math.max(falta, 1),
+        evitar: lista.map(texto).join(' | ') + (usadas.length ? ` · Correct answers already used: ${usadas.join(', ')}` : '') });
+      const vistos = new Set(lista.map(x => String(texto(x)).toLowerCase()));
+      const nuevos = (extra.contenido?.[clave] || []).filter(x => !vistos.has(String(texto(x)).toLowerCase()));
+      j.contenido = { ...j.contenido, [clave]: sinRepetir([...lista, ...nuevos]).slice(0, quiere) };
+    } catch (e) { if (e.name === 'AbortError') throw e; break; }   // si falla, se queda con lo que ya hay
+  }
   // Segunda revisión en el navegador (misma regla que el servidor).
   const errores = validarContenido(pedido.tipo, j.contenido);
   if (errores.length) throw new Error(`El contenido generado tiene problemas: ${errores[0]} Intenta de nuevo.`);
@@ -113,6 +141,7 @@ function mensaje(p) {
     p.vocabulario ? `Target vocabulary (use these words): ${p.vocabulario}` : '',
     p.gramatica ? `Target grammar: ${p.gramatica}` : '',
     p.notas ? `Teacher notes (follow them): ${p.notas}` : '',
+    p.evitar ? `Already written (do NOT repeat these items, their sentences or their target words): ${p.evitar}` : '',
   ].filter(Boolean);
   return `${datos.join('\n')}\n\n${REGLAS[p.tipo].pedido(p)}`;
 }
@@ -127,27 +156,62 @@ async function conGemini(pedido, signal) {
     contents: [{ role: 'user', parts: [{ text: mensaje(p) }] }],
     generationConfig: { responseMimeType: 'application/json', responseJsonSchema: REGLAS[p.tipo].esquema, temperature: 0.8 },
   };
-  const pedir = async (modelo, body) => {
-    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ESPERA_MS);
-    const cortar = () => ctl.abort();
+  // Un intento con un modelo. ctlPropio corta este intento si otro modelo ganó la carrera.
+  const pedir = async (modelo, body, ctlPropio = new AbortController()) => {
+    const t = setTimeout(() => ctlPropio.abort(), ESPERA_MS);
+    const cortar = () => ctlPropio.abort();
     signal?.addEventListener('abort', cortar, { once: true });
     try {
       return await fetch(`${API}/${modelo}:generateContent`, {
-        method: 'POST', signal: ctl.signal,
+        method: 'POST', signal: ctlPropio.signal,
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': clave },
         body: JSON.stringify(body),
       });
     } catch (e) {
       if (signal?.aborted) throw e;   // el docente canceló
-      if (e.name === 'AbortError') return { status: 504, ok: false, json: async () => ({}) };   // tardó demasiado
+      if (e.name === 'AbortError') return { status: 504, ok: false, json: async () => ({}) };   // tardó demasiado (o perdió la carrera)
       throw new Error('No hay conexión a internet o Gemini no responde. Intenta de nuevo.');
     } finally { clearTimeout(t); signal?.removeEventListener('abort', cortar); }
   };
-  let r, modelo;
-  for (modelo of MODELOS) {
-    r = await pedir(modelo, cuerpo);
-    // Sin el modelo (404), sin cuota (429), saturado (5xx) o colgado (504): probar el siguiente.
-    if (![404, 429, 500, 503, 504].includes(r.status)) break;
+  // Carrera escalonada (como servidor/ia.mjs): se pide al primer modelo; si en ESCALON_MS no ha contestado, se pide
+  // también al siguiente, y gana la primera respuesta útil. Si uno falla (sin modelo, sin cuota, saturado, colgado),
+  // se pasa al siguiente enseguida. Así un modelo colgado no deja al docente esperando.
+  const FALLA = [404, 429, 500, 503, 504];
+  const carrera = body => new Promise((resolver, rechazar) => {
+    let i = 0, listo = false, ultimo = null;
+    const enCurso = new Map();
+    const lanzar = () => {
+      if (listo || i >= MODELOS.length) return;
+      const modelo = MODELOS[i++], ctl = new AbortController();
+      const escalon = setTimeout(lanzar, ESCALON_MS);
+      enCurso.set(modelo, { ctl, escalon });
+      pedir(modelo, body, ctl).then(r => {
+        clearTimeout(escalon); enCurso.delete(modelo);
+        if (listo) return;
+        if (!FALLA.includes(r.status)) {
+          listo = true;
+          for (const x of enCurso.values()) { clearTimeout(x.escalon); x.ctl.abort(); }
+          return resolver({ r, modelo });
+        }
+        // Lo que se cuenta al final: la falta de cuota pesa más que la saturación, y esta más que un modelo inexistente.
+        if (!ultimo || (ultimo.r.status !== 429 && r.status !== 404)) ultimo = { r, modelo };
+        if (i < MODELOS.length) lanzar();
+        else if (!enCurso.size) resolver(ultimo);
+      }, e => {
+        clearTimeout(escalon); enCurso.delete(modelo);
+        if (listo) return;
+        listo = true;
+        for (const x of enCurso.values()) { clearTimeout(x.escalon); x.ctl.abort(); }
+        rechazar(e);
+      });
+    };
+    lanzar();
+  });
+  let { r, modelo } = await carrera(cuerpo);
+  // Todos saturados (no por cuota ni colgados, para no doblar la espera): Gemini suele recuperarse en segundos; un reintento.
+  if ([500, 503].includes(r.status) && !signal?.aborted) {
+    await new Promise(ok => setTimeout(ok, 2500));
+    ({ r, modelo } = await carrera(cuerpo));
   }
   let j = await r.json().catch(() => ({}));
   // Si el modelo no acepta el esquema como parámetro, se le manda dentro del texto (modo JSON simple).
