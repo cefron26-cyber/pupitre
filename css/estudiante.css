@@ -435,7 +435,7 @@ html,body{overflow-x:clip}
 /* ---- Cuarto de Cebollo (js/views/cuarto.js) ----
    Escena 4:3 con el fondo del cuarto; cada lugar tiene posición fija (en % de la escena). Arte en img/cuarto/. */
 .monedas{display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:999px; background:#fff4cc; color:#7a5200; font-weight:700; white-space:nowrap; box-shadow:0 3px 0 #e8c25a}
-.cuarto{position:relative; isolation:isolate; width:min(100%, 960px, calc((100dvh - 230px) * 4 / 3)); min-width:min(100%, 520px); margin:0 auto; aspect-ratio:4/3; border-radius:24px; overflow:hidden;
+.cuarto{--cu-w:min(100vw - 32px, 1400px, (100dvh - 152px) * 4 / 3); position:relative; isolation:isolate; width:var(--cu-w); min-width:min(100%, 520px); margin:0 calc(50% - var(--cu-w) / 2); aspect-ratio:4/3; border-radius:24px; overflow:hidden;
   box-shadow:0 8px 0 rgba(10,4,40,.25), var(--shadow); background:#f6efe0; container-type:inline-size; user-select:none; -webkit-user-select:none}
 .cu-fondo{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
 .cu-item, .cu-armario{position:absolute; display:block; padding:0; margin:0; border:0; background:none; font:inherit; transform-origin:50% 100%}
@@ -475,9 +475,17 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
 .cuarto.flash::after{animation:cu-flash .45s ease-out}
 @keyframes cu-flash{0%{opacity:.9} 100%{opacity:0}}
 /* Botones y paneles */
-.cuarto-acciones{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin:18px 0}
-.cuarto-acciones .btn{min-height:52px; min-width:150px; font-size:17px}
-.cuarto-acciones .btn[aria-pressed="true"]{outline:3px solid #ffd23f; outline-offset:2px}
+/* Barra de iconos arriba de la escena (sin texto; el nombre va en aria-label y title). No sale en la foto (se dibuja en un lienzo). */
+.cu-barra{position:absolute; top:12px; right:12px; z-index:320; display:flex; gap:10px}
+.cu-ico{width:56px; height:56px; display:grid; place-items:center; padding:0; border:0; border-radius:18px; cursor:pointer;
+  background:#fff; box-shadow:inset 0 -4px 0 #ebe4ff, 0 5px 0 #8d78e0, 0 10px 16px rgba(10,4,40,.3); transition:transform .12s}
+.cu-ico svg,.cu-ico-img{display:block; width:36px; height:36px; object-fit:contain; transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.cu-ico-img{width:40px; height:40px; filter:drop-shadow(0 1.5px 0 rgba(26,15,77,.35))}
+.cu-ico:hover svg,.cu-ico:hover .cu-ico-img{transform:scale(1.15) rotate(-6deg)}
+.cu-ico:active{transform:translateY(4px); box-shadow:inset 0 -4px 0 #ebe4ff, 0 1px 0 #8d78e0}
+.cu-ico[aria-pressed="true"]{background:#fff4c2; box-shadow:inset 0 -4px 0 #ffe27a, 0 5px 0 #c99a00, 0 0 0 3px #ffd23f}
+.cu-ico:disabled{opacity:.6}
+.cu-ico:focus-visible{outline:3px solid #ffd23f; outline-offset:3px}
 .cuarto-panel{max-width:960px; margin:0 auto 24px}
 .cu-tile.caro .cu-tile-img{opacity:.55}
 .cu-titulo{display:flex; align-items:baseline; gap:12px; margin:0 0 12px}
@@ -491,10 +499,10 @@ button.cu-item:focus-visible, .cu-armario:focus-visible{outline:var(--focus-ring
 .cu-tile.on{border-color:#2fb36b; background:#eafff2; box-shadow:0 0 0 2px #2fb36b inset}
 .cu-tile-img{width:84px; height:84px; object-fit:contain}
 .cu-nada{display:grid; place-items:center; font-size:32px; color:var(--muted); border:2px dashed var(--border); border-radius:14px; width:72px; height:72px; margin:6px}
-.cu-precio{font-weight:700; color:#7a5200}
+.cu-precio{display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:17px; color:#7a5200}
 .cu-precio.falta{color:#b3261e}
-.cu-falta{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:10px; border:2px dashed var(--border); border-radius:16px; text-align:center}
-.cu-falta span[aria-hidden]{font-size:28px}
+.cu-falta{height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:10px; border:2px dashed var(--border); border-radius:16px; text-decoration:none; color:var(--primary); font-size:20px}
+.cu-falta img{width:64px; height:64px; object-fit:contain}
 /* Editor de muebles (cuarto.js): mano abierta mientras no sostiene nada, mano cerrada mientras arrastra. El mueble
    agarrado se levanta con su sombra; al soltarlo rebota un poco y se queda donde cayó. */
 .cuarto.editando{cursor:grab; box-shadow:0 0 0 4px #ffd23f, 0 8px 0 rgba(10,4,40,.25), var(--shadow)}
@@ -514,13 +522,15 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 .cu-herr button{min-height:40px; padding:0 14px; border:0; border-radius:10px; background:#fff4cc; color:var(--ink, #1a0f4d);
   font:inherit; font-weight:700; cursor:pointer; white-space:nowrap}
 .cu-herr button:hover{background:#ffe27a}
-.cu-ayuda{max-width:960px; margin:-6px auto 18px; text-align:center; color:var(--muted)}
-.cu-ordenar{margin-left:8px; padding:0; border:0; background:none; font:inherit; font-weight:700; color:var(--primary); text-decoration:underline; cursor:pointer}
+
 .coll-sub{font-size:15px; margin:14px 0 8px}
 .ropa-icono{display:block; object-fit:contain}
 @media (max-width:560px){
   .cuarto{width:calc(100% + 32px); min-width:0; margin:0 -16px; border-radius:0}
-  .cuarto-acciones .btn{flex:1; min-width:0}
+  .cu-barra{top:8px; right:8px; gap:6px}
+  .cu-ico{width:44px; height:44px; border-radius:14px}
+  .cu-ico svg{width:28px; height:28px}
+  .cu-ico-img{width:32px; height:32px}
   .cu-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
   .cu-tile-img{width:64px; height:64px}
 }
@@ -606,3 +616,20 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 .rk-rangos li.yo{border-color:var(--rc)}
 [data-modo="juego"] .rk-podio li b,[data-modo="juego"] .rk-podio .rk-xp{color:#fff; text-shadow:0 2px 0 rgba(10,4,40,.4)}
 @keyframes rk-saltar{0%{transform:translateY(20px) scale(.8); opacity:0} 100%{transform:none; opacity:1}}
+
+/* Monedas dentro de la escena (arriba a la izquierda), con moneda SVG; tiembla en rojo si no alcanzan. */
+.cu-monedas{position:absolute; top:12px; left:12px; z-index:320; display:flex; align-items:center; gap:6px; height:56px; padding:0 16px 0 10px;
+  border-radius:18px; background:#fff; box-shadow:inset 0 -4px 0 #ebe4ff, 0 5px 0 #8d78e0, 0 10px 16px rgba(10,4,40,.3);
+  color:#7a5200; font-size:24px; font-weight:800; font-variant-numeric:tabular-nums}
+.cu-monedas .moneda{width:36px; height:36px; flex:none}
+.cu-monedas.falta{animation:cu-falta .5s; color:#b3261e}
+@keyframes cu-falta{20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)}}
+.cu-herr button svg{width:28px; height:28px; display:block}
+.cu-herr button{padding:0 8px}
+.cu-tile{justify-content:center; position:relative}
+.cu-tile[aria-pressed="true"]::after{content:"✓"; position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; display:grid; place-items:center;
+  background:#2fb36b; color:#fff; font-size:14px; font-weight:800}
+@media (max-width:640px){
+  .cu-monedas{top:8px; left:8px; height:44px; padding:0 12px 0 8px; border-radius:14px; font-size:19px}
+  .cu-monedas .moneda{width:28px; height:28px}
+}

@@ -27,11 +27,11 @@
     linear-gradient(165deg, var(--fondo-1), var(--fondo-2));
   background-attachment:fixed;
 }
-/* Cielo pixel art (Nano Banana, img/mundo/cielo.webp) fijo detrás de todo. Con otro fondo de la colección,
-   el cielo toma sus colores (mezcla "luminosity" sobre su degradado). */
+/* Cielo pixel art fijo detrás de todo. Cada fondo de la colección trae su propia escena (--cielo-img, rewards.js);
+   la url llega absoluta desde el JS (una url relativa dentro de una variable se resolvería contra css/). */
 .mundo{position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden;
-  background:url(../img/mundo/cielo.webp) center bottom/cover no-repeat, linear-gradient(165deg, var(--fondo-1), var(--fondo-2));
-  background-blend-mode:var(--cielo-blend, normal), normal; image-rendering:pixelated}
+  background:var(--cielo-img, url(../img/mundo/cielo.webp)) center bottom/cover no-repeat, linear-gradient(165deg, var(--fondo-1), var(--fondo-2));
+  image-rendering:pixelated}
 [data-modo="juego"] #app{position:relative; z-index:0; min-height:100dvh; display:flex; flex-direction:column}
 [data-modo="juego"] #app > .main{flex:1 0 auto; width:100%}
 /* Suelo pixel art que se repite a lo ancho al final de la página (img/mundo/suelo.webp) */

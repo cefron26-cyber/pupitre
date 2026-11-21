@@ -8,13 +8,14 @@ export const RARITY = {
 };
 
 // Fondos del modo juego: c1/c2 = degradado; g1-g3 = manchas de luz.
+// 2026-11-21: cada fondo es una escena pixel art propia (img/fondos/<id>.webp, herramientas/arte/generar_fondos.py +
+// recortar_fondos.py), ya no un recolor del cielo. "Morado" usa img/mundo/cielo.webp. Galaxia se quitó (quedan 8).
 export const BACKGROUNDS = [
   { id: 'f-morado',    name: 'Morado',          rarity: 'common', free: true, c1: '#5a2cf0', c2: '#2a1585', g: ['255,120,200', '31,200,240', '255,210,63'] },
   { id: 'f-oceano',    name: 'Océano',          rarity: 'common', c1: '#1f8fe0', c2: '#0b3d8c', g: ['90,240,220', '120,170,255', '255,255,255'] },
   { id: 'f-bosque',    name: 'Bosque',          rarity: 'common', c1: '#2fa05a', c2: '#0f4a33', g: ['200,255,120', '60,220,180', '255,220,90'] },
   { id: 'f-atardecer', name: 'Atardecer',       rarity: 'rare',   c1: '#ff7a45', c2: '#8a1f5c', g: ['255,220,90', '255,120,200', '255,160,60'] },
   { id: 'f-noche',     name: 'Noche estrellada', rarity: 'rare',  c1: '#2b3a8f', c2: '#0b0f33', g: ['120,140,255', '200,120,255', '255,255,200'] },
-  { id: 'f-galaxia',   name: 'Galaxia',         rarity: 'epic',   c1: '#7a1fd6', c2: '#120530', g: ['255,80,200', '40,220,255', '255,200,40'] },
   { id: 'f-prisma',    name: 'Prisma',          rarity: 'legendary', c1: '#ff3fa4', c2: '#1e0a5c', g: ['255,230,90', '90,240,255', '255,120,250'] },
   // Exclusivos de los retos (source: 'reto'): no salen del cofre, se ganan superando el reto.
   { id: 'f-lava',      name: 'Volcán',          rarity: 'epic', source: 'reto', c1: '#e8370c', c2: '#3a0a05', g: ['255,200,40', '255,90,40', '255,240,150'] },
@@ -48,7 +49,7 @@ export const ROPA = [
   { id: 'corona',            name: 'Corona dorada',       slot: 'sombrero', rarity: 'epic', source: 'reto' },
 ];
 // Premios viejos (cubos) → prenda que los reemplaza, para quien ya los había ganado.
-export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona' };
+export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galaxia': 'f-noche' };
 // Gorros y gafas: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen vidrio
 // semitransparente para que se vean los ojos debajo.
 const ROPA_PNG = new Set(ROPA.filter(p => p.slot === 'sombrero' || p.slot === 'cara').map(p => p.id));
@@ -112,9 +113,11 @@ export function rollReward(ownedIds, rnd = Math.random) {
 export const odds = () => Object.values(RARITY).map(r => `${r.label} ${r.weight} %`).join(' · ');
 
 // Muestra de un fondo (para la colección y el premio).
+const fondoDe = id => BACKGROUNDS.find(x => x.id === (ALIAS[id] || id)) || BACKGROUNDS[0];
+const urlFondo = (b, mini = false) => b === BACKGROUNDS[0] ? 'img/mundo/cielo.webp' : `img/fondos/${b.id}${mini ? '-mini' : ''}.webp`;
 export function backgroundSwatch(id) {
-  const b = BACKGROUNDS.find(x => x.id === id) || BACKGROUNDS[0];
-  return `<span class="bg-swatch" style="background:radial-gradient(circle at 20% 15%,rgba(${b.g[0]},.55) 0,transparent 45%),radial-gradient(circle at 85% 60%,rgba(${b.g[1]},.5) 0,transparent 45%),linear-gradient(165deg,${b.c1},${b.c2})"></span>`;
+  const b = fondoDe(id);
+  return `<span class="bg-swatch" style="background:url(${urlFondo(b, true)}) center/cover,linear-gradient(165deg,${b.c1},${b.c2})"></span>`;
 }
 
 export const rewardPreview = (r, size = 72) => r.kind === 'ropa'
@@ -122,6 +125,6 @@ export const rewardPreview = (r, size = 72) => r.kind === 'ropa'
 
 // Variables CSS del fondo equipado.
 export function backgroundVars(id) {
-  const b = BACKGROUNDS.find(x => x.id === id) || BACKGROUNDS[0];
-  return `--fondo-1:${b.c1};--fondo-2:${b.c2};--glow-1:${b.g[0]};--glow-2:${b.g[1]};--glow-3:${b.g[2]};--cielo-blend:${b === BACKGROUNDS[0] ? 'normal' : 'luminosity'}`;
+  const b = fondoDe(id);
+  return `--fondo-1:${b.c1};--fondo-2:${b.c2};--glow-1:${b.g[0]};--glow-2:${b.g[1]};--glow-3:${b.g[2]};--cielo-img:url(${new URL(urlFondo(b), document.baseURI).href})`;
 }

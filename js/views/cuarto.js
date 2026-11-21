@@ -29,6 +29,48 @@ const FRASES_ROPA = ['¡Me encanta!', 'Looking good!', '¡Qué estilo!', 'Nice!'
 const FRASES_COMPRA = ['¡Gracias!', 'Thank you!', '¡Qué bonito!', 'Wow!'];
 const azar = l => l[Math.floor(Math.random() * l.length)];
 
+// Iconos propios de la barra del cuarto (2026-11-21): dibujos SVG de colores con contorno tinta, sin texto.
+const T = 'stroke="#1a0f4d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+const ico = cuerpo => `<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">${cuerpo}</svg>`;
+const ICONOS = {
+  // La camiseta roja del juego (el mismo icono de la colección), no un dibujo aparte.
+  armario: `<img class="cu-ico-img" src="${urlIconoRopa('camiseta_roja')}" alt="" draggable="false">`,
+  // Carrito de compras: asa roja, armazón de tubo celeste, canasta de rejilla con borde rojo y ruedas moradas.
+  tienda: ico(`<g transform="translate(20 20) scale(.86) translate(-20.05 -21.4)">
+    <path d="M11.2 13.2h25.4l-2.1 11.2a1.4 1.4 0 0 1-1.4 1.1H14.2z" fill="#fff" ${T}/>
+    <path d="M16.6 13.4l1.3 12M21.8 13.4l.6 12M27 13.4v12M32 13.4l-.9 12M12.4 19.4h23" fill="none" stroke="#1a0f4d" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M11.2 13h25.4" stroke="#1a0f4d" stroke-width="5" stroke-linecap="round"/><path d="M11.2 13h25.4" stroke="#ff5a6a" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M8.5 7.5h1.2c.8 0 1.4.5 1.6 1.3l3.6 18.4c.2.8.8 1.3 1.6 1.3H35" fill="none" stroke="#1a0f4d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M8.5 7.5h1.2c.8 0 1.4.5 1.6 1.3l3.6 18.4c.2.8.8 1.3 1.6 1.3H35" fill="none" stroke="#bfe6ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M3.5 7.5h5" stroke="#1a0f4d" stroke-width="5" stroke-linecap="round"/><path d="M3.5 7.5h5" stroke="#ff5a6a" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="17.5" cy="33" r="3.6" fill="#8b6cf0" ${T}/><circle cx="17.5" cy="33" r="1.3" fill="#d8f0ff"/>
+    <circle cx="31" cy="33" r="3.6" fill="#8b6cf0" ${T}/><circle cx="31" cy="33" r="1.3" fill="#d8f0ff"/></g>`),
+  // Cuatro flechas negras separadas, hacia arriba, derecha, abajo e izquierda (mover).
+  mover: ico([0, 90, 180, 270].map(g => `<g transform="translate(20 20) scale(.9) translate(-20 -20) rotate(${g} 20 20)">
+    <path d="M20 15.5V9" stroke="#1a0f4d" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M20 3.2l5.6 6.6h-11.2z" fill="#1a0f4d" stroke="#1a0f4d" stroke-width="1.6" stroke-linejoin="round"/></g>`).join('')),
+  // Voltear en espejo: dos mitades con una línea punteada al medio.
+  espejo: ico(`<path d="M20 5v30" stroke="#1a0f4d" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="3 4"/>
+    <path d="M16 10 5 30h11z" fill="#5fc8ff" ${T}/><path d="M24 10l11 20H24z" fill="#fff" ${T}/>`),
+  // Ordenar como al inicio: flecha circular.
+  ordenar: ico(`<path d="M30 20a10 10 0 1 1-3-7.1" fill="none" stroke="#1a0f4d" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M28.6 6.5v8.2h-8.2z" fill="#1a0f4d" stroke="#1a0f4d" stroke-width="1.6" stroke-linejoin="round"/>`),
+  // Visto bueno verde (mientras se mueven los muebles).
+  listo: ico(`<circle cx="20" cy="20" r="14" fill="#3ccf7a" ${T}/><path d="m13 20.5 5 5 9.5-10" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>`),
+  // Cámara de fotos con lente y flash.
+  foto: ico(`<g transform="translate(0 -.5)"><path d="M14.5 12.5 16.8 9h6.4l2.3 3.5H32a2.5 2.5 0 0 1 2.5 2.5v14.5A2.5 2.5 0 0 1 32 32H8a2.5 2.5 0 0 1-2.5-2.5V15A2.5 2.5 0 0 1 8 12.5z" fill="#a46bff" ${T}/>
+    <circle cx="20" cy="22" r="6.4" fill="#fff" ${T}/><circle cx="20" cy="22" r="3" fill="#1f3a68"/><circle cx="18.8" cy="20.8" r="1" fill="#fff"/>
+    <rect x="27.5" y="15.2" width="3.6" height="2.6" rx="1" fill="#ffd23f" stroke="#1a0f4d" stroke-width="1.6"/></g>`),
+};
+
+// Moneda dorada con brillo y estrella (contador y precios).
+const MONEDA = (px = 28) => `<svg class="moneda" viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
+  <circle cx="20" cy="21.5" r="16" fill="#c98a00" stroke="#1a0f4d" stroke-width="2.4"/>
+  <circle cx="20" cy="19" r="16" fill="#ffd23f" stroke="#1a0f4d" stroke-width="2.4"/>
+  <circle cx="20" cy="19" r="11" fill="#ffe680" stroke="#e0a800" stroke-width="2"/>
+  <path d="m20 12.2 2 4.3 4.6.5-3.4 3.1 1 4.6-4.2-2.4-4.2 2.4 1-4.6-3.4-3.1 4.6-.5z" fill="#f0b400" stroke="#c98a00" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M10.5 13.5a11 11 0 0 1 6-5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".85"/></svg>`;
+
 export async function cuarto(root, { user }) {
   let prefs = prefsOf(user);
   let ropa = { ...prefs.ropa }, puesto = { ...prefs.cuarto };
@@ -62,27 +104,26 @@ export async function cuarto(root, { user }) {
   let monedas = (await xp.total(user.id)) - (await compras.gastado(user.id));
   let panel = null, pestana = null;
 
-  root.innerHTML = `<div class="page-head"><div><h1>Cuarto de Cebollo</h1>
-      <p class="muted">Tócalo para jugar. Decora su cuarto y cámbiale la ropa.</p></div>
-      <span class="monedas" title="Ganas 1 moneda por cada XP"><span aria-hidden="true">🪙</span> <b id="monedas">${monedas}</b> monedas</span></div>
+  // Sin textos de ayuda (2026-11-21): los niños entienden la escena con mirarla; los nombres quedan para lectores de pantalla.
+  root.innerHTML = `<h1 class="sr-only">Cuarto de Cebollo</h1>
     <div class="cuarto" id="cuarto">
+      <div class="cu-monedas" id="cu-monedas" role="status" aria-label="${monedas} monedas" title="Monedas">${MONEDA()}<b id="monedas">${monedas}</b></div>
       <img class="cu-fondo" src="img/cuarto/cuarto.webp" alt="" draggable="false">
       <div id="cu-deco"></div>
       <button type="button" class="cu-armario${espejo.armario ? ' espejo' : ''}" id="cu-armario" aria-label="Abrir el armario" data-id="armario" data-lugar="armario" style="${caja('armario', 'armario')}"><img src="img/cuarto/armario.webp" alt="" draggable="false"></button>
       <div class="cu-cebollo" id="cu-cebollo" style="z-index:${PISO_CEBOLLO}"></div>
       <p class="cu-globo" id="cu-globo" role="status" aria-live="polite"></p>
-      <div class="cu-herr" id="cu-herr" hidden><button type="button" id="cu-espejo"><span aria-hidden="true">🪞</span> Espejo</button></div>
+      <div class="cu-herr" id="cu-herr" hidden><button type="button" id="cu-espejo" aria-label="Voltear" title="Voltear">${ICONOS.espejo}</button></div>
       <div class="cu-luz" aria-hidden="true"></div>
+      <div class="cu-barra" role="toolbar" aria-label="Acciones del cuarto">
+        <button type="button" class="cu-ico" data-panel="armario" aria-label="Armario" title="Armario">${ICONOS.armario}</button>
+        <button type="button" class="cu-ico" data-panel="tienda" aria-label="Tienda" title="Tienda">${ICONOS.tienda}</button>
+        <button type="button" class="cu-ico" id="cu-editar" aria-pressed="false" aria-label="Mover muebles" title="Mover muebles">${ICONOS.mover}</button>
+        <button type="button" class="cu-ico" id="cu-ordenar" aria-label="Ordenar como al inicio" title="Ordenar como al inicio" hidden>${ICONOS.ordenar}</button>
+        <button type="button" class="cu-ico" id="cu-foto" aria-label="Tomar foto" title="Tomar foto">${ICONOS.foto}</button>
+      </div>
     </div>
-    <div class="cuarto-acciones">
-      <button type="button" class="btn" data-panel="armario"><span aria-hidden="true">👕</span> Armario</button>
-      <button type="button" class="btn" data-panel="tienda"><span aria-hidden="true">🛒</span> Tienda</button>
-      <button type="button" class="btn" id="cu-editar" aria-pressed="false"><span aria-hidden="true">✋</span> Mover muebles</button>
-      <button type="button" class="btn" id="cu-foto"><span aria-hidden="true">📷</span> Foto</button>
-    </div>
-    <p class="cu-ayuda" id="cu-ayuda" hidden>Agarra un mueble y suéltalo donde quieras; las plantas se pueden poner sobre la mesa.
-      Tócalo sin moverlo para voltearlo con 🪞 Espejo. Con el teclado: elige uno con Tab, muévelo con las flechas y voltéalo con la E.
-      <button type="button" class="cu-ordenar" id="cu-ordenar">Ordenar como al inicio</button></p>
+    <p class="sr-only" id="cu-ayuda" hidden>Con el teclado: elige un mueble con Tab, muévelo con las flechas y voltéalo con la E.</p>
     <section class="card cuarto-panel" id="cu-panel" hidden></section>`;
 
   const sala = $('#cuarto', root), globo = $('#cu-globo', root);
@@ -140,8 +181,9 @@ export async function cuarto(root, { user }) {
     editando = si;
     sala.classList.toggle('editando', si);
     btnEditar.setAttribute('aria-pressed', String(si));
-    btnEditar.innerHTML = si ? '<span aria-hidden="true">✅</span> Listo' : '<span aria-hidden="true">✋</span> Mover muebles';
-    ayuda.hidden = !si;
+    btnEditar.innerHTML = si ? ICONOS.listo : ICONOS.mover;
+    btnEditar.setAttribute('aria-label', si ? 'Listo' : 'Mover muebles'); btnEditar.title = si ? 'Listo' : 'Mover muebles';
+    ayuda.hidden = !si; $('#cu-ordenar', root).hidden = !si;
     armario.setAttribute('aria-label', si ? 'Mover: Armario' : 'Abrir el armario');
     elegir(null);
     pintarDeco();
@@ -309,7 +351,7 @@ export async function cuarto(root, { user }) {
   btnFoto.onclick = async () => {
     btnFoto.disabled = true;
     sala.classList.remove('flash'); void sala.offsetWidth; sala.classList.add('flash');
-    try { await tomarFoto(); decir(azar(['¡Cheese! 📸', 'Say cheese!', '¡Qué buena foto!'])); toast('Foto guardada en Descargas'); }
+    try { await tomarFoto(); decir(azar(['¡Cheese! 📸', 'Say cheese!', '¡Qué buena foto!'])); }
     catch (e) { console.error(e); toast('No se pudo tomar la foto'); }
     finally { btnFoto.disabled = false; }
   };
@@ -335,22 +377,20 @@ export async function cuarto(root, { user }) {
     if (panel === 'armario') {
       const mias = ROPA.filter(r => r.slot === pestana && ropaMia.has(r.id));
       const faltan = ROPA.filter(r => r.slot === pestana && !ropaMia.has(r.id)).length;
-      lista = `<li><button type="button" class="cu-tile ${ropa[pestana] ? '' : 'on'}" data-quitar="${pestana}">
-          <span class="cu-tile-img cu-nada" aria-hidden="true">✕</span><b>Nada</b></button></li>`
-        + mias.map(r => `<li><button type="button" class="cu-tile ${ropa[pestana] === r.id ? 'on' : ''}" data-ropa="${r.id}" style="--rc:${RARITY[r.rarity].color}">
-          <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""><b>${esc(r.name)}</b>${ropa[pestana] === r.id ? '<span class="small">Puesta</span>' : ''}</button></li>`).join('');
-      if (faltan) lista += `<li class="cu-falta"><span aria-hidden="true">🎁</span><span class="small">${faltan} más por ganar en el <a href="#/s/collection">cofre</a> y los <a href="#/s/retos">retos</a></span></li>`;
+      lista = `<li><button type="button" class="cu-tile ${ropa[pestana] ? '' : 'on'}" data-quitar="${pestana}" aria-label="Nada" aria-pressed="${!ropa[pestana]}">
+          <span class="cu-tile-img cu-nada" aria-hidden="true">✕</span></button></li>`
+        + mias.map(r => `<li><button type="button" class="cu-tile ${ropa[pestana] === r.id ? 'on' : ''}" data-ropa="${r.id}" style="--rc:${RARITY[r.rarity].color}" aria-label="${esc(r.name)}" title="${esc(r.name)}" aria-pressed="${ropa[pestana] === r.id}">
+          <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""></button></li>`).join('');
+      if (faltan) lista += `<li><a class="cu-falta" href="#/s/collection" aria-label="${faltan} más por ganar en el cofre" title="Cofre"><img src="img/cofre/cerrado-mini.png" alt=""><b>+${faltan}</b></a></li>`;
     } else {
       lista = DECO.filter(d => d.lugar === pestana).map(d => {
         const tiene = decoMia.has(d.id), usa = puesto[pestana] === d.id;
-        const accion = usa ? '<span class="small">Puesto · tocar para quitar</span>'
-          : tiene ? '<span class="small">Tocar para poner</span>'
-          : `<span class="cu-precio ${monedas < d.precio ? 'falta' : ''}">🪙 ${d.precio}</span>`;
-        return `<li><button type="button" class="cu-tile ${usa ? 'on' : ''} ${!tiene && monedas < d.precio ? 'caro' : ''}" data-deco="${d.id}">
-          <img class="cu-tile-img" src="${urlDeco(d.id)}" alt=""><b>${esc(d.name)}</b>${accion}</button></li>`;
+        const accion = tiene ? '' : `<span class="cu-precio ${monedas < d.precio ? 'falta' : ''}">${MONEDA(20)}${d.precio}</span>`;
+        return `<li><button type="button" class="cu-tile ${usa ? 'on' : ''} ${!tiene && monedas < d.precio ? 'caro' : ''}" data-deco="${d.id}" aria-label="${esc(d.name)}${tiene ? '' : `, ${d.precio} monedas`}" title="${esc(d.name)}" aria-pressed="${usa}">
+          <img class="cu-tile-img" src="${urlDeco(d.id)}" alt="">${accion}</button></li>`;
       }).join('');
     }
-    cajaPanel.innerHTML = `<h2 class="cu-titulo">${panel === 'armario' ? 'Armario' : 'Tienda'}${panel === 'tienda' ? ` <span class="small muted">Tienes 🪙 ${monedas}</span>` : ''}</h2>
+    cajaPanel.innerHTML = `<h2 class="sr-only">${panel === 'armario' ? 'Armario' : 'Tienda'}</h2>
       ${pest}<ul class="cu-grid">${lista}</ul>`;
     cajaPanel.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { pestana = b.dataset.tab; pintarPanel(); });
     cajaPanel.querySelectorAll('[data-ropa]').forEach(b => b.onclick = () => ponerRopa(pestana, b.dataset.ropa));
@@ -370,10 +410,13 @@ export async function cuarto(root, { user }) {
   async function tocarDeco(id) {
     const d = DECO.find(x => x.id === id);
     if (!decoMia.has(id)) {
-      if (monedas < d.precio) { toast(`Te faltan ${d.precio - monedas} monedas. ¡Gana XP practicando!`); return; }
+      if (monedas < d.precio) {
+        const m = $('#cu-monedas', root); m.classList.remove('falta'); void m.offsetWidth; m.classList.add('falta');
+        ceb.reaccion('sorpresa'); return;
+      }
       await compras.add(user.id, id, d.precio);
       events.log(user.id, 'compra_deco', { itemId: id, precio: d.precio });
-      decoMia.add(id); monedas -= d.precio; $('#monedas', root).textContent = monedas;
+      decoMia.add(id); monedas -= d.precio; $('#monedas', root).textContent = monedas; $('#cu-monedas', root).setAttribute('aria-label', `${monedas} monedas`);
       puesto = { ...puesto, [d.lugar]: id };
       ceb.reaccion('festejo'); decir(azar(FRASES_COMPRA));
     } else {
