@@ -6,6 +6,7 @@ contexto/
 CLAUDE.md
 serve.mjs
 prueba-cofres*.html
+prueba-cebollo.html
 *.csv
 *.log
 node_modules/

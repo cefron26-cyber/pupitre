@@ -486,6 +486,8 @@
 .esc-empezar:focus-visible{outline:4px solid #fff; outline-offset:4px}
 @keyframes esc-late{50%{transform:scale(1.06)}}
 .esc-final-in{display:flex; flex-direction:column; align-items:center; gap:clamp(8px,2cqi,18px); animation:esc-titulo .5s cubic-bezier(.3,1.5,.5,1) both}
+.esc-emote{display:flex; justify-content:center; min-height:clamp(96px,18cqi,150px)}
+.esc-emote .emote{--tam:clamp(96px,18cqi,150px); animation-delay:.15s}
 .esc-estrellas{display:flex; gap:clamp(6px,1.5cqi,16px)}
 .esc-estrellas span{font-size:clamp(48px,9cqi,96px); line-height:1; color:rgba(255,255,255,.28); text-shadow:0 4px 0 rgba(0,0,0,.25); animation:esc-sello .5s cubic-bezier(.3,1.9,.5,1) both}
 .esc-estrellas span.on{color:#ffd23f; text-shadow:0 4px 0 #b97f00, 0 0 18px rgba(255,210,63,.6)}

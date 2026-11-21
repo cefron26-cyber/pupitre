@@ -5,6 +5,7 @@
 import { el, esc, fmtDuration, evalMode, confirmDialog } from './ui.js';
 import { templates } from './templates/index.js';
 import { themeById, themeSound, DEFAULT_THEME } from './temas.js';
+import { mostrarEmote } from './cebollo.js';
 
 const IDLE_MS = 60_000; // sin interacción por más de 1 min → no cuenta tiempo
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -264,9 +265,10 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const cierre = (result, done) => {
     const pct = result.maxScore ? result.score / result.maxScore : 0;
     const estrellas = pct >= .9 ? 3 : pct >= .6 ? 2 : pct > 0 ? 1 : 0;
-    const frase = hide ? '¡Terminaste!' : ['¡Sigue practicando!', '¡Bien hecho!', '¡Muy bien!', '¡Excelente!'][estrellas];
+    const frase = hide ? '¡Terminaste!' : ['¡Sigue practicando!', '¡Casi lo logras!', '¡Muy bien!', '¡Excelente!'][estrellas];
     const box = el(`<div class="esc-final" role="status">
       <div class="esc-final-in">
+        <div class="esc-emote"></div>
         ${hide ? '' : `<div class="esc-estrellas">${[0, 1, 2].map(k => `<span class="${k < estrellas ? 'on' : ''}" style="animation-delay:${.25 + k * .18}s">★</span>`).join('')}</div>`}
         <b class="esc-final-t">${frase}</b>
         ${hide ? '<span class="esc-final-s">Tu docente revisará tus respuestas.</span>' : `<span class="esc-final-n">${result.score} / ${result.maxScore}</span>`}
@@ -274,6 +276,9 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     let ido = false;
     const seguir = () => { if (ido) return; ido = true; box.remove(); done(); };
     box.querySelector('button').onclick = seguir;
+    // Cebollo reacciona al resultado: copa (3 estrellas), pulgar (2, o evaluación sin nota visible), triste (0-1).
+    const emote = hide ? 'pulgar' : ['triste', 'triste', 'pulgar', 'copa'][estrellas];
+    safe(() => mostrarEmote(box.querySelector('.esc-emote'), emote, { duracion: 0 }));
     shell.append(box);
     box.querySelector('button').focus({ preventScroll: true });
     setTimeout(seguir, 2800);

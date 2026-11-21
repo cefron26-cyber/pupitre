@@ -351,3 +351,71 @@ html,body{overflow-x:clip}
   /* Tablet: sin nombre ni avatar en el encabezado para que la marca y los botones quepan. */
   .app-header .user-box .user-name,.app-header .head-avatar{display:none}
 }
+
+/* ---- Cebollo, la mascota (js/cebollo.js) ----
+   Lienzo de 440x800: todas las caras y el cuerpo comparten ese lienzo; el cuello está al 61,5 % de la altura.
+   El festejo (brazos arriba) mide 678x800 y se alinea abajo y al centro. */
+.cebollo{--alto:240px; position:relative; height:var(--alto); aspect-ratio:440/800; user-select:none; -webkit-user-select:none}
+.cebollo img{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.cebollo.tocable{cursor:pointer; -webkit-tap-highlight-color:transparent}
+.cebollo.tocable:focus-visible{outline:var(--focus-ring); outline-offset:6px; border-radius:12px}
+.cebollo-figura, .cebollo-cabeza{position:absolute; inset:0}
+.cebollo-figura{transform-origin:50% 100%}
+.cebollo-cuerpo{transform-origin:50% 100%; animation:cebollo-respira 2.6s ease-in-out infinite}
+.cebollo-cabeza{transform-origin:50% 61.5%; animation:cebollo-cabecea 2.6s ease-in-out infinite}
+.cebollo-cara{opacity:0}
+.cebollo[data-cara="normal"] .cebollo-cara[data-cara="normal"],
+.cebollo[data-cara="parpadeo"] .cebollo-cara[data-cara="parpadeo"],
+.cebollo[data-cara="sorpresa"] .cebollo-cara[data-cara="sorpresa"],
+.cebollo[data-cara="risa"] .cebollo-cara[data-cara="risa"]{opacity:1}
+.cebollo .cebollo-festejo{width:154.09%; left:-27.05%; opacity:0; transform-origin:50% 100%}
+
+@keyframes cebollo-respira{ 0%,100%{transform:scale(1,1)} 50%{transform:scale(1.012,.985)} }
+@keyframes cebollo-cabecea{ 0%,100%{transform:translateY(0) rotate(0)} 25%{transform:translateY(.4%) rotate(-1.2deg)}
+  50%{transform:translateY(.9%) rotate(0)} 75%{transform:translateY(.4%) rotate(1.2deg)} }
+
+/* feliz: brinco con aplastamiento */
+.cebollo[data-estado="feliz"] .cebollo-figura{animation:cebollo-brinco .55s cubic-bezier(.3,.7,.4,1) 2}
+@keyframes cebollo-brinco{ 0%{transform:translateY(0) scale(1,1)} 15%{transform:translateY(0) scale(1.08,.9)}
+  45%{transform:translateY(-12%) scale(.96,1.05)} 75%{transform:translateY(0) scale(1.05,.94)} 100%{transform:translateY(0) scale(1,1)} }
+
+/* sorpresa: se echa para atrás y tiembla un poco */
+.cebollo[data-estado="sorpresa"] .cebollo-figura{animation:cebollo-susto .9s ease-out}
+@keyframes cebollo-susto{ 0%{transform:translateY(0) scale(1)} 20%{transform:translateY(-6%) scale(.95,1.07)}
+  40%{transform:translateY(0) scale(1.04,.96) rotate(-2deg)} 55%{transform:rotate(2deg)} 70%{transform:rotate(-1deg)} 100%{transform:none} }
+
+/* festejo: cambia a la pose de brazos arriba y salta */
+.cebollo[data-estado="festejo"] .cebollo-figura{opacity:0}
+.cebollo[data-estado="festejo"] .cebollo-festejo{opacity:1; animation:cebollo-salta .55s cubic-bezier(.3,.7,.4,1) 3}
+@keyframes cebollo-salta{ 0%{transform:translateY(0) scale(1,1)} 15%{transform:scale(1.06,.92)}
+  50%{transform:translateY(-16%) scale(.97,1.04) rotate(-3deg)} 85%{transform:translateY(0) scale(1.04,.95)} 100%{transform:none} }
+
+@media (prefers-reduced-motion: reduce){
+  .cebollo *{animation:none !important}
+}
+
+/* ---- Emotes de Cebollo (js/cebollo.js → mostrarEmote) ----
+   Tarjeta blanca con borde tinta; Cebollo se sale del marco por arriba. Entra de un salto y cada emoción tiene su gesto. */
+.emote{--tam:128px; position:relative; display:inline-block; width:var(--tam); aspect-ratio:1; transform-origin:50% 100%;
+  animation:emote-entra .45s cubic-bezier(.3,1.5,.5,1) both; pointer-events:none}
+.emote-marco{position:absolute; inset:22% 0 0 0; background:linear-gradient(#ffffff,#e9f6ee); border:4px solid var(--ink);
+  border-radius:24%; box-shadow:0 5px 0 var(--ink)}
+.emote img{position:absolute; left:0; right:0; bottom:4px; margin:auto; height:96%; max-width:none; transform-origin:50% 100%;
+  clip-path:inset(-30% -30% 0 -30% round 0 0 calc(var(--tam) * .2) calc(var(--tam) * .2));
+  animation:.9s ease-in-out .45s infinite}
+.emote[data-emote="pulgar"] img{animation-name:emote-asiente}
+.emote[data-emote="copa"] img{animation-name:emote-brinca; animation-duration:.6s}
+.emote[data-emote="triste"] img{animation-name:emote-llora; animation-duration:1.6s}
+.emote[data-emote="enojado"] img{animation-name:emote-tiembla; animation-duration:.18s}
+.emote.sale{animation:emote-sale .25s ease-in forwards}
+
+@keyframes emote-entra{ 0%{transform:scale(0) rotate(-10deg)} 70%{transform:scale(1.1) rotate(3deg)} 100%{transform:scale(1) rotate(0)} }
+@keyframes emote-sale{ to{transform:scale(0); opacity:0} }
+@keyframes emote-asiente{ 0%,100%{transform:rotate(0)} 30%{transform:rotate(-4deg) translateY(-2%)} 60%{transform:rotate(3deg)} }
+@keyframes emote-brinca{ 0%,100%{transform:translateY(0) scale(1,1)} 20%{transform:scale(1.04,.95)} 55%{transform:translateY(-7%) scale(.98,1.03)} }
+@keyframes emote-llora{ 0%,100%{transform:rotate(0) scale(1)} 50%{transform:rotate(-2deg) scale(.98,1.01)} }
+@keyframes emote-tiembla{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-1.5%) rotate(-1deg)} 75%{transform:translateX(1.5%) rotate(1deg)} }
+
+@media (prefers-reduced-motion: reduce){
+  .emote, .emote img, .emote.sale{animation:none !important}
+}
