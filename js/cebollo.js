@@ -88,11 +88,82 @@ export function crearCebollo(contenedor, { tocable = true, ropa = {} } = {}) {
   };
 }
 
-// Busto quieto y vestido, para lugares chicos (encabezado, login, tarjetas). size = lado del cuadro en px.
-export function cebolloMini(ropa = {}, size = 48) {
+// Busto vestido, para lugares chicos (encabezado, login, tarjetas). size = lado del cuadro en px.
+// { vivo: true } (portada y encabezado del estudiante): parpadea y va cambiando de cara solo (animarMinis).
+// { triste: true }: el estudiante aún no ha jugado hoy → cara triste fija; al terminar una actividad vuelve a animarse.
+export function cebolloMini(ropa = {}, size = 48, { vivo = false, triste = false } = {}) {
+  const inicial = triste ? "triste" : "normal";
   const img = (archivo, clase = "") => `<img class="${clase}" src="${RUTA}${archivo}.webp" alt="" draggable="false">`;
-  return `<span class="ceb-mini" style="--s:${size}px" aria-hidden="true"><span class="ceb-mini-fig">
-    ${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${img("cabeza")}${capas(ropa, CAPAS_CABEZA)}</span></span>`;
+  const cabeza = vivo ? CARAS_MINI.map(c => img(c === "normal" ? "cabeza" : "cabeza_" + c, "ceb-cara" + (c === inicial ? " on" : ""))
+    .replace("<img", `<img data-cara="${c}"`)).join("") : img("cabeza");
+  if (vivo) animarMinis();
+  const fig = `<span class="ceb-mini-fig">${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${cabeza}${capas(ropa, CAPAS_CABEZA)}</span>`;
+  // Vivo: la figura va en su propia caja recortada, para que el signo de pregunta (confundido) pueda salir por fuera.
+  return vivo
+    ? `<span class="ceb-mini vivo" style="--s:${size}px" aria-hidden="true" data-vivo="${triste ? "triste" : "si"}" data-cara="${inicial}"><span class="ceb-mini-caja">${fig}</span>${DUDA}</span>`
+    : `<span class="ceb-mini" style="--s:${size}px" aria-hidden="true">${fig}</span>`;
+}
+
+// Caras del busto vivo (2026-11-21; serio, sonrisa, sonrisa_ojos y confundido salen del lote 14 de generar_cebollo.py).
+// El peso es cuántas veces sale cada una: casi siempre contento, a veces serio, confundido o sorprendido.
+const PESOS = { normal: 3, sonrisa: 3, sonrisa_ojos: 2, risa: 1, serio: 1, confundido: 1, sorpresa: 1 };
+// triste / triste_parpadeo: cara_triste.py (mientras el estudiante no ha jugado hoy).
+const CARAS_MINI = [...Object.keys(PESOS), "parpadeo", "triste", "triste_parpadeo", "triste_serio"];
+const BOLSA = Object.entries(PESOS).flatMap(([c, n]) => Array(n).fill(c));
+const SONRISAS = new Set(["normal", "sonrisa", "sonrisa_ojos", "risa"]);
+// Signo de pregunta grande y blanco con contorno tinta que sale por fuera de la cabeza cuando está confundido.
+const DUDA = `<svg class="ceb-duda" viewBox="0 0 40 60" aria-hidden="true">
+  <path d="M10 17a10 10 0 1 1 14.5 9c-3 1.6-4.5 3.6-4.5 7.5v3" fill="none" stroke="#1a0f4d" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="20" cy="49" r="7" fill="#1a0f4d"/>
+  <path d="M10 17a10 10 0 1 1 14.5 9c-3 1.6-4.5 3.6-4.5 7.5v3" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="20" cy="49" r="3.6" fill="#fff"/></svg>`;
+
+// Cambio suave: la cara nueva aparece encima de la anterior (que se queda visible debajo hasta que termina).
+// rapido = parpadeo (casi instantáneo).
+function ponerCara(m, c, rapido = false) {
+  const antes = m.querySelector(".ceb-cara.on"), nueva = m.querySelector(`.ceb-cara[data-cara="${c}"]`);
+  if (!nueva || nueva === antes) return;
+  m.classList.toggle("rapido", rapido);
+  m.querySelectorAll(".ceb-cara.sale").forEach(i => i.classList.remove("sale"));
+  if (antes) { antes.classList.remove("on"); antes.classList.add("sale"); setTimeout(() => antes.classList.remove("sale"), rapido ? 80 : 450); }
+  nueva.classList.add("on");
+  m.dataset.cara = c;
+}
+let tMinis = 0;
+function animarMinis() {
+  if (tMinis) return;
+  tMinis = setInterval(() => {
+    // Triste: casi siempre triste, parpadea (con ojos tristes) y a ratos se pone serio (sin perder las cejas ni la
+    // lágrima: triste_serio); siempre vuelve a triste.
+    document.querySelectorAll('.ceb-mini[data-vivo="triste"]').forEach(m => {
+      const r = Math.random();
+      if (r < 0.5) { ponerCara(m, "triste_parpadeo", true); setTimeout(() => ponerCara(m, "triste", true), 170); }
+      else if (r < 0.7) { ponerCara(m, "triste_serio"); setTimeout(() => ponerCara(m, "triste"), 1300); }
+    });
+    document.querySelectorAll('.ceb-mini[data-vivo="si"]').forEach(m => {
+      const antes = m.querySelector(".ceb-cara.on")?.dataset.cara || "normal";
+      // Ya pasó el tiempo de la cara actual: cambia a otra (casi siempre).
+      if (Date.now() >= (+m.dataset.hasta || 0) && Math.random() < 0.85) {
+        const otras = BOLSA.filter(x => x !== antes);   // siempre una cara distinta a la que tiene
+        const c = otras[Math.floor(Math.random() * otras.length)];
+        ponerCara(m, c);
+        // Las sonrisas se quedan un pelín más (5-6,5 s; mientras tanto solo parpadea). Las demás (serio, confundido,
+        // sorpresa) son un gesto corto: a los ~2,5 s vuelve sola a una sonrisa.
+        if (SONRISAS.has(c)) m.dataset.hasta = Date.now() + 5000 + Math.random() * 1500;
+        else {
+          m.dataset.hasta = Date.now() + 1e6;
+          setTimeout(() => {
+            const s = [...SONRISAS][Math.floor(Math.random() * SONRISAS.size)];
+            ponerCara(m, s); m.dataset.hasta = Date.now() + 5000 + Math.random() * 1500;
+          }, 2500);
+        }
+      } else if (Math.random() < 0.45) {   // parpadeo corto y vuelve a la cara que tenía
+        ponerCara(m, "parpadeo", true);
+        // Vuelve a la cara de antes solo si nada la cambió durante el parpadeo.
+        setTimeout(() => { if (m.querySelector(".ceb-cara.on")?.dataset.cara === "parpadeo") ponerCara(m, antes, true); }, 170);
+      }
+    });
+  }, 2200);
 }
 
 // ---- Emotes: Cebollo reacciona al progreso (tarjeta que "salta", estilo emote de juego) ----

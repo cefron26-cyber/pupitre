@@ -130,7 +130,9 @@ async function router() {
     const prefs = { ...DEFAULT_PREFS, ...(currentUser.prefs || {}) };
     // El docente puede forzar el modo serio en una evaluación: solo mientras se hace esa actividad.
     const forced = path.startsWith('/s/play/') && !!(await assignments.get(m.params.id))?.forceSerious;
-    info = { ...prefs, modo: forced ? 'serio' : prefs.modo, forced, avatarHTML: cebolloMini(prefs.ropa, 36) };
+    // Cebollo del encabezado: triste mientras el estudiante no ha jugado hoy.
+    const jugoHoy = (await student.streakOf(currentUser.id)).hoy;
+    info = { ...prefs, modo: forced ? 'serio' : prefs.modo, forced, avatarHTML: cebolloMini(prefs.ropa, 36, { vivo: true, triste: !jugoHoy }) };
     currentUser.prefs = prefs;
   }
   applySkin(info);

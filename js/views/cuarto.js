@@ -428,7 +428,7 @@ export async function cuarto(root, { user }) {
   }
 
   // El busto del encabezado también se viste (sin recargar la página).
-  const refrescarEncabezado = () => { const h = document.querySelector('.head-avatar'); if (h) h.innerHTML = cebolloMini(ropa, 36); };
+  const refrescarEncabezado = () => { const h = document.querySelector('.head-avatar'); if (h) h.innerHTML = cebolloMini(ropa, 36, { vivo: true, triste: !!h.querySelector('[data-vivo="triste"]') }); };
 
   return () => { clearTimeout(tGlobo); ceb.destruir(); document.documentElement.classList.remove('cu-agarrando'); };
 }

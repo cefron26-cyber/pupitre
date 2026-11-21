@@ -33,6 +33,7 @@ function seed() {
     db.users.push({ id, schoolId: SCHOOL_ID, role, name, username, password: '1234', courseIds, lastSeenAt });
   u('usr-doc', 'teacher', 'Docente', 'docente', ['crs-6a', 'crs-5a']);
   u('usr-est', 'student', 'Estudiante Demo', 'estudiante', ['crs-6a']);
+  u('usr-prueba', 'student', 'Estudiante Prueba', 'prueba', ['crs-6a']);
   u('usr-lau', 'student', 'Laura Gómez', 'laura', ['crs-6a'], daysAgo(1, 3));
   u('usr-and', 'student', 'Andrés Pérez', 'andres', ['crs-6a'], daysAgo(4, 1));
   const pics = { 'usr-est': [0, 1, 2], 'usr-lau': [3, 4, 5], 'usr-and': [6, 7, 8] };
@@ -56,6 +57,13 @@ function load() {
   // Datos de antes del código de clase y de los dibujos: crearlos.
   let fixed = false;
   for (const c of cache.courses) if (!c.code) { c.code = newCode(); fixed = true; }
+  // Estudiante para pruebas (2026-11-21): así se prueba sin tocar el avance de "estudiante". Se agrega también a datos viejos.
+  // Se agrega una sola vez (marca pruebaAgregada): si el docente lo borra, no vuelve a aparecer.
+  if (!cache.pruebaAgregada) {
+    if (!cache.users.some(x => x.id === 'usr-prueba' || x.username === 'prueba') && cache.courses.some(c => c.id === 'crs-6a'))
+      cache.users.push({ id: 'usr-prueba', schoolId: SCHOOL_ID, role: 'student', name: 'Estudiante Prueba', username: 'prueba', password: '1234', courseIds: ['crs-6a'], lastSeenAt: null });
+    cache.pruebaAgregada = true; fixed = true;
+  }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
   return cache;

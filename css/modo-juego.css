@@ -9,12 +9,18 @@
 :root[data-modo="juego"]{
   --fondo-1:#5a2cf0; --fondo-2:#2a1585; --glow-1:255,120,200; --glow-2:31,200,240; --glow-3:255,210,63;
   --tinta:#1a0f4d; --sombra-j:rgba(10,4,40,.45); --suelo:clamp(90px,12vw,150px);
-  --primary:#1f3a68; --primary-hover:#172d52; --accent:#6b3cf5; --accent-soft:#efe9ff; --line:#e6ddff; --border:#cbbdf7;
-  --ink:#1a0f4d; --muted:#5b4b9a; --xp:#ffc21a;
+  /* Colores que cambian con el fondo equipado (--t-*, rewards.js): tarjeta del color opuesto a la escena y letra que contrasta. */
+  --t-card:#fff7dc; --t-inn:#ffeaa8; --t-sh:#d6a531; --t-ink:#2a1585; --t-muted:#6b4fa8;
+  --t-titulo:#ffd23f; --t-tsh:#e8590c; --t-sobre:#fff3c4; --t-ssh:#2a1585;
+  /* Tarjetas casi blancas: solo un toque del color del fondo (el canto 3D conserva el color pleno). */
+  --card:color-mix(in srgb,var(--t-card),#fff 60%);
+  --primary:#1f3a68; --primary-hover:#172d52; --accent:#6b3cf5;
+  --accent-soft:color-mix(in srgb,var(--t-sh),#fff 80%); --line:color-mix(in srgb,var(--t-sh),#fff 72%); --border:color-mix(in srgb,var(--t-sh),#fff 45%);
+  --ink:var(--t-ink); --muted:var(--t-muted); --xp:#ffc21a;
   --font:"Fredoka","Trebuchet MS",system-ui,sans-serif; --font-brand:"Fredoka","Trebuchet MS",system-ui,sans-serif;
   --radius-card:28px; --radius-input:16px;
-  --shadow:inset 0 -5px 0 #ebe4ff, 0 9px 0 #8d78e0, 0 18px 26px var(--sombra-j);
-  --shadow-sm:inset 0 -4px 0 #ebe4ff, 0 6px 0 #a796ea, 0 12px 18px rgba(10,4,40,.3);
+  --shadow:inset 0 -5px 0 color-mix(in srgb,var(--t-inn),#fff 45%), 0 9px 0 var(--t-sh), 0 18px 26px var(--sombra-j);
+  --shadow-sm:inset 0 -4px 0 color-mix(in srgb,var(--t-inn),#fff 45%), 0 6px 0 var(--t-sh), 0 12px 18px rgba(10,4,40,.3);
   /* Botones: el azul tinta de la marca, con relieve de plástico */
   --juego-btn:#1f3a68; --juego-btn-in:#2b4f8c; --juego-btn-sh:#0f1f3d; --juego-btn-ink:#fff;
 }
@@ -36,7 +42,7 @@
 [data-modo="juego"] #app > .main{flex:1 0 auto; width:100%}
 /* Suelo pixel art que se repite a lo ancho al final de la página (img/mundo/suelo.webp) */
 .suelo{flex:none; height:var(--suelo); margin-top:24px; pointer-events:none;
-  background:url(../img/mundo/suelo.webp) left bottom/auto 100% repeat-x; image-rendering:pixelated}
+  background:var(--suelo-img, url(../img/mundo/suelo.webp)) left bottom/auto 100% repeat-x; image-rendering:pixelated}
 [data-modo="juego"] .main{padding-bottom:16px}
 
 /* Encabezado: losa blanca de plástico */
@@ -302,3 +308,12 @@
 .chest-dialog.juego [data-phase="ready"] .chest.art .ch-closed{filter:drop-shadow(0 0 40px #ffe066) brightness(1.12)}
 .chest-dialog.juego [data-phase="ready"] .ch-hint{color:#fff6b0; font-size:clamp(15px,4.6vw,26px); animation:ch-hint .4s ease-in-out infinite alternate}
 @keyframes ch-ready{0%,100%{transform:scale(1) rotate(0)} 15%{transform:scale(1.08) rotate(-2deg)} 30%{transform:scale(1) rotate(0)} 45%{transform:scale(1.05) rotate(2deg)} 60%{transform:scale(1)}}
+
+/* ---------- Textos sobre el fondo (2026-11-21): siempre resaltan con el color y el contorno de cada fondo ---------- */
+[data-modo="juego"] .page-head h1,[data-modo="juego"] .hero-hi{color:var(--t-titulo); text-shadow:3px 3px 0 var(--t-tsh), 5px 5px 0 var(--tinta)}
+[data-modo="juego"] .page-head .muted,[data-modo="juego"] .page-head .muted a,[data-modo="juego"] .hero-me .level-row .small,
+[data-modo="juego"] .task-group,[data-modo="juego"] details.done-group > summary,[data-modo="juego"] .back-link,[data-modo="juego"] .path-fase,
+[data-modo="juego"] .coll-prog b,[data-modo="juego"] .rk-podio li b,[data-modo="juego"] .rk-podio .rk-xp,
+[data-modo="juego"] .main > .player > a.small,[data-modo="juego"] .main > .player > .row h1{
+  color:var(--t-sobre); text-shadow:2px 0 0 var(--t-ssh),-2px 0 0 var(--t-ssh),0 2px 0 var(--t-ssh),0 -2px 0 var(--t-ssh),2px 2px 0 var(--t-ssh),-2px 2px 0 var(--t-ssh),2px -2px 0 var(--t-ssh),-2px -2px 0 var(--t-ssh)}
+[data-modo="juego"] .task-group span{text-shadow:none}

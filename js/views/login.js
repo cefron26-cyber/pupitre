@@ -21,7 +21,7 @@ export function renderLogin(root, school, onLogin) {
       <button type="button" role="tab" data-m="code" aria-selected="false">Con código de clase</button>
     </div>` : ''}
     <div id="pane"></div>
-    <div class="demo"><b>Demo:</b> docente / 1234 &nbsp;·&nbsp; estudiante / 1234${FEATURES.codeLogin ? '<br>Código <b>SEXTA6</b> → Estudiante Demo → 🐶 🐱 🦊' : ''}</div>
+    <div class="demo"><b>Demo:</b> docente / 1234 &nbsp;·&nbsp; estudiante / 1234 &nbsp;·&nbsp; prueba / 1234${FEATURES.codeLogin ? '<br>Código <b>SEXTA6</b> → Estudiante Demo → 🐶 🐱 🦊' : ''}</div>
   </main></div>`;
   const pane = root.querySelector('#pane');
   const tabs = root.querySelectorAll('[data-m]');

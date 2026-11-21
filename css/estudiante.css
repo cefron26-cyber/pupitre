@@ -15,6 +15,22 @@
 .ceb-mini{--s:48px; position:relative; display:inline-block; flex:none; width:var(--s); height:var(--s); overflow:hidden; vertical-align:middle}
 .ceb-mini-fig{position:absolute; left:50%; top:calc(var(--s) * .02); height:calc(var(--s) * 800 / 560); aspect-ratio:440/800; transform:translateX(-50%)}
 .ceb-mini img{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+/* Busto vivo: la figura se recorta en su caja y el signo de pregunta (confundido) sale por fuera, arriba a la derecha. */
+.ceb-mini.vivo{overflow:visible}
+.ceb-mini-caja{position:absolute; inset:0; overflow:hidden}
+.ceb-duda{position:absolute; right:-16%; top:-22%; width:34%; height:auto; z-index:4; overflow:visible; pointer-events:none;
+  opacity:0; transform:scale(.2) rotate(-25deg); transform-origin:20% 90%;
+  transition:opacity .25s, transform .35s cubic-bezier(.3,1.6,.5,1); filter:drop-shadow(0 2px 0 rgba(10,4,40,.25))}
+.ceb-mini[data-cara="confundido"] .ceb-duda{opacity:1; transform:scale(1) rotate(12deg); animation:ceb-duda 1.2s ease-in-out .35s infinite}
+@keyframes ceb-duda{50%{transform:scale(1.06) rotate(4deg) translateY(-6%)}}
+@media (prefers-reduced-motion:reduce){ .ceb-duda{transition:none} .ceb-mini[data-cara="confundido"] .ceb-duda{animation:none} }
+/* Caras del busto vivo: la nueva aparece encima de la que sale (fundido de 0,4 s; el parpadeo es casi instantáneo). */
+.ceb-mini img.ceb-cara{opacity:0; transition:opacity .4s ease}
+.ceb-mini img.ceb-cara.on{opacity:1; z-index:2}
+.ceb-mini img.ceb-cara.sale{opacity:1; z-index:1; transition:none}
+.ceb-mini.rapido img.ceb-cara{transition-duration:.05s}
+.ceb-mini img.cebollo-ropa[data-ranura="cara"],.ceb-mini img.cebollo-ropa[data-ranura="sombrero"]{z-index:3}
+@media (prefers-reduced-motion:reduce){ .ceb-mini img.ceb-cara{transition:none} }
 .check{display:flex; gap:10px; align-items:flex-start; margin:4px 0 16px; font-weight:400; cursor:pointer}
 .check input{width:20px; height:20px; margin:1px 0 0; flex:none; accent-color:var(--primary)}
 

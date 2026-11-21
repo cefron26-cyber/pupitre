@@ -82,7 +82,7 @@ async function drawHero(box, user) {
     opened: ['Cofre abierto', reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. Vuelve mañana.` : 'Vuelve mañana.'],
   }[state];
   box.innerHTML = `<div class="hero-me">
-      <a class="hero-avatar" href="#/s/cuarto" aria-label="Visitar a Cebollo">${cebolloMini(prefs.ropa, 72)}</a>
+      <a class="hero-avatar" href="#/s/cuarto" aria-label="Visitar a Cebollo">${cebolloMini(prefs.ropa, 72, { vivo: true, triste: !racha.hoy })}</a>
       <div class="hero-txt">
         <h1 class="hero-hi">¡Hola, ${first}!</h1>
         ${streakHTML(racha)}
