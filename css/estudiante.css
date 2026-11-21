@@ -369,6 +369,8 @@ html,body{overflow-x:clip}
 .cebollo-tronco{transform-origin:50% 100%; animation:cebollo-respira 2.6s ease-in-out infinite}
 /* Ropa: capa de 560x920 = lienzo de 440x800 con 60 px a cada lado y 120 arriba (gorras y sombreros). */
 .cebollo img.cebollo-ropa, .ceb-mini img.cebollo-ropa{left:-13.636%; top:-15%; width:127.273%; height:115%}
+/* Zapatos: capa de 560x960 (40 px más abajo para que las suelas no se corten en el borde). */
+.cebollo img.cebollo-ropa[data-ranura="pies"], .ceb-mini img.cebollo-ropa[data-ranura="pies"]{height:120%}
 .cebollo-cabeza{transform-origin:50% 61.5%; animation:cebollo-cabecea 2.6s ease-in-out infinite}
 .cebollo-cara{opacity:0}
 .cebollo[data-cara="normal"] .cebollo-cara[data-cara="normal"],
