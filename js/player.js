@@ -5,7 +5,7 @@
 import { el, esc, fmtDuration, evalMode, confirmDialog } from './ui.js';
 import { templates } from './templates/index.js';
 import { themeById, themeSound, DEFAULT_THEME } from './temas.js';
-import { mostrarEmote, urlEmote } from './cebollo.js';
+import { mostrarEmote, urlEmote, emoteAcierto } from './cebollo.js';
 
 const IDLE_MS = 60_000; // sin interacción por más de 1 min → no cuenta tiempo
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -183,7 +183,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     }
   };
   // ---------- Franja de respuesta (pantalla completa): Cebollo reacciona y racha de aciertos ----------
-  // Acierto: pulgar (copa desde 3 seguidas). Error: triste.
+  // Acierto: pulgar, sonrisa, 👌 o brazos abiertos al azar (copa desde 3 seguidas). Error: triste.
   let racha = 0;
   const franja = node => {
     if (!inmersivo || hide || node.nodeType !== 1) return;
@@ -193,7 +193,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     const ok = fb.classList.contains('ok');
     racha = ok ? racha + 1 : 0;
     fb.classList.add('franja');
-    const emote = ok ? (racha >= 3 ? 'copa' : 'pulgar') : 'triste';
+    const emote = ok ? (racha >= 3 ? 'copa' : emoteAcierto()) : 'triste';
     fb.insertAdjacentHTML('afterbegin', `<span class="fb-masc ${ok ? 'feliz' : 'triste'}" aria-hidden="true"><img src="${urlEmote(emote)}" alt=""></span>`);
     if (ok && racha >= 2) fb.querySelector(':scope > span:not(.fb-masc)')?.insertAdjacentHTML('beforeend', ` <span class="fb-racha">🔥 ${racha} seguidas</span>`);
   };
@@ -277,8 +277,8 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     let ido = false;
     const seguir = () => { if (ido) return; ido = true; box.remove(); done(); };
     box.querySelector('button').onclick = seguir;
-    // Cebollo reacciona al resultado: copa (3 estrellas), pulgar (2, o evaluación sin nota visible), triste (0-1).
-    const emote = hide ? 'pulgar' : ['triste', 'triste', 'pulgar', 'copa'][estrellas];
+    // Cebollo reacciona al resultado: copa (3 estrellas), un gesto de acierto (2, o evaluación sin nota visible), triste (0-1).
+    const emote = hide || estrellas === 2 ? emoteAcierto() : estrellas === 3 ? 'copa' : 'triste';
     safe(() => mostrarEmote(box.querySelector('.esc-emote'), emote, { duracion: 0 }));
     shell.append(box);
     box.querySelector('button').focus({ preventScroll: true });

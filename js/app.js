@@ -4,6 +4,7 @@ import { session, users, schools, events, assignments, resetDemo } from './stora
 import { headerHTML, toast, confirmDialog, icons, FEATURES, $ } from './ui.js';
 import { coursesView } from './views/courses.js';
 import { retosList, retoPlay } from './views/retos.js';
+import { cuarto } from './views/cuarto.js';
 import { renderLogin } from './views/login.js';
 import * as teacher from './views/teacher.js';
 import * as student from './views/student.js';
@@ -11,7 +12,8 @@ import { assign, results } from './views/assign.js';
 import { unitsList, unitEditor } from './views/units.js';
 import { unitStart, unitWizard } from './views/unit-wizard.js';
 import { present } from './views/present.js';
-import { DEFAULT_PREFS, avatarSVG, backgroundVars } from './rewards.js';
+import { DEFAULT_PREFS, backgroundVars } from './rewards.js';
+import { cebolloMini } from './cebollo.js';
 import { mundoHTML } from './mundo.js';
 import { configurarClave, claveIA } from './ia.js';
 
@@ -34,6 +36,7 @@ const STUDENT_NAV = [
   { key: 'tasks', label: 'Mis tareas', href: '#/s/tasks' },
   { key: 'retos', label: 'Retos', href: '#/s/retos' },
   { key: 'juegos', label: 'Juegos', href: '#/s/juegos' },
+  { key: 'cuarto', label: 'Mi cuarto', href: '#/s/cuarto' },
   { key: 'collection', label: 'Mi colección', href: '#/s/collection' },
 ];
 
@@ -61,6 +64,7 @@ const routes = [
   ['/s/play/:id/:act', 'student', 'tasks', student.play],
   ['/s/result/:id', 'student', 'tasks', student.result],
   ['/s/collection', 'student', 'collection', student.collection],
+  ['/s/cuarto', 'student', 'cuarto', cuarto],
   ['/s/practice', 'student', 'tasks', student.practice],
   ['/s/retos', 'student', 'retos', retosList],
   ['/s/juegos', 'student', 'juegos', juegosList],
@@ -123,7 +127,7 @@ async function router() {
     const prefs = { ...DEFAULT_PREFS, ...(currentUser.prefs || {}) };
     // El docente puede forzar el modo serio en una evaluación: solo mientras se hace esa actividad.
     const forced = path.startsWith('/s/play/') && !!(await assignments.get(m.params.id))?.forceSerious;
-    info = { ...prefs, modo: forced ? 'serio' : prefs.modo, forced, avatarHTML: avatarSVG(prefs.avatar, 36) };
+    info = { ...prefs, modo: forced ? 'serio' : prefs.modo, forced, avatarHTML: cebolloMini(prefs.ropa, 36) };
     currentUser.prefs = prefs;
   }
   applySkin(info);

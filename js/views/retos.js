@@ -6,8 +6,8 @@ import { esc, el, $, icons, fmtDuration } from '../ui.js';
 import { templates } from '../templates/index.js';
 import { mountPlayer } from '../player.js';
 import { RETOS, RETO_XP, retoPassed, itemCount, quizFromAnswers, activityIdsOf, progressOf } from '../logic.js';
-import { byId, rewardPreview } from '../rewards.js';
-import { levelOf, levelCost, chestState, openDailyChest } from './student.js';
+import { byId, rewardPreview, ownedSet } from '../rewards.js';
+import { levelOf, levelCost, chestState, openDailyChest, equipar } from './student.js';
 
 // XP que falta para llegar a un nivel.
 function xpToLevel(total, target) {
@@ -38,7 +38,7 @@ export async function retosList(root, { user }) {
   const total = await xp.total(user.id);
   const { level } = levelOf(total);
   const done = await attempts.doneByUser(user.id);
-  const owned = new Set((await userRewards.list(user.id)).map(r => r.rewardId));
+  const owned = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
   const fin = await finishedOf(user);
   const teacher = await activities.challenges(await courses.gradesOf(user.courseIds));
   const best = id => { const l = done.filter(t => t.reto === id); return l.length ? l.reduce((m, t) => t.score > m.score ? t : m) : null; };
@@ -147,7 +147,7 @@ export async function retoPlay(root, { user, params, query }) {
     // Premio exclusivo (solo retos automáticos), la primera vez que se supera.
     let prize = null;
     if (auto && retoPassed(id, res)) {
-      const owned = (await userRewards.list(user.id)).map(r => r.rewardId);
+      const owned = [...ownedSet((await userRewards.list(user.id)).map(r => r.rewardId))];
       if (!owned.includes(auto.reward)) { await userRewards.add(user.id, auto.reward); prize = byId(auto.reward); }
     }
     events.log(user.id, 'finish_reto', { reto: id, score: res.score, maxScore: res.maxScore });
@@ -171,7 +171,7 @@ export async function retoPlay(root, { user, params, query }) {
           <a class="btn" href="#/s/retos">Volver a los retos</a></div></div></div>`);
       $('#stage', root).append(box);
       const eq = $('#equip', box);
-      if (eq) eq.onclick = async () => { await users.setPrefs(user.id, { [prize.kind]: prize.id }); dispatchEvent(new Event('plat-refresh')); };
+      if (eq) eq.onclick = async () => { await equipar(await users.get(user.id), prize); dispatchEvent(new Event('plat-refresh')); };
       const oc = $('#open-chest', box);
       if (oc) oc.onclick = () => { oc.disabled = true; openDailyChest(user); };
       $('#again', box).onclick = () => dispatchEvent(new Event('plat-refresh'));

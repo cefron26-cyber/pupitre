@@ -14,7 +14,7 @@ export const PICTURE_COUNT = 9;
 const newPictures = () => Array.from({ length: 3 }, () => Math.floor(Math.random() * PICTURE_COUNT));
 export const SCHOOL_ID = 'sch-1';
 
-const COLLECTIONS = ['schools', 'users', 'courses', 'activities', 'units', 'assignments', 'attempts', 'xpLedger', 'events', 'chests', 'userRewards'];
+const COLLECTIONS = ['schools', 'users', 'courses', 'activities', 'units', 'assignments', 'attempts', 'xpLedger', 'events', 'chests', 'userRewards', 'compras'];
 
 let cache = null;
 
@@ -193,15 +193,18 @@ export const users = {
   async removeStudent(id) {
     const u = get('users', id); if (!u || u.role !== 'student') return;
     remove('attempts', t => t.userId === id);
-    for (const c of ['xpLedger', 'chests', 'userRewards', 'events']) remove(c, r => r.userId === id);
+    for (const c of ['xpLedger', 'chests', 'userRewards', 'compras', 'events']) remove(c, r => r.userId === id);
     remove('users', x => x.id === id);
   },
   // Demo (2026-11-19): el estudiante borra su propio avance para volver a hacer las actividades.
-  // Quita intentos, XP, cofres, colección y eventos; conserva la cuenta, el curso y su avatar.
+  // Quita intentos, XP, cofres, colección, compras y eventos; la ropa y el cuarto vuelven a los de inicio. Conserva cuenta y curso.
   async resetProgress(id) {
     const u = get('users', id); if (!u || u.role !== 'student') return;
     remove('attempts', t => t.userId === id);
-    for (const c of ['xpLedger', 'chests', 'userRewards', 'events']) remove(c, r => r.userId === id);
+    for (const c of ['xpLedger', 'chests', 'userRewards', 'compras', 'events']) remove(c, r => r.userId === id);
+    // La ropa y la decoración se ganan: vuelven a las de inicio (sin prefs.ropa/cuarto se usan las por defecto).
+    const { ropa, cuarto, avatar, ...prefs } = u.prefs || {};
+    update('users', id, { prefs });
     flush();
   },
 };
@@ -214,7 +217,7 @@ export const courses = {
     const c = all('courses').find(x => x.code === String(code || '').trim().toUpperCase());
     if (!c) return null;
     const st = all('users').filter(u => u.role === 'student' && u.courseIds.includes(c.id))
-      .map(u => ({ id: u.id, name: u.name, avatar: u.prefs?.avatar || null })).sort((a, b) => a.name.localeCompare(b.name));
+      .map(u => ({ id: u.id, name: u.name, ropa: u.prefs?.ropa || null })).sort((a, b) => a.name.localeCompare(b.name));
     return { course: { id: c.id, name: c.name }, students: st };
   },
   async newCode(id) { let code; do code = newCode(); while (all('courses').some(c => c.code === code)); return update('courses', id, { code }); },
@@ -420,6 +423,13 @@ export const chests = {
 export const userRewards = {
   async list(userId) { return clone(all('userRewards').filter(r => r.userId === userId)); },
   async add(userId, rewardId) { return insert('userRewards', { userId, rewardId, at: now() }); },
+};
+
+// Cuarto de Cebollo: decoración comprada con monedas. Monedas = XP ganado (1 a 1) − lo gastado; el nivel no baja.
+export const compras = {
+  async list(userId) { return clone(all('compras').filter(r => r.userId === userId)); },
+  async gastado(userId) { return all('compras').filter(r => r.userId === userId).reduce((s, r) => s + r.precio, 0); },
+  async add(userId, itemId, precio) { return insert('compras', { userId, itemId, precio, at: now() }); },
 };
 
 export const events = {

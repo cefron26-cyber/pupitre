@@ -71,7 +71,7 @@ export async function openChest({ modo, result }) {
           <span class="ch-rarity">${R.label}</span>
           <div class="ch-prev">${rewardPreview(reward, 88)}</div>
           <b class="ch-name">${esc(reward.name)}</b>
-          <span class="ch-kind">${reward.kind === 'avatar' ? 'Avatar' : 'Fondo'}</span>
+          <span class="ch-kind">${reward.kind === 'ropa' ? 'Ropa para Cebollo' : 'Fondo'}</span>
           ${duplicate ? `<span class="ch-dup">Ya lo tenías: +${xp} XP</span>` : ''}
         </div>
       </div>

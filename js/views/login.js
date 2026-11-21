@@ -2,7 +2,8 @@
 // Dos formas: usuario y contraseña, o código de clase → tocar su nombre → 3 dibujos en orden (para los más pequeños).
 import { session, courses } from '../storage.js';
 import { esc, PICTURES, FEATURES, brandHTML } from '../ui.js';
-import { avatarSVG, DEFAULT_PREFS } from '../rewards.js';
+import { DEFAULT_PREFS } from '../rewards.js';
+import { cebolloMini } from '../cebollo.js';
 
 const EYE = `<svg class="eye-closed" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M3 9.5c2.6 4 6 6 9 6s6.4-2 9-6"/><path d="M6.9 13.2 5.7 16"/><path d="M12 15.5V18.6"/><path d="M17.1 13.2 18.3 16"/></svg>
@@ -90,7 +91,7 @@ export function renderLogin(root, school, onLogin) {
     }
     if (!who) {
       pane.innerHTML = `<p class="sub"><b>${esc(found.course.name)}</b> · ¿Quién eres? Toca tu nombre.</p>
-        <div class="who-grid">${found.students.map(s => `<button type="button" class="who" data-id="${esc(s.id)}">${avatarSVG(s.avatar || DEFAULT_PREFS.avatar, 44)}<span>${esc(s.name)}</span></button>`).join('')
+        <div class="who-grid">${found.students.map(s => `<button type="button" class="who" data-id="${esc(s.id)}">${cebolloMini(s.ropa || DEFAULT_PREFS.ropa, 44)}<span>${esc(s.name)}</span></button>`).join('')
           || '<p class="muted">Este curso aún no tiene estudiantes.</p>'}</div>
         <button type="button" class="btn ghost block" id="back" style="margin-top:12px">← Otro código</button>`;
       pane.querySelectorAll('.who').forEach(b => { b.onclick = () => drawCode(found, found.students.find(s => s.id === b.dataset.id)); });

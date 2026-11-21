@@ -2,6 +2,8 @@
 // Cada juego es un HTML que funciona solo (sin internet), copiado en juegos/<id>/. Aquí solo va el envoltorio con la marca:
 // la lista de tarjetas y la pantalla de juego (a pantalla completa para el estudiante; con "Pantalla completa" para el docente).
 // Para agregar uno: copiar sus archivos a juegos/<id>/, su portada a img/juegos/<id>.webp y sumarlo a JUEGOS.
+// Face Maker y Sketch Detective vienen del HTML ya empaquetado del portal (Portal juegos/sitio/<id>/); a esas copias se
+// les agregó un <style> que oculta su botón #volver (llevaba a ../index.html, que aquí no existe).
 import { esc, el, $, toast } from '../ui.js';
 import { events } from '../storage.js';
 
@@ -12,6 +14,10 @@ export const JUEGOS = [
     desc: 'Sube por las plataformas eligiendo el verbo correcto y escapa de la marea.', vertical: true },
   { id: 'corner-shop', titulo: 'Corner Shop', grados: '5°', tema: 'Comida: contables e incontables, envases, a / an / any',
     desc: 'Escucha el pedido del cliente, recorre los pasillos y llena la canasta.', vertical: false },
+  { id: 'face-maker', titulo: 'Face Maker', grados: '5° y 6°', tema: 'Describir personas: cara, pelo, ojos',
+    desc: 'Lee o escucha la descripción y arma la cara, o adivina quién es entre tres.', vertical: false },
+  { id: 'sketch-detective', titulo: 'Sketch Detective', grados: '5° y 6°', tema: 'Describir personas en presente',
+    desc: 'Habla con los testigos, anota los rasgos del ladrón, arma su retrato y encuéntralo en la rueda.', vertical: false },
 ];
 
 export async function juegosList(root, { user }) {

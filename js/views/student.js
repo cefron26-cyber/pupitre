@@ -1,6 +1,7 @@
 // Vistas del estudiante: Mis tareas, ruta de la unidad, hacer actividad, resultado.
 import { assignments, activities, units, attempts, xp, events, users, chests, userRewards } from '../storage.js';
-import { BACKGROUNDS, AVATARS, RARITY, DEFAULT_PREFS, avatarSVG, backgroundSwatch, rewardPreview, rollReward, odds, FREE } from '../rewards.js';
+import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId } from '../rewards.js';
+import { cebolloMini } from '../cebollo.js';
 import { openChest } from '../chest.js';
 import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast } from '../ui.js';
 import { templates } from '../templates/index.js';
@@ -21,7 +22,10 @@ export function levelOf(total) {
   while (rest >= levelCost(level)) { rest -= levelCost(level); level++; }
   return { level, inLevel: rest, need: levelCost(level) };
 }
-const prefsOf = user => ({ ...DEFAULT_PREFS, ...(user.prefs || {}) });
+export const prefsOf = user => ({ ...DEFAULT_PREFS, ...(user.prefs || {}) });
+// Guardar lo elegido: la ropa va en su ranura; un fondo, directo.
+export const equipar = (user, r) => users.setPrefs(user.id, r.kind === 'ropa'
+  ? { ropa: { ...prefsOf(user).ropa, [r.slot]: r.id } } : { [r.kind]: r.id });
 
 // Racha diaria (como Duolingo): días seguidos con al menos una actividad terminada. Si hoy aún no jugó,
 // la racha de ayer sigue viva (se pierde solo si pasa un día entero sin jugar). Meta diaria: 1 actividad.
@@ -58,7 +62,7 @@ export async function openDailyChest(user) {
   else await userRewards.add(user.id, result.reward.id);
   events.log(user.id, 'open_chest', { rewardId: result.reward.id, duplicate: result.duplicate });
   const choice = await openChest({ modo: modoOf(), result });
-  if (choice === 'equip') await users.setPrefs(user.id, { [result.reward.kind]: result.reward.id });
+  if (choice === 'equip') await equipar(await users.get(user.id), result.reward);
   dispatchEvent(new Event('plat-refresh'));
   return true;
 }
@@ -70,14 +74,14 @@ async function drawHero(box, user) {
   const racha = await streakOf(user.id);
   const prefs = prefsOf(user);
   const first = esc(user.name.split(' ')[0]);
-  const reward = opened && BACKGROUNDS.concat(AVATARS).find(r => r.id === opened.rewardId);
+  const reward = opened && byId(opened.rewardId);
   const chestText = {
     locked: ['Cofre del día', 'Termina una actividad o un repaso hoy para ganarlo.'],
-    ready: ['¡Tu cofre está listo!', 'Ábrelo para ganar un fondo o un avatar.'],
+    ready: ['¡Tu cofre está listo!', 'Ábrelo para ganar ropa para Cebollo o un fondo.'],
     opened: ['Cofre abierto', reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. Vuelve mañana.` : 'Vuelve mañana.'],
   }[state];
   box.innerHTML = `<div class="hero-me">
-      <div class="hero-avatar">${avatarSVG(prefs.avatar, 72)}</div>
+      <a class="hero-avatar" href="#/s/cuarto" aria-label="Ir al cuarto de Cebollo">${cebolloMini(prefs.ropa, 72)}</a>
       <div class="hero-txt">
         <h1 class="hero-hi">¡Hola, ${first}!</h1>
         ${streakHTML(racha)}
@@ -97,32 +101,33 @@ async function drawHero(box, user) {
 }
 
 export async function collection(root, { user }) {
-  const owned = new Set([...(await userRewards.list(user.id)).map(r => r.rewardId), ...FREE]);
+  const owned = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
   const prefs = prefsOf(user);
   const { state } = await chestState(user.id);
   const tile = (r, kind) => {
-    const has = owned.has(r.id), using = prefs[kind] === r.id;
+    const has = owned.has(r.id), using = kind === 'ropa' ? prefs.ropa?.[r.slot] === r.id : prefs[kind] === r.id;
     return `<li class="reward-tile ${has ? 'has' : 'locked'} rr-${r.rarity}" style="--rc:${RARITY[r.rarity].color}">
-      <div class="rt-prev">${kind === 'avatar' ? avatarSVG(r.id, 64) : backgroundSwatch(r.id)}${has ? '' : `<span class="rt-lock">${icons.lock}</span>`}</div>
+      <div class="rt-prev">${kind === 'ropa' ? rewardPreview({ ...r, kind }, 64) : backgroundSwatch(r.id)}${has ? '' : `<span class="rt-lock">${icons.lock}</span>`}</div>
       <b class="rt-name">${esc(r.name)}</b>
       <span class="rt-rarity">${RARITY[r.rarity].label}</span>
       ${has ? (using ? '<span class="rt-using">En uso</span>' : `<button class="btn sm ghost" data-kind="${kind}" data-id="${r.id}">Usar</button>`)
-        : `<span class="small muted">${r.source === 'reto' ? `Supera el reto ${esc(RETOS.find(x => x.reward === r.id)?.name || '')}` : 'Sale del cofre'}</span>`}
+        : `<span class="small muted">${r.free ? '' : r.source === 'reto' ? `Supera el reto ${esc(RETOS.find(x => x.reward === r.id)?.name || '')}` : 'Sale del cofre'}</span>`}
     </li>`;
   };
   const count = list => list.filter(r => owned.has(r.id)).length;
-  const tot = AVATARS.length + BACKGROUNDS.length, mine = count(AVATARS) + count(BACKGROUNDS);
+  const tot = ROPA.length + BACKGROUNDS.length, mine = count(ROPA) + count(BACKGROUNDS);
   root.innerHTML = `<div class="page-head"><div><h1>Mi colección</h1>
       <div class="coll-prog"><div class="progress"><i style="width:${Math.round(mine / tot * 100)}%"></i></div><b>${mine}/${tot}</b></div></div>
       <details class="info-tip dark"><summary aria-label="Qué puede salir del cofre">i</summary><p>Premios del cofre diario: ${odds()}. Si te sale uno repetido, ganas XP. Algunos solo se ganan en los <a href="#/s/retos">Retos</a>.</p></details>
       ${state === 'ready' ? '<button class="btn chest-open" id="open-chest">Abrir cofre</button>' : ''}</div>
-    <div class="card"><h2>Avatares <span class="small muted">${count(AVATARS)}/${AVATARS.length}</span></h2>
-      <ul class="reward-grid">${AVATARS.map(r => tile(r, 'avatar')).join('')}</ul></div>
+    <div class="card"><h2>Ropa de Cebollo <span class="small muted">${count(ROPA)}/${ROPA.length}</span></h2>
+      <p class="small muted" style="margin-top:-6px">Vístelo en el armario de <a href="#/s/cuarto">su cuarto</a>.</p>
+      ${Object.entries(SLOTS).map(([k, t]) => `<h3 class="coll-sub">${t}</h3><ul class="reward-grid">${ROPA.filter(r => r.slot === k).map(r => tile(r, 'ropa')).join('')}</ul>`).join('')}</div>
     <div class="card"><h2>Fondos <span class="small muted">${count(BACKGROUNDS)}/${BACKGROUNDS.length}</span></h2>
       <p class="small muted" style="margin-top:-6px">Los fondos se ven en el modo juego.</p>
       <ul class="reward-grid">${BACKGROUNDS.map(r => tile(r, 'fondo')).join('')}</ul></div>`;
   root.querySelectorAll('[data-kind]').forEach(b => {
-    b.onclick = async () => { await users.setPrefs(user.id, { [b.dataset.kind]: b.dataset.id }); dispatchEvent(new Event('plat-refresh')); };
+    b.onclick = async () => { await equipar(user, { ...byId(b.dataset.id), kind: b.dataset.kind }); dispatchEvent(new Event('plat-refresh')); };
   });
   const o = $('#open-chest', root);
   if (o) o.onclick = () => { o.disabled = true; openDailyChest(user); };
@@ -176,7 +181,7 @@ export async function tasks(root, { user }) {
     const due = fmtDue(a.dueAt);
     const busy = unit ? p.items[k]?.status === 'doing' : p.status === 'doing';
     $('#next', root).append(el(`<div class="next-card">
-      <div class="next-masc" aria-hidden="true">${avatarSVG(prefsOf(user).avatar, 64)}</div>
+      <div class="next-masc" aria-hidden="true">${cebolloMini(prefsOf(user).ropa, 64)}</div>
       <div class="grow"><p class="kicker">Siguiente</p>
         <h2>${esc(unit ? unit.title : act.title)}</h2>
         <div class="small">${unit ? `Actividad ${k + 1} de ${acts.length}: ${esc(act.title)} · ` : `${templates[act.type].label} · `}<span class="${due.cls}">${due.text}</span></div>

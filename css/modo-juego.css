@@ -46,7 +46,7 @@
 [data-modo="juego"] .mode-toggle{background:#ffd23f; color:#6b4300; border:0; box-shadow:inset 0 -3px 0 #f0b800, 0 4px 0 #c99a00; transition:transform .1s}
 [data-modo="juego"] .mode-toggle:active{transform:translateY(3px); box-shadow:inset 0 -3px 0 #f0b800, 0 1px 0 #c99a00}
 [data-modo="juego"] .xp-chip{background:#fff4c2; color:#7a4b00; box-shadow:inset 0 -3px 0 #ffe27a}
-[data-modo="juego"] .head-avatar svg{animation:respirar 1.6s steps(2) infinite}
+[data-modo="juego"] .head-avatar .ceb-mini{animation:respirar 1.6s steps(2) infinite}
 @keyframes respirar{50%{transform:translateY(-3px)}}
 
 /* Títulos de página en letra de juego con sombra (la pixel queda para cifras cortas) */
@@ -101,7 +101,7 @@
 [data-modo="juego"] .hero-me{background:transparent; box-shadow:none; color:#fff; padding-left:0}
 [data-modo="juego"] .hero-me .small{color:#e9e2ff}
 [data-modo="juego"] .hero-avatar{transform:rotate(-5deg); animation:saltar .7s cubic-bezier(.3,1.6,.5,1) both}
-[data-modo="juego"] .hero-avatar svg{filter:drop-shadow(0 8px 0 rgba(10,4,40,.3)); width:88px; height:88px}
+[data-modo="juego"] .hero-avatar .ceb-mini{filter:drop-shadow(0 8px 0 rgba(10,4,40,.3)); --s:88px !important}
 @keyframes saltar{from{opacity:0; transform:translateY(-40px) rotate(-20deg)}}
 [data-modo="juego"] .chest-card.ready{box-shadow:inset 0 -5px 0 #fff0a8, 0 9px 0 #c99a00, 0 18px 26px var(--sombra-j); background:#fff8d6}
 [data-modo="juego"] .chest-card.ready .chest-mini{animation:menear 1.8s ease-in-out infinite}
