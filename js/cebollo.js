@@ -43,12 +43,7 @@ export function crearCebollo(contenedor, { tocable = true, ropa = {} } = {}) {
     puesta = { ...r };
     const [tronco, cabeza] = raiz.querySelectorAll(".cebollo-capas");
     tronco.innerHTML = capas(puesta, CAPAS_TRONCO);
-    // Con sombrero, el brote (tallo y dos hojitas) se pinta una sola vez ENCIMA del sombrero (anim/brote.webp);
-    // el de las caras se recorta en CSS para que no queden hojitas dobles.
-    cabeza.innerHTML = capas(puesta, CAPAS_CABEZA) + (puesta.sombrero ? `<img class="cebollo-brote" src="${RUTA}brote.webp" alt="" draggable="false">` : "");
-    raiz.dataset.sombrero = puesta.sombrero ? "si" : "";
-    // Con camiseta o hoodie, las caras pierden el trocito de cuello de abajo (filas 492-501) para no tapar el cuello de la prenda.
-    raiz.dataset.torso = puesta.torso ? "si" : "";
+    cabeza.innerHTML = capas(puesta, CAPAS_CABEZA);
   }
   vestir(ropa);
 
@@ -95,7 +90,7 @@ export function crearCebollo(contenedor, { tocable = true, ropa = {} } = {}) {
 export function cebolloMini(ropa = {}, size = 48) {
   const img = (archivo, clase = "") => `<img class="${clase}" src="${RUTA}${archivo}.webp" alt="" draggable="false">`;
   return `<span class="ceb-mini" style="--s:${size}px" aria-hidden="true"><span class="ceb-mini-fig">
-    ${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${img("cabeza", [ropa.sombrero && "ceb-sin-brote", ropa.torso && "ceb-sin-cuello"].filter(Boolean).join(" "))}${capas(ropa, CAPAS_CABEZA)}${ropa.sombrero ? img("brote") : ""}</span></span>`;
+    ${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${img("cabeza")}${capas(ropa, CAPAS_CABEZA)}</span></span>`;
 }
 
 // ---- Emotes: Cebollo reacciona al progreso (tarjeta que "salta", estilo emote de juego) ----

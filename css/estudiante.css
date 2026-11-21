@@ -13,7 +13,7 @@
 
 /* Cebollo mini: busto quieto y vestido (cebolloMini en js/cebollo.js). Se ve del brote al pecho. */
 .ceb-mini{--s:48px; position:relative; display:inline-block; flex:none; width:var(--s); height:var(--s); overflow:hidden; vertical-align:middle}
-.ceb-mini-fig{position:absolute; left:50%; top:calc(var(--s) * .1); height:calc(var(--s) * 800 / 600); aspect-ratio:440/800; transform:translateX(-50%)}
+.ceb-mini-fig{position:absolute; left:50%; top:calc(var(--s) * .02); height:calc(var(--s) * 800 / 560); aspect-ratio:440/800; transform:translateX(-50%)}
 .ceb-mini img{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
 .check{display:flex; gap:10px; align-items:flex-start; margin:4px 0 16px; font-weight:400; cursor:pointer}
 .check input{width:20px; height:20px; margin:1px 0 0; flex:none; accent-color:var(--primary)}
@@ -367,20 +367,14 @@ html,body{overflow-x:clip}
 .cebollo-figura, .cebollo-cabeza, .cebollo-tronco, .cebollo-capas{position:absolute; inset:0}
 .cebollo-figura{transform-origin:50% 100%}
 .cebollo-tronco{transform-origin:50% 100%; animation:cebollo-respira 2.6s ease-in-out infinite}
-/* Ropa: capa de 560x960 = lienzo de 440x800 con 60 px a cada lado, 120 arriba (gorras) y 40 abajo (suelas). */
-.cebollo img.cebollo-ropa, .ceb-mini img.cebollo-ropa{left:-13.636%; top:-15%; width:127.273%; height:120%}
+/* Ropa: capa de 560x920 = lienzo de 440x800 con 60 px a cada lado y 120 arriba (gorras y sombreros). */
+.cebollo img.cebollo-ropa, .ceb-mini img.cebollo-ropa{left:-13.636%; top:-15%; width:127.273%; height:115%}
 .cebollo-cabeza{transform-origin:50% 61.5%; animation:cebollo-cabecea 2.6s ease-in-out infinite}
 .cebollo-cara{opacity:0}
 .cebollo[data-cara="normal"] .cebollo-cara[data-cara="normal"],
 .cebollo[data-cara="parpadeo"] .cebollo-cara[data-cara="parpadeo"],
 .cebollo[data-cara="sorpresa"] .cebollo-cara[data-cara="sorpresa"],
 .cebollo[data-cara="risa"] .cebollo-cara[data-cara="risa"]{opacity:1}
-/* Con sombrero: el brote va encima (cebollo-brote) y el de las caras se oculta (el brote ocupa el 13,1 % de arriba). */
-.cebollo-brote{pointer-events:none}
-.cebollo[data-sombrero="si"] .cebollo-cara, .ceb-mini img.ceb-sin-brote{clip-path:inset(13.1% 0 0 0)}
-/* Con prenda de torso: sin el trocito de cuello de la cabeza (desde la fila 492 de 800), que dejaba un corte recto. */
-.cebollo[data-torso="si"] .cebollo-cara, .ceb-mini img.ceb-sin-cuello{clip-path:inset(0 0 38.5% 0)}
-.cebollo[data-sombrero="si"][data-torso="si"] .cebollo-cara, .ceb-mini img.ceb-sin-brote.ceb-sin-cuello{clip-path:inset(13.1% 0 38.5% 0)}
 .cebollo .cebollo-festejo{width:154.09%; left:-27.05%; opacity:0; transform-origin:50% 100%}
 
 @keyframes cebollo-respira{ 0%,100%{transform:scale(1,1)} 50%{transform:scale(1.012,.985)} }
