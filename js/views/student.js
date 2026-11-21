@@ -14,6 +14,16 @@ const starsHTML = p => { const n = starsOf(p); return `<span class="stars" aria-
 
 export const xpTotal = userId => xp.total(userId);
 
+// Barra de una misión de unidad en segmentos, uno por actividad, que se van llenando.
+const segmentos = p => `<div class="segmentos" role="img" aria-label="${p.done} de ${p.total} actividades">${p.items.map(i =>
+  `<i class="${i.best ? 'lleno' : i.status === 'doing' ? 'medio' : ''}"></i>`).join('')}</div>`;
+// Tiempo hasta el próximo cofre (medianoche): "5 h" o "40 min".
+function faltaManana() {
+  const m = new Date(); m.setHours(24, 0, 0, 0);
+  const min = Math.max(1, Math.round((m - Date.now()) / 60000));
+  return min >= 60 ? `${Math.round(min / 60)} h` : `${min} min`;
+}
+
 // ---------- Nivel, cofre diario y colección ----------
 // Cada nivel cuesta más que el anterior: 100, 150, 225, 340… (tope de 500 XP por nivel).
 export const levelCost = n => Math.min(500, Math.round(100 * 1.5 ** (n - 1) / 5) * 5);
@@ -76,10 +86,12 @@ async function drawHero(box, user) {
   const first = esc(user.name.split(' ')[0]);
   const reward = opened && byId(opened.rewardId);
   const rango = rangoDe(level), sig = siguienteRango(level);
+  // Falta poco para subir de nivel (un cuarto del nivel o menos): la barra brilla y lo dice.
+  const cerca = inLevel > 0 && need - inLevel <= Math.max(20, need / 4);
   const chestText = {
     locked: ['Cofre del día', 'Completa una misión o un repaso hoy para ganarlo.'],
     ready: ['¡Tu cofre está listo!', 'Ábrelo para ganar ropa para Cebollo o un fondo.'],
-    opened: ['Cofre abierto', reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. Vuelve mañana.` : 'Vuelve mañana.'],
+    opened: ['Cofre abierto', `${reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. ` : ''}Nuevo cofre en <b>${faltaManana()}</b>.`],
   }[state];
   box.innerHTML = `<div class="hero-me">
       <a class="hero-avatar" href="#/s/cuarto" aria-label="Visitar a Cebollo">${cebolloMini(prefs.ropa, 72, { vivo: true, triste: !racha.hoy })}</a>
@@ -88,8 +100,9 @@ async function drawHero(box, user) {
         ${streakHTML(racha)}
         <a class="rango-chip" href="#/s/ranking" style="--rc:${rango.color}" title="${sig ? `Siguiente rango: ${sig.name} (nivel ${sig.desde})` : 'Rango máximo'}"><span aria-hidden="true">${rango.icon}</span>Rango <b>${rango.name}</b>${sig ? `<span class="rango-next">→ ${sig.name} en nivel ${sig.desde}</span>` : ''}</a>
         <div class="level-row"><span class="level-badge">Nivel ${level}</span>
-          <div class="level-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${need}" aria-valuenow="${inLevel}" aria-label="Experiencia del nivel"><i style="width:${Math.round(inLevel / need * 100)}%"></i></div>
-          <span class="small">${inLevel}/${need} XP</span></div>
+          <div class="level-bar ${cerca ? 'cerca' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="${need}" aria-valuenow="${inLevel}" aria-label="Experiencia del nivel"><i style="width:${Math.round(inLevel / need * 100)}%"></i></div>
+          <span class="small">${inLevel}/${need} XP</span>
+          ${cerca ? `<span class="nivel-cerca">¡+${need - inLevel} XP → Nivel ${level + 1}!</span>` : ''}</div>
       </div>
     </div>
     <div class="chest-card ${state}">
@@ -185,11 +198,11 @@ export async function tasks(root, { user }) {
     const due = fmtDue(a.dueAt);
     const busy = unit ? p.items[k]?.status === 'doing' : p.status === 'doing';
     $('#next', root).append(el(`<div class="next-card">
-      <div class="next-masc" aria-hidden="true">${cebolloMini(prefsOf(user).ropa, 64)}</div>
+      <div class="next-masc" aria-hidden="true"><img class="next-emote" src="img/cebollo/emotes/pulgar.webp" alt=""></div>
       <div class="grow"><p class="kicker">Próxima misión ${premio(acts, unit)}</p>
         <h2>${esc(unit ? unit.title : act.title)}</h2>
         <div class="small">${unit ? `Actividad ${k + 1} de ${acts.length}: ${esc(act.title)} · ` : `${templates[act.type].label} · `}<span class="${due.cls}">${due.text}</span></div>
-        ${unit ? `<div class="mini-progress" aria-label="${p.done} de ${p.total} actividades"><i style="width:${p.total ? p.done / p.total * 100 : 0}%"></i></div>` : ''}</div>
+        ${unit ? segmentos(p) : ''}</div>
       <a class="btn" href="${unit ? `#/s/play/${a.id}/${act.id}` : `#/s/play/${a.id}`}">${busy || (unit && p.done) ? 'Continuar' : 'Empezar'}</a></div>`));
   }
 
@@ -208,7 +221,7 @@ export async function tasks(root, { user }) {
         <div class="info">
           <p class="title">${esc(unit.title)}</p>
           <div class="meta">Misión de unidad · ${acts.length} actividades · ${due} ${p.status === 'done' ? '' : premio(acts, unit)}</div>
-          <div class="mini-progress" aria-label="${p.done} de ${p.total} actividades"><i style="width:${p.total ? p.done / p.total * 100 : 0}%"></i></div>
+          ${segmentos(p)}
         </div>
         <span class="badge ${s.cls}">${p.status === 'done' ? `${s.label} · ${p.unitPoints}/100` : p.status === 'late' ? `${s.label} · ${p.done}/${p.total}` : `${p.done}/${p.total}`}</span>
         <a class="btn ${p.status === 'done' ? 'ghost' : ''}" href="#/s/unit/${a.id}">${p.status === 'done' ? 'Ver unidad' : p.done || p.status === 'doing' ? 'Continuar' : 'Empezar'}</a>

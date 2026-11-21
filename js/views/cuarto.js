@@ -63,12 +63,15 @@ const ICONOS = {
     <rect x="27.5" y="15.2" width="3.6" height="2.6" rx="1" fill="#ffd23f" stroke="#1a0f4d" stroke-width="1.6"/></g>`),
 };
 
-// Moneda dorada con brillo y estrella (contador y precios).
+// Moneda de Cebollo: verde menta con el brote de dos hojitas (contador y precios). Verde a propósito, para que no se
+// confunda con la estrella dorada de la XP (revisión de capturas 2026-11-21).
 const MONEDA = (px = 28) => `<svg class="moneda" viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
-  <circle cx="20" cy="21.5" r="16" fill="#c98a00" stroke="#1a0f4d" stroke-width="2.4"/>
-  <circle cx="20" cy="19" r="16" fill="#ffd23f" stroke="#1a0f4d" stroke-width="2.4"/>
-  <circle cx="20" cy="19" r="11" fill="#ffe680" stroke="#e0a800" stroke-width="2"/>
-  <path d="m20 12.2 2 4.3 4.6.5-3.4 3.1 1 4.6-4.2-2.4-4.2 2.4 1-4.6-3.4-3.1 4.6-.5z" fill="#f0b400" stroke="#c98a00" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="20" cy="21.5" r="16" fill="#1f8a63" stroke="#1a0f4d" stroke-width="2.4"/>
+  <circle cx="20" cy="19" r="16" fill="#5fd3a4" stroke="#1a0f4d" stroke-width="2.4"/>
+  <circle cx="20" cy="19" r="11" fill="#b8f3da" stroke="#2fae7e" stroke-width="2"/>
+  <path d="M19.5 26c0-4 .3-7 1.2-9.6" fill="none" stroke="#1f6b4c" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M20.6 17.2c-3.6-.6-6-2.6-6.6-5.4 3.4-.2 6 1.6 6.6 5.4z" fill="#3cbf8a" stroke="#1f6b4c" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M20.8 16.6c.4-3.8 2.6-6.2 5.6-6.8.4 3.4-1.8 6-5.6 6.8z" fill="#3cbf8a" stroke="#1f6b4c" stroke-width="1.6" stroke-linejoin="round"/>
   <path d="M10.5 13.5a11 11 0 0 1 6-5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".85"/></svg>`;
 
 export async function cuarto(root, { user }) {
@@ -106,6 +109,7 @@ export async function cuarto(root, { user }) {
 
   // Sin textos de ayuda (2026-11-21): los niños entienden la escena con mirarla; los nombres quedan para lectores de pantalla.
   root.innerHTML = `<h1 class="sr-only">Cuarto de Cebollo</h1>
+    <div class="cuarto-escena">
     <div class="cuarto" id="cuarto">
       <div class="cu-monedas" id="cu-monedas" role="status" aria-label="${monedas} monedas" title="Monedas">${MONEDA()}<b id="monedas">${monedas}</b></div>
       <img class="cu-fondo" src="img/cuarto/cuarto.webp" alt="" draggable="false">
@@ -115,13 +119,14 @@ export async function cuarto(root, { user }) {
       <p class="cu-globo" id="cu-globo" role="status" aria-live="polite"></p>
       <div class="cu-herr" id="cu-herr" hidden><button type="button" id="cu-espejo" aria-label="Voltear" title="Voltear">${ICONOS.espejo}</button></div>
       <div class="cu-luz" aria-hidden="true"></div>
-      <div class="cu-barra" role="toolbar" aria-label="Acciones del cuarto">
+    </div>
+    <div class="cu-barra" role="toolbar" aria-label="Acciones del cuarto">
         <button type="button" class="cu-ico" data-panel="armario" aria-label="Armario" title="Armario">${ICONOS.armario}</button>
         <button type="button" class="cu-ico" data-panel="tienda" aria-label="Tienda" title="Tienda">${ICONOS.tienda}</button>
         <button type="button" class="cu-ico" id="cu-editar" aria-pressed="false" aria-label="Mover muebles" title="Mover muebles">${ICONOS.mover}</button>
         <button type="button" class="cu-ico" id="cu-ordenar" aria-label="Ordenar como al inicio" title="Ordenar como al inicio" hidden>${ICONOS.ordenar}</button>
         <button type="button" class="cu-ico" id="cu-foto" aria-label="Tomar foto" title="Tomar foto">${ICONOS.foto}</button>
-      </div>
+    </div>
     </div>
     <p class="sr-only" id="cu-ayuda" hidden>Con el teclado: elige un mueble con Tab, muévelo con las flechas y voltéalo con la E.</p>
     <section class="card cuarto-panel" id="cu-panel" hidden></section>`;
@@ -358,6 +363,7 @@ export async function cuarto(root, { user }) {
 
   // ---------- Paneles: armario (ropa) y tienda (decoración) ----------
   const cajaPanel = $('#cu-panel', root);
+  let vista = null;
   function abrir(cual) {
     if (panel === cual) { panel = null; cajaPanel.hidden = true; marcar(); return; }
     panel = cual; pestana = cual === 'armario' ? 'torso' : 'ventana';
@@ -376,12 +382,17 @@ export async function cuarto(root, { user }) {
     let lista;
     if (panel === 'armario') {
       const mias = ROPA.filter(r => r.slot === pestana && ropaMia.has(r.id));
-      const faltan = ROPA.filter(r => r.slot === pestana && !ropaMia.has(r.id)).length;
+      const faltan = ROPA.filter(r => r.slot === pestana && !ropaMia.has(r.id));
       lista = `<li><button type="button" class="cu-tile ${ropa[pestana] ? '' : 'on'}" data-quitar="${pestana}" aria-label="Nada" aria-pressed="${!ropa[pestana]}">
           <span class="cu-tile-img cu-nada" aria-hidden="true">✕</span></button></li>`
         + mias.map(r => `<li><button type="button" class="cu-tile ${ropa[pestana] === r.id ? 'on' : ''}" data-ropa="${r.id}" style="--rc:${RARITY[r.rarity].color}" aria-label="${esc(r.name)}" title="${esc(r.name)}" aria-pressed="${ropa[pestana] === r.id}">
           <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""></button></li>`).join('');
-      if (faltan) lista += `<li><a class="cu-falta" href="#/s/collection" aria-label="${faltan} más por ganar en el cofre" title="Cofre"><img src="img/cofre/cerrado-mini.png" alt=""><b>+${faltan}</b></a></li>`;
+      // La que falta se ve en gris con candado y un icono de dónde se gana (meta visible, sin texto).
+      lista += faltan.map(r => {
+        const reto = r.source === 'reto', donde = reto ? 'Se gana en un reto' : 'Sale del cofre';
+        return `<li><a class="cu-tile cu-bloq" href="${reto ? '#/s/retos' : '#/s/collection'}" aria-label="${esc(r.name)}: ${donde}" title="${esc(r.name)} · ${donde}">
+          <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""><span class="cu-candado" aria-hidden="true">🔒</span><span class="cu-donde" aria-hidden="true">${reto ? '🏆' : '🎁'}</span></a></li>`;
+      }).join('');
     } else {
       lista = DECO.filter(d => d.lugar === pestana).map(d => {
         const tiene = decoMia.has(d.id), usa = puesto[pestana] === d.id;
@@ -390,8 +401,13 @@ export async function cuarto(root, { user }) {
           <img class="cu-tile-img" src="${urlDeco(d.id)}" alt="">${accion}</button></li>`;
       }).join('');
     }
+    vista?.destruir(); vista = null;
     cajaPanel.innerHTML = `<h2 class="sr-only">${panel === 'armario' ? 'Armario' : 'Tienda'}</h2>
-      ${pest}<ul class="cu-grid">${lista}</ul>`;
+      <div class="cu-panel-cont ${panel === 'armario' ? 'con-vista' : ''}">
+        ${panel === 'armario' ? '<div class="cu-vista" id="cu-vista" aria-hidden="true"></div>' : ''}
+        <div class="cu-panel-lista">${pest}<ul class="cu-grid">${lista}</ul></div></div>`;
+    // Armario: Cebollo de cuerpo entero al lado de la ropa, para ver cómo le queda sin subir al cuarto.
+    if (panel === 'armario') vista = crearCebollo($('#cu-vista', cajaPanel), { ropa, tocable: false });
     cajaPanel.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { pestana = b.dataset.tab; pintarPanel(); });
     cajaPanel.querySelectorAll('[data-ropa]').forEach(b => b.onclick = () => ponerRopa(pestana, b.dataset.ropa));
     cajaPanel.querySelectorAll('[data-quitar]').forEach(b => b.onclick = () => ponerRopa(pestana, null));
@@ -417,6 +433,9 @@ export async function cuarto(root, { user }) {
       await compras.add(user.id, id, d.precio);
       events.log(user.id, 'compra_deco', { itemId: id, precio: d.precio });
       decoMia.add(id); monedas -= d.precio; $('#monedas', root).textContent = monedas; $('#cu-monedas', root).setAttribute('aria-label', `${monedas} monedas`);
+      // "−N" que sube desde el contador: así se entiende que las monedas se gastan.
+      const gasto = document.createElement('span'); gasto.className = 'cu-gasto'; gasto.textContent = `−${d.precio}`;
+      $('#cu-monedas', root).append(gasto); setTimeout(() => gasto.remove(), 1300);
       puesto = { ...puesto, [d.lugar]: id };
       ceb.reaccion('festejo'); decir(azar(FRASES_COMPRA));
     } else {
@@ -430,5 +449,5 @@ export async function cuarto(root, { user }) {
   // El busto del encabezado también se viste (sin recargar la página).
   const refrescarEncabezado = () => { const h = document.querySelector('.head-avatar'); if (h) h.innerHTML = cebolloMini(ropa, 36, { vivo: true, triste: !!h.querySelector('[data-vivo="triste"]') }); };
 
-  return () => { clearTimeout(tGlobo); ceb.destruir(); document.documentElement.classList.remove('cu-agarrando'); };
+  return () => { clearTimeout(tGlobo); ceb.destruir(); vista?.destruir(); document.documentElement.classList.remove('cu-agarrando'); };
 }

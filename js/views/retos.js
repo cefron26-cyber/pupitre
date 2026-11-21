@@ -6,7 +6,7 @@ import { esc, el, $, icons, fmtDuration } from '../ui.js';
 import { templates } from '../templates/index.js';
 import { mountPlayer } from '../player.js';
 import { RETOS, RETO_XP, retoPassed, itemCount, quizFromAnswers, activityIdsOf, progressOf } from '../logic.js';
-import { byId, rewardPreview, ownedSet, DESBLOQUEADO } from '../rewards.js';
+import { byId, rewardPreview, DESBLOQUEADO, ALIAS } from '../rewards.js';
 import { levelOf, levelCost, chestState, openDailyChest, equipar } from './student.js';
 
 // XP que falta para llegar a un nivel.
@@ -38,7 +38,9 @@ export async function retosList(root, { user }) {
   const total = await xp.total(user.id);
   const { level } = levelOf(total);
   const done = await attempts.doneByUser(user.id);
-  const owned = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
+  const misPremios = (await userRewards.list(user.id)).map(r => r.rewardId);
+  // "¡Ganado!" solo si de verdad lo ganó (en la demo ownedSet desbloquea todo para poder probar la ropa).
+  const ganado = new Set(misPremios.map(id => ALIAS[id] || id));
   const fin = await finishedOf(user);
   const teacher = await activities.challenges(await courses.gradesOf(user.courseIds));
   const best = id => { const l = done.filter(t => t.reto === id); return l.length ? l.reduce((m, t) => t.score > m.score ? t : m) : null; };
@@ -62,7 +64,7 @@ export async function retosList(root, { user }) {
         ${open ? (need ? `<div class="row">${picker}<button class="btn sm" type="button" data-play>Jugar</button></div>`
           : `<p class="small muted">${r.id === 'maraton' ? 'Termina una unidad completa para jugarlo.' : 'Termina una actividad para jugarlo.'}</p>`) : ''}
       </div>
-      <div class="reto-prize" title="Premio exclusivo">${rewardPreview(prize, 48)}<span class="small">${owned.has(prize.id) ? '¡Ganado!' : esc(prize.name)}</span></div>
+      <div class="reto-prize ${ganado.has(prize.id) ? 'ganado' : 'por-ganar'}" title="Premio exclusivo">${rewardPreview(prize, 48)}<span class="small">${ganado.has(prize.id) ? '¡Ganado!' : esc(prize.name)}</span></div>
     </li>`;
   };
   const tcard = a => {
@@ -147,7 +149,8 @@ export async function retoPlay(root, { user, params, query }) {
     // Premio exclusivo (solo retos automáticos), la primera vez que se supera.
     let prize = null;
     if (auto && retoPassed(id, res)) {
-      const owned = [...ownedSet((await userRewards.list(user.id)).map(r => r.rewardId))];
+      // Se mira lo que de verdad ganó (no ownedSet, que en la demo da todo por ganado y nunca guardaría el premio).
+      const owned = (await userRewards.list(user.id)).map(r => ALIAS[r.rewardId] || r.rewardId);
       if (!owned.includes(auto.reward)) { await userRewards.add(user.id, auto.reward); prize = byId(auto.reward); }
     }
     events.log(user.id, 'finish_reto', { reto: id, score: res.score, maxScore: res.maxScore });

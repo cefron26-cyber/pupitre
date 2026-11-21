@@ -65,7 +65,7 @@ const routes = [
   ['/s/play/:id', 'student', 'tasks', student.play],
   ['/s/play/:id/:act', 'student', 'tasks', student.play],
   ['/s/result/:id', 'student', 'tasks', student.result],
-  ['/s/collection', 'student', 'tasks', student.collection],
+  ['/s/collection', 'student', '', student.collection],
   ['/s/ranking', 'student', 'ranking', ranking],
   ['/s/cuarto', 'student', 'cuarto', cuarto],
   ['/s/practice', 'student', 'tasks', student.practice],

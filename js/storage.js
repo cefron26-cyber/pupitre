@@ -13,6 +13,7 @@ const newCode = () => Array.from({ length: 6 }, () => CODE_CHARS[Math.floor(Math
 export const PICTURE_COUNT = 9;
 const newPictures = () => Array.from({ length: 3 }, () => Math.floor(Math.random() * PICTURE_COUNT));
 export const SCHOOL_ID = 'sch-1';
+const CURSO_PRUEBAS = { id: 'crs-prueba', schoolId: SCHOOL_ID, name: 'Pruebas', grade: 6, code: 'PRUEBA' };
 
 const COLLECTIONS = ['schools', 'users', 'courses', 'activities', 'units', 'assignments', 'attempts', 'xpLedger', 'events', 'chests', 'userRewards', 'compras'];
 
@@ -29,11 +30,12 @@ function seed() {
   db.schools.push({ id: SCHOOL_ID, name: 'Nombre del colegio' });
   db.courses.push({ id: 'crs-6a', schoolId: SCHOOL_ID, name: 'Sexto A', grade: 6, code: 'SEXTA6' });
   db.courses.push({ id: 'crs-5a', schoolId: SCHOOL_ID, name: 'Quinto A', grade: 5, code: 'QUINT5' });
+  db.courses.push({ ...CURSO_PRUEBAS });
   const u = (id, role, name, username, courseIds, lastSeenAt = null) =>
     db.users.push({ id, schoolId: SCHOOL_ID, role, name, username, password: '1234', courseIds, lastSeenAt });
-  u('usr-doc', 'teacher', 'Docente', 'docente', ['crs-6a', 'crs-5a']);
+  u('usr-doc', 'teacher', 'Docente', 'docente', ['crs-6a', 'crs-5a', 'crs-prueba']);
   u('usr-est', 'student', 'Estudiante Demo', 'estudiante', ['crs-6a']);
-  u('usr-prueba', 'student', 'Estudiante Prueba', 'prueba', ['crs-6a']);
+  u('usr-prueba', 'student', 'Estudiante Prueba', 'prueba', ['crs-prueba']);
   u('usr-lau', 'student', 'Laura Gómez', 'laura', ['crs-6a'], daysAgo(1, 3));
   u('usr-and', 'student', 'Andrés Pérez', 'andres', ['crs-6a'], daysAgo(4, 1));
   const pics = { 'usr-est': [0, 1, 2], 'usr-lau': [3, 4, 5], 'usr-and': [6, 7, 8] };
@@ -57,12 +59,21 @@ function load() {
   // Datos de antes del código de clase y de los dibujos: crearlos.
   let fixed = false;
   for (const c of cache.courses) if (!c.code) { c.code = newCode(); fixed = true; }
-  // Estudiante para pruebas (2026-11-21): así se prueba sin tocar el avance de "estudiante". Se agrega también a datos viejos.
-  // Se agrega una sola vez (marca pruebaAgregada): si el docente lo borra, no vuelve a aparecer.
-  if (!cache.pruebaAgregada) {
-    if (!cache.users.some(x => x.id === 'usr-prueba' || x.username === 'prueba') && cache.courses.some(c => c.id === 'crs-6a'))
-      cache.users.push({ id: 'usr-prueba', schoolId: SCHOOL_ID, role: 'student', name: 'Estudiante Prueba', username: 'prueba', password: '1234', courseIds: ['crs-6a'], lastSeenAt: null });
-    cache.pruebaAgregada = true; fixed = true;
+  // Estudiante para pruebas del docente (2026-11-21): prueba/1234, solo en el curso "Pruebas" (vacío: las actividades de
+  // la demo siguen solo en Sexto A). El docente le asigna ahí lo que quiera probar. Se agrega también a datos viejos,
+  // una sola vez (marca pruebaV2): si el docente lo borra o borra el curso, no vuelven a aparecer.
+  if (!cache.pruebaV2) {
+    if (!cache.courses.some(c => c.id === CURSO_PRUEBAS.id)) cache.courses.push({ ...CURSO_PRUEBAS });
+    let est = cache.users.find(x => x.id === 'usr-prueba' || x.username === 'prueba');
+    if (!est) cache.users.push(est = { id: 'usr-prueba', schoolId: SCHOOL_ID, role: 'student', name: 'Estudiante Prueba', username: 'prueba', password: '1234', courseIds: [], lastSeenAt: null });
+    if (est.role === 'student') {
+      est.courseIds = [CURSO_PRUEBAS.id];
+      // En blanco: sin intentos, XP, cofres ni premios de cuando estaba en Sexto A.
+      for (const c of ['attempts', 'xpLedger', 'chests', 'userRewards', 'compras']) cache[c] = cache[c].filter(r => r.userId !== est.id);
+    }
+    const doc = cache.users.find(x => x.id === 'usr-doc');
+    if (doc && !doc.courseIds.includes(CURSO_PRUEBAS.id)) doc.courseIds.push(CURSO_PRUEBAS.id);
+    cache.pruebaV2 = true; fixed = true;
   }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();

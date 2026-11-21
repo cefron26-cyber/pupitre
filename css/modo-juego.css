@@ -317,3 +317,13 @@
 [data-modo="juego"] .main > .player > a.small,[data-modo="juego"] .main > .player > .row h1{
   color:var(--t-sobre); text-shadow:2px 0 0 var(--t-ssh),-2px 0 0 var(--t-ssh),0 2px 0 var(--t-ssh),0 -2px 0 var(--t-ssh),2px 2px 0 var(--t-ssh),-2px 2px 0 var(--t-ssh),2px -2px 0 var(--t-ssh),-2px -2px 0 var(--t-ssh)}
 [data-modo="juego"] .task-group span{text-shadow:none}
+/* Revisión de capturas (2026-11-21): los títulos llevan contorno completo (no solo sombra a un lado), así se leen
+   sobre cualquier parte del cielo; el texto secundario de las tarjetas es más grande y más oscuro (niños). */
+[data-modo="juego"] .page-head h1,[data-modo="juego"] .hero-hi{
+  text-shadow:3px 0 0 var(--t-tsh),-3px 0 0 var(--t-tsh),0 3px 0 var(--t-tsh),0 -3px 0 var(--t-tsh),
+    2px 2px 0 var(--t-tsh),-2px 2px 0 var(--t-tsh),2px -2px 0 var(--t-tsh),-2px -2px 0 var(--t-tsh),4px 6px 0 var(--tinta)}
+:root[data-modo="juego"]{--muted:color-mix(in srgb,var(--t-ink),var(--t-muted) 40%)}
+[data-modo="juego"] .item .meta,[data-modo="juego"] .reto .small,[data-modo="juego"] .next-card .small{font-size:14px}
+[data-modo="juego"] .badge{font-size:13px}
+[data-modo="juego"] .badge.todo{background:color-mix(in srgb,var(--t-sh),#fff 70%); color:var(--t-ink)}
+[data-modo="juego"] .hero-me .level-row .small{font-size:15px}
