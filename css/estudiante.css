@@ -29,7 +29,7 @@
 .ceb-mini img.ceb-cara.on{opacity:1; z-index:2}
 .ceb-mini img.ceb-cara.sale{opacity:1; z-index:1; transition:none}
 .ceb-mini.rapido img.ceb-cara{transition-duration:.05s}
-.ceb-mini img.cebollo-ropa[data-ranura="cara"],.ceb-mini img.cebollo-ropa[data-ranura="sombrero"]{z-index:3}
+.ceb-mini img.cebollo-ropa[data-ranura="rostro"],.ceb-mini img.cebollo-ropa[data-ranura="cara"],.ceb-mini img.cebollo-ropa[data-ranura="sombrero"]{z-index:3}
 @media (prefers-reduced-motion:reduce){ .ceb-mini img.ceb-cara{transition:none} }
 .check{display:flex; gap:10px; align-items:flex-start; margin:4px 0 16px; font-weight:400; cursor:pointer}
 .check input{width:20px; height:20px; margin:1px 0 0; flex:none; accent-color:var(--primary)}

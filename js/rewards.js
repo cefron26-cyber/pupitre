@@ -24,7 +24,7 @@ export const BACKGROUNDS = [
 
 // Ropa de Cebollo (2026-11-20, reemplaza a los cubos): cada prenda va en una ranura y se viste por capas.
 // Arte en img/cebollo/ropa/<id>.webp (capa del tamaño de la figura) e icono/<id>.webp (herramientas/arte/recortar_ropa.py).
-export const SLOTS = { sombrero: 'Gorras', cara: 'Gafas', torso: 'Camisetas y hoodies', piernas: 'Pantalones', pies: 'Zapatos' };
+export const SLOTS = { sombrero: 'Gorras', cara: 'Gafas', rostro: 'Estilos', torso: 'Camisetas y hoodies', piernas: 'Pantalones', pies: 'Zapatos' };
 export const ROPA = [
   { id: 'gorra_roja',        name: 'Gorra roja',          slot: 'sombrero', rarity: 'common' },
   { id: 'gorro_lana',        name: 'Gorro de lana',       slot: 'sombrero', rarity: 'rare' },
@@ -32,6 +32,10 @@ export const ROPA = [
   { id: 'gafas_redondas',    name: 'Gafas redondas',      slot: 'cara',     rarity: 'common' },
   { id: 'gafas_sol',         name: 'Gafas de sol',        slot: 'cara',     rarity: 'rare' },
   { id: 'gafas_estrella',    name: 'Gafas de estrella',   slot: 'cara',     rarity: 'legendary' },
+  // Estilos (2026-11-21): dibujos del docente sobre la cara; van debajo de las gafas para poder combinarlos.
+  { id: 'bigote',            name: 'Bigote',              slot: 'rostro',   rarity: 'common' },
+  { id: 'cicatrices',        name: 'Cicatrices',          slot: 'rostro',   rarity: 'rare' },
+  { id: 'parche',            name: 'Parche pirata',       slot: 'rostro',   rarity: 'epic' },
   { id: 'camiseta_roja',     name: 'Camiseta roja',       slot: 'torso',    rarity: 'common', free: true },
   { id: 'camiseta_rayas',    name: 'Camiseta de rayas',   slot: 'torso',    rarity: 'common' },
   { id: 'camiseta_estrella', name: 'Camiseta estrella',   slot: 'torso',    rarity: 'rare' },
@@ -50,9 +54,9 @@ export const ROPA = [
 ];
 // Premios viejos (cubos) → prenda que los reemplaza, para quien ya los había ganado.
 export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galaxia': 'f-noche' };
-// Gorros y gafas: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen vidrio
-// semitransparente para que se vean los ojos debajo.
-const ROPA_PNG = new Set(ROPA.filter(p => p.slot === 'sombrero' || p.slot === 'cara').map(p => p.id));
+// Gorros, gafas y estilos: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen
+// vidrio semitransparente para que se vean los ojos debajo.
+const ROPA_PNG = new Set(ROPA.filter(p => ['sombrero', 'cara', 'rostro'].includes(p.slot)).map(p => p.id));
 export const archivoRopa = id => `${id}.${ROPA_PNG.has(id) ? 'png' : 'webp'}`;
 export const urlRopa = id => `img/cebollo/ropa/${archivoRopa(id)}`;
 export const urlIconoRopa = id => `img/cebollo/ropa/icono/${archivoRopa(id)}`;

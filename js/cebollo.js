@@ -13,8 +13,8 @@ import { archivoRopa } from "./rewards.js";
 
 const RUTA = new URL("../img/cebollo/anim/", import.meta.url).href;
 const RUTA_ROPA = new URL("../img/cebollo/ropa/", import.meta.url).href;
-// Orden de las capas: piernas, pies y torso sobre el cuerpo; gafas y sombrero sobre la cabeza.
-const CAPAS_TRONCO = ["piernas", "pies", "torso"], CAPAS_CABEZA = ["cara", "sombrero"];
+// Orden de las capas: piernas, pies y torso sobre el cuerpo; estilos (bigote, parche...), gafas y sombrero sobre la cabeza.
+const CAPAS_TRONCO = ["piernas", "pies", "torso"], CAPAS_CABEZA = ["rostro", "cara", "sombrero"];
 const capas = (ropa = {}, ranuras) => ranuras.filter(r => ropa[r])
   .map(r => `<img class="cebollo-ropa" data-ranura="${r}" src="${RUTA_ROPA}${archivoRopa(ropa[r])}" alt="" draggable="false">`).join("");
 const vestido = ropa => Object.values(ropa || {}).some(Boolean);
