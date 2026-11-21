@@ -159,3 +159,15 @@ const FASE_TIPO = { matching: 'Vocabulario', memory: 'Vocabulario', wordsearch: 
   quiz: 'Gramática', fill: 'Gramática', reorder: 'Gramática', reading: 'Lectura y escucha', listening: 'Lectura y escucha', dictation: 'Lectura y escucha' };
 export const faseDe = (unit, act) => unit?.fases?.[act.id] || FASE_TIPO[act.type] || 'Gramática';
 
+
+// Rangos (2026-11-21): agrupan los niveles en escalones con nombre, como las ligas de un juego. Solo motivación.
+export const RANGOS = [
+  { id: 'bronce', name: 'Bronce', desde: 1, icon: '🥉', color: '#c9803f' },
+  { id: 'plata', name: 'Plata', desde: 3, icon: '🥈', color: '#8f9bb3' },
+  { id: 'oro', name: 'Oro', desde: 5, icon: '🥇', color: '#e5a800' },
+  { id: 'platino', name: 'Platino', desde: 7, icon: '💠', color: '#2bb3a8' },
+  { id: 'diamante', name: 'Diamante', desde: 10, icon: '💎', color: '#3b82f6' },
+  { id: 'leyenda', name: 'Leyenda', desde: 14, icon: '👑', color: '#a855f7' },
+];
+export const rangoDe = nivel => [...RANGOS].reverse().find(r => nivel >= r.desde);
+export const siguienteRango = nivel => RANGOS.find(r => r.desde > nivel) || null;

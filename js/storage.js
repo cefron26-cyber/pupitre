@@ -401,6 +401,12 @@ export const attempts = {
 export const xp = {
   async total(userId) { return all('xpLedger').filter(x => x.userId === userId).reduce((s, x) => s + x.amount, 0); },
   async add(userId, amount, source) { return insert('xpLedger', { userId, amount, source, at: now() }); },
+  // Tabla clasificatoria: XP de cada estudiante (todo o desde una fecha ISO).
+  async totals(userIds, since = null) {
+    const m = Object.fromEntries(userIds.map(id => [id, 0]));
+    for (const x of all('xpLedger')) if (x.userId in m && (!since || x.at >= since)) m[x.userId] += x.amount;
+    return m;
+  },
 };
 
 // Fecha local AAAA-MM-DD (el cofre es diario según el reloj del estudiante).

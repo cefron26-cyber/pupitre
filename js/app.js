@@ -5,6 +5,7 @@ import { headerHTML, toast, confirmDialog, icons, FEATURES, $ } from './ui.js';
 import { coursesView } from './views/courses.js';
 import { retosList, retoPlay } from './views/retos.js';
 import { cuarto } from './views/cuarto.js';
+import { ranking } from './views/ranking.js';
 import { renderLogin } from './views/login.js';
 import * as teacher from './views/teacher.js';
 import * as student from './views/student.js';
@@ -32,12 +33,13 @@ const LIBRARY_TABS = [
   { path: '/t/units', label: 'Unidades' },
   { path: '/t/juegos', label: 'Juegos' },
 ];
+// Gamificación (2026-11-21): Misiones (antes "Mis tareas") y Clasificación. La colección se abre desde el cofre
+// y el cuarto de Cebollo desde el botón "Visitar a Cebollo" del encabezado (ui.js), no desde las pestañas.
 const STUDENT_NAV = [
-  { key: 'tasks', label: 'Mis tareas', href: '#/s/tasks' },
+  { key: 'tasks', label: 'Misiones', href: '#/s/tasks' },
   { key: 'retos', label: 'Retos', href: '#/s/retos' },
   { key: 'juegos', label: 'Juegos', href: '#/s/juegos' },
-  { key: 'cuarto', label: 'Mi cuarto', href: '#/s/cuarto' },
-  { key: 'collection', label: 'Mi colección', href: '#/s/collection' },
+  { key: 'ranking', label: 'Clasificación', href: '#/s/ranking' },
 ];
 
 // Rutas: patrón → [rol, sección activa, vista]
@@ -63,7 +65,8 @@ const routes = [
   ['/s/play/:id', 'student', 'tasks', student.play],
   ['/s/play/:id/:act', 'student', 'tasks', student.play],
   ['/s/result/:id', 'student', 'tasks', student.result],
-  ['/s/collection', 'student', 'collection', student.collection],
+  ['/s/collection', 'student', 'tasks', student.collection],
+  ['/s/ranking', 'student', 'ranking', ranking],
   ['/s/cuarto', 'student', 'cuarto', cuarto],
   ['/s/practice', 'student', 'tasks', student.practice],
   ['/s/retos', 'student', 'retos', retosList],

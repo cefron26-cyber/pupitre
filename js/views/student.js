@@ -1,4 +1,4 @@
-// Vistas del estudiante: Mis tareas, ruta de la unidad, hacer actividad, resultado.
+// Vistas del estudiante: Misiones, ruta de la unidad, hacer actividad, resultado.
 import { assignments, activities, units, attempts, xp, events, users, chests, userRewards } from '../storage.js';
 import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId } from '../rewards.js';
 import { cebolloMini } from '../cebollo.js';
@@ -7,7 +7,7 @@ import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast } fr
 import { templates } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
 import { mountPlayer } from '../player.js';
-import { progressOf, activityIdsOf, xpFor, STATUS, UNIT_BONUS_XP, statusLabel, UNIT_MAX_TRIES, points, starsOf, contentHash, reviewQuestions, REVIEW_XP, RETOS, faseDe } from '../logic.js';
+import { progressOf, activityIdsOf, xpFor, STATUS, UNIT_BONUS_XP, statusLabel, UNIT_MAX_TRIES, points, starsOf, contentHash, reviewQuestions, REVIEW_XP, RETOS, faseDe, rangoDe, siguienteRango } from '../logic.js';
 
 // Estrellas 0-3 según el puntaje 0-100 (solo motivación).
 const starsHTML = p => { const n = starsOf(p); return `<span class="stars" aria-label="${n} de 3 estrellas">${[0, 1, 2].map(i => `<span class="${i < n ? '' : 'off'}">★</span>`).join('')}</span>`; };
@@ -75,16 +75,18 @@ async function drawHero(box, user) {
   const prefs = prefsOf(user);
   const first = esc(user.name.split(' ')[0]);
   const reward = opened && byId(opened.rewardId);
+  const rango = rangoDe(level), sig = siguienteRango(level);
   const chestText = {
-    locked: ['Cofre del día', 'Termina una actividad o un repaso hoy para ganarlo.'],
+    locked: ['Cofre del día', 'Completa una misión o un repaso hoy para ganarlo.'],
     ready: ['¡Tu cofre está listo!', 'Ábrelo para ganar ropa para Cebollo o un fondo.'],
     opened: ['Cofre abierto', reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. Vuelve mañana.` : 'Vuelve mañana.'],
   }[state];
   box.innerHTML = `<div class="hero-me">
-      <a class="hero-avatar" href="#/s/cuarto" aria-label="Ir al cuarto de Cebollo">${cebolloMini(prefs.ropa, 72)}</a>
+      <a class="hero-avatar" href="#/s/cuarto" aria-label="Visitar a Cebollo">${cebolloMini(prefs.ropa, 72)}</a>
       <div class="hero-txt">
         <h1 class="hero-hi">¡Hola, ${first}!</h1>
         ${streakHTML(racha)}
+        <a class="rango-chip" href="#/s/ranking" style="--rc:${rango.color}" title="${sig ? `Siguiente rango: ${sig.name} (nivel ${sig.desde})` : 'Rango máximo'}"><span aria-hidden="true">${rango.icon}</span>Rango <b>${rango.name}</b>${sig ? `<span class="rango-next">→ ${sig.name} en nivel ${sig.desde}</span>` : ''}</a>
         <div class="level-row"><span class="level-badge">Nivel ${level}</span>
           <div class="level-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${need}" aria-valuenow="${inLevel}" aria-label="Experiencia del nivel"><i style="width:${Math.round(inLevel / need * 100)}%"></i></div>
           <span class="small">${inLevel}/${need} XP</span></div>
@@ -160,20 +162,22 @@ export async function tasks(root, { user }) {
   const week = Date.now() + 7 * 864e5;
   const grupo = r => r.p.status === 'late' ? 'late' : r.a.dueAt && new Date(r.a.dueAt).getTime() <= week ? 'week' : 'later';
   const rest = open.slice(1);
-  const GRUPOS = [['late', 'Atrasadas'], ['week', 'Para esta semana'], ['later', 'Más adelante']];
+  const GRUPOS = [['late', 'Misiones atrasadas'], ['week', 'Misiones de esta semana'], ['later', 'Más adelante']];
+  // Recompensa de cada misión: XP de la primera vez (máximo) + el bono de unidad.
+  const premio = (acts, unit) => `<span class="mision-xp" title="XP máxima que puedes ganar">+${acts.length * 30 + (unit ? UNIT_BONUS_XP : 0)} XP</span>`;
   root.innerHTML = `<section class="hero" id="hero"></section>
-    <div class="page-head"><div><h1>Mis tareas</h1>
-    <p class="muted">${open.length ? `${open.length} por hacer` : rows.length ? '¡Estás al día!' : ''}</p></div></div>
+    <div class="page-head"><div><h1>Misiones</h1>
+    <p class="muted">${open.length ? `${open.length} ${open.length === 1 ? 'misión activa' : 'misiones activas'}` : rows.length ? '¡Completaste todas tus misiones!' : ''}</p></div></div>
     <div id="next"></div>
     ${review.length ? `<a class="practice-card" href="#/s/practice"><div class="type-icon">${icons.quiz}</div>
-      <div class="grow"><b>Repasa lo que fallaste</b><div class="small muted">No cuenta como nota · +${REVIEW_XP} XP por acierto</div></div>
+      <div class="grow"><b>Misión extra: repasa lo que fallaste</b><div class="small muted">No cuenta como nota · +${REVIEW_XP} XP por acierto</div></div>
       <span class="practice-n" aria-label="${review.length} preguntas">${review.length}</span></a>` : ''}
     ${GRUPOS.map(([k, t]) => rest.some(r => grupo(r) === k) ? `<h2 class="task-group ${k}">${t} <span>${rest.filter(r => grupo(r) === k).length}</span></h2><div class="list" id="g-${k}"></div>` : '').join('')}
-    ${closed.length ? `<details class="done-group"><summary>Terminadas · ${closed.length}</summary><div class="list" id="done"></div></details>` : ''}`;
+    ${closed.length ? `<details class="done-group"><summary>Misiones completadas · ${closed.length}</summary><div class="list" id="done"></div></details>` : ''}`;
   await drawHero($('#hero', root), user);
-  if (!rows.length) { $('#next', root).innerHTML = `<div class="card empty">Aún no tienes actividades asignadas.${review.length ? ' Mientras tanto, puedes repasar.' : ''} <a href="#/s/collection">Mira tu colección</a></div>`; return; }
+  if (!rows.length) { $('#next', root).innerHTML = `<div class="card empty">Aún no tienes misiones.${review.length ? ' Mientras tanto, puedes repasar.' : ''} <a href="#/s/collection">Mira tu colección</a></div>`; return; }
 
-  // Tarjeta "Siguiente": la tarea más urgente, a un toque.
+  // Tarjeta "Próxima misión": la más urgente, a un toque.
   if (open.length) {
     const { a, unit, acts, p } = open[0];
     const k = unit ? p.items.findIndex(i => !i.best) : 0;
@@ -182,7 +186,7 @@ export async function tasks(root, { user }) {
     const busy = unit ? p.items[k]?.status === 'doing' : p.status === 'doing';
     $('#next', root).append(el(`<div class="next-card">
       <div class="next-masc" aria-hidden="true">${cebolloMini(prefsOf(user).ropa, 64)}</div>
-      <div class="grow"><p class="kicker">Siguiente</p>
+      <div class="grow"><p class="kicker">Próxima misión ${premio(acts, unit)}</p>
         <h2>${esc(unit ? unit.title : act.title)}</h2>
         <div class="small">${unit ? `Actividad ${k + 1} de ${acts.length}: ${esc(act.title)} · ` : `${templates[act.type].label} · `}<span class="${due.cls}">${due.text}</span></div>
         ${unit ? `<div class="mini-progress" aria-label="${p.done} de ${p.total} actividades"><i style="width:${p.total ? p.done / p.total * 100 : 0}%"></i></div>` : ''}</div>
@@ -191,7 +195,7 @@ export async function tasks(root, { user }) {
 
   const doneBox = $('#done', root);
   for (const row of rows) {
-    // La tarea de "Siguiente" no se repite en la lista.
+    // La misión de "Próxima misión" no se repite en la lista.
     if (row === open[0]) continue;
     const { a, unit, acts, p } = row;
     const s = statusLabel(p);
@@ -203,7 +207,7 @@ export async function tasks(root, { user }) {
         <div class="type-icon unit">${icons.unit}</div>
         <div class="info">
           <p class="title">${esc(unit.title)}</p>
-          <div class="meta">Unidad · ${acts.length} actividades · ${due}</div>
+          <div class="meta">Misión de unidad · ${acts.length} actividades · ${due} ${p.status === 'done' ? '' : premio(acts, unit)}</div>
           <div class="mini-progress" aria-label="${p.done} de ${p.total} actividades"><i style="width:${p.total ? p.done / p.total * 100 : 0}%"></i></div>
         </div>
         <span class="badge ${s.cls}">${p.status === 'done' ? `${s.label} · ${p.unitPoints}/100` : p.status === 'late' ? `${s.label} · ${p.done}/${p.total}` : `${p.done}/${p.total}`}</span>
@@ -218,7 +222,7 @@ export async function tasks(root, { user }) {
       <div class="type-icon art">${templateArt(tpl.type)}</div>
       <div class="info">
         <p class="title">${esc(act.title)}</p>
-        <div class="meta">${tpl.label} · ${tpl.summary(act.content)} · ${due}</div>
+        <div class="meta">${tpl.label} · ${tpl.summary(act.content)} · ${due} ${p.status === 'done' ? '' : premio(acts, null)}</div>
       </div>
       <span class="badge ${s.cls}">${s.label}${it.best ? ` · ${grade(it.best.score, it.best.maxScore)}` : ''}</span>
       <a class="btn ${p.status === 'done' ? 'ghost' : ''}" href="${href}">${btn}</a>
@@ -230,14 +234,14 @@ export async function tasks(root, { user }) {
 export async function unit(root, { user, params }) {
   const a = await assignments.get(params.id);
   const r = a && a.unitId && user.courseIds.includes(a.courseId) ? await load(a, user.id) : null;
-  if (!r) { root.innerHTML = '<div class="card empty">Esta unidad ya no está disponible. <a href="#/s/tasks">Volver a mis tareas</a></div>'; return; }
+  if (!r) { root.innerHTML = '<div class="card empty">Esta unidad ya no está disponible. <a href="#/s/tasks">Volver a misiones</a></div>'; return; }
   const { unit: u, acts, p } = r;
   const nextIdx = p.items.findIndex(i => !i.best);
 
   const reglas = `Cada actividad vale de 0 a 100 y tienes ${UNIT_MAX_TRIES} intentos (cuenta el mejor). La nota de la unidad es el promedio. Al completarla ganas +${UNIT_BONUS_XP} XP.`;
   const cur = nextIdx >= 0 ? nextIdx : -1;
   root.innerHTML = `<div class="unit-page">
-    <a href="#/s/tasks" class="back-link">← Mis tareas</a>
+    <a href="#/s/tasks" class="back-link">← Misiones</a>
     <header class="unit-banner">
       <div class="grow"><p class="kicker">Unidad${a.dueAt ? ` · <span class="${fmtDue(a.dueAt).cls}">${fmtDue(a.dueAt).text}</span>` : ''}</p>
         <h1>${esc(u.title)}</h1>
@@ -272,7 +276,7 @@ export async function play(root, { user, params, query }) {
   const a = await assignments.get(params.id);
   const r = a && user.courseIds.includes(a.courseId) ? await load(a, user.id) : null;
   if (!r) {
-    root.innerHTML = '<div class="card empty">Esta actividad ya no está disponible. <a href="#/s/tasks">Volver a mis tareas</a></div>';
+    root.innerHTML = '<div class="card empty">Esta actividad ya no está disponible. <a href="#/s/tasks">Volver a misiones</a></div>';
     return;
   }
   if (r.unit && !params.act) { location.hash = `#/s/unit/${a.id}`; return; }
@@ -304,7 +308,7 @@ export async function play(root, { user, params, query }) {
   const pos = r.unit ? r.acts.indexOf(act) + 1 : 0;
   // Pantalla completa: solo la actividad. Los avisos importantes salen una vez arriba y se pueden cerrar.
   const avisos = [
-    a.dueAt && new Date(a.dueAt) < new Date() && !item.best ? `Esta tarea está atrasada (era para el ${fmtDate(a.dueAt)}). Quedará como entregada tarde.` : '',
+    a.dueAt && new Date(a.dueAt) < new Date() && !item.best ? `Esta misión está atrasada (era para el ${fmtDate(a.dueAt)}). Quedará como entregada tarde.` : '',
     changed ? 'Tu docente cambió esta actividad, así que empieza de nuevo.' : '',
     a.timer?.mode === 'down' && !resuming ? `Tienes ${a.timer.minutes} min. El reloj sigue aunque salgas.` : '',
   ].filter(Boolean);
@@ -401,7 +405,7 @@ export async function result(root, { user, params }) {
       <div class="rs-racha"><b>🔥 ${racha.dias}</b><span>${racha.dias === 1 ? 'día' : 'días'} de racha</span></div>
       <div><b>${fmtDuration(t.durationSec)}</b><span>Tiempo</span></div>
     </div>
-    ${levelUp ? `<div class="level-up" role="status">¡Subiste al nivel ${levelUp}!${RETOS.some(x => x.level === levelUp) ? ` Se abrió el reto <a href="#/s/retos">${esc(RETOS.find(x => x.level === levelUp).name)}</a>.` : ''}</div>` : ''}
+    ${levelUp ? `<div class="level-up" role="status">¡Subiste al nivel ${levelUp}!${rangoDe(levelUp).desde === levelUp ? ` <b>¡Nuevo rango: ${rangoDe(levelUp).icon} ${rangoDe(levelUp).name}!</b>` : ''}${RETOS.some(x => x.level === levelUp) ? ` Se abrió el reto <a href="#/s/retos">${esc(RETOS.find(x => x.level === levelUp).name)}</a>.` : ''}</div>` : ''}
     ${unitDone ? `<div class="feedback ok" style="justify-content:center;text-align:center">${icons.unit}<span>¡Completaste la unidad! Nota <b>${(r.p.unitPoints / 10).toFixed(1)}</b> · ${r.p.unitPoints}/100 · +${UNIT_BONUS_XP} XP de bono</span></div>` : ''}
     ${hide ? '<p class="small muted">Tu docente revisará tus respuestas.</p>' : review}
     <a class="btn result-go" href="${continuar.href}">${continuar.label}${nextAct ? `: ${esc(nextAct.title)}` : ''}</a>
@@ -433,12 +437,12 @@ export async function result(root, { user, params }) {
 // Repaso: preguntas que falló antes y no ha vuelto a acertar. Sin nota; da XP y cuenta para el cofre del día.
 export async function practice(root, { user }) {
   const qs = reviewQuestions(await attempts.doneByUser(user.id));
-  // Sin nada que repasar no se abre la pantalla completa: se vuelve a Mis tareas con un aviso.
+  // Sin nada que repasar no se abre la pantalla completa: se vuelve a Misiones con un aviso.
   if (!qs.length) { toast('¡Nada que repasar! Cuando falles una pregunta, aparecerá aquí.'); location.hash = '#/s/tasks'; return; }
   if (!qs.length) {
-    root.innerHTML = `<div class="player"><a href="#/s/tasks" class="small">← Mis tareas</a><div class="card empty" style="margin-top:12px">
+    root.innerHTML = `<div class="player"><a href="#/s/tasks" class="small">← Misiones</a><div class="card empty" style="margin-top:12px">
       <h1 style="font-size:22px">¡Nada que repasar!</h1><p>Cuando falles una pregunta en una actividad, aparecerá aquí para que la practiques.</p>
-      <a class="btn" href="#/s/tasks">Volver a mis tareas</a></div></div>`;
+      <a class="btn" href="#/s/tasks">Volver a misiones</a></div></div>`;
     return;
   }
   root.innerHTML = `<h1 class="sr-only">Repaso</h1>
@@ -465,13 +469,13 @@ export async function practice(root, { user }) {
           <h2>${res.score === res.maxScore ? '¡Todo bien esta vez!' : '¡Buen repaso!'}</h2>
           <p>${res.score}/${res.maxScore} aciertos${left ? ` · te quedan ${left} por repasar` : ' · ya no te queda nada por repasar'}</p>
           ${gained ? `<p><span class="xp-gain">${icons.star} +${gained} XP</span></p>` : ''}
-          ${up ? `<div class="level-up" role="status">¡Subiste al nivel ${up}!${RETOS.some(x => x.level === up) ? ` Se abrió el reto <a href="#/s/retos">${esc(RETOS.find(x => x.level === up).name)}</a>.` : ''}</div>` : ''}
+          ${up ? `<div class="level-up" role="status">¡Subiste al nivel ${up}!${rangoDe(up).desde === up ? ` <b>¡Nuevo rango: ${rangoDe(up).icon} ${rangoDe(up).name}!</b>` : ''}${RETOS.some(x => x.level === up) ? ` Se abrió el reto <a href="#/s/retos">${esc(RETOS.find(x => x.level === up).name)}</a>.` : ''}</div>` : ''}
           ${chestReady ? `<div class="chest-card ready result-chest"><div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt=""></div>
             <div class="chest-txt"><b>¡Ganaste el cofre de hoy!</b><span class="small">Ábrelo para ver tu premio.</span></div>
             <button class="btn chest-open" id="open-chest">Abrir cofre</button></div>` : ''}
           <div class="row" style="justify-content:center;margin-top:20px">
             ${left ? '<button class="btn ghost" type="button" id="again">Repasar otra vez</button>' : ''}
-            <a class="btn" href="#/s/tasks">Volver a mis tareas</a></div></div></div>`);
+            <a class="btn" href="#/s/tasks">Volver a misiones</a></div></div></div>`);
         $('#stage', root).append(box);
         const oc = $('#open-chest', box);
         if (oc) oc.onclick = () => { oc.disabled = true; openDailyChest(user); };

@@ -176,6 +176,8 @@ export function headerHTML({ school = {}, user, nav = [], active = '', xp = null
           </div></details>` : `
         <div class="user-name"><b>${esc(user.name)}</b>Estudiante</div>
         <button class="btn ghost sm reset-avance" id="reset-progress" type="button" title="Borra tus resultados para hacer las actividades otra vez" aria-label="Reiniciar mi avance"><span aria-hidden="true">↺</span><span class="ra-txt">Reiniciar</span></button>
+        <a class="visitar-cebollo ${active === 'cuarto' ? 'active' : ''}" href="#/s/cuarto" title="Visitar a Cebollo" ${active === 'cuarto' ? 'aria-current="page"' : ''}>
+          <span class="vc-ceb" aria-hidden="true"><span class="vc-halo"></span><img src="img/cebollo/emotes/sonrisa.webp" alt=""></span><span class="vc-txt">Visitar a Cebollo</span></a>
         <button class="btn ghost sm" id="logout" aria-label="Salir">${icons.logout}<span>Salir</span></button>`}
       </div>
     </div>
