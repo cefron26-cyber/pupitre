@@ -32,10 +32,10 @@ export const ROPA = [
   { id: 'gafas_redondas',    name: 'Gafas redondas',      slot: 'cara',     rarity: 'common' },
   { id: 'gafas_sol',         name: 'Gafas de sol',        slot: 'cara',     rarity: 'rare' },
   { id: 'gafas_estrella',    name: 'Gafas de estrella',   slot: 'cara',     rarity: 'legendary' },
+  { id: 'parche',            name: 'Parche pirata',       slot: 'cara',     rarity: 'epic' },
   // Estilos (2026-11-21): dibujos del docente sobre la cara; van debajo de las gafas para poder combinarlos.
   { id: 'bigote',            name: 'Bigote',              slot: 'rostro',   rarity: 'common' },
   { id: 'cicatrices',        name: 'Cicatrices',          slot: 'rostro',   rarity: 'rare' },
-  { id: 'parche',            name: 'Parche pirata',       slot: 'rostro',   rarity: 'epic' },
   { id: 'camiseta_roja',     name: 'Camiseta roja',       slot: 'torso',    rarity: 'common', free: true },
   { id: 'camiseta_rayas',    name: 'Camiseta de rayas',   slot: 'torso',    rarity: 'common' },
   { id: 'camiseta_estrella', name: 'Camiseta estrella',   slot: 'torso',    rarity: 'rare' },
