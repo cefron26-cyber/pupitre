@@ -82,12 +82,18 @@ export const byId = id => ALL.find(r => r.id === (ALIAS[id] || id)) || null;
 export const FREE = ALL.filter(r => r.free).map(r => r.id);
 export const DEFAULT_PREFS = { modo: 'juego', fondo: 'f-morado', ropa: { torso: 'camiseta_roja' },
   cuarto: { ventana: 'ventana_clasica', alfombra: 'alfombra_redonda' } };
-// Premios que tiene (con los alias de los premios viejos ya traducidos).
-export const ownedSet = rewardIds => new Set([...rewardIds.map(id => ALIAS[id] || id), ...FREE]);
+// Demo: todo abierto (toda la ropa, los fondos, la decoración del cuarto y los retos). Poner en false para volver
+// a ganarlo: ropa y fondos del cofre y los retos, decoración con monedas, retos por nivel.
+export const DESBLOQUEADO = true;
+
+// Premios que de verdad ganó (con los alias de los premios viejos ya traducidos). El sorteo del cofre usa esta.
+const ganados = rewardIds => new Set([...rewardIds.map(id => ALIAS[id] || id), ...FREE]);
+// Premios que puede usar: los ganados, o todos en la demo.
+export const ownedSet = rewardIds => DESBLOQUEADO ? new Set(ALL.map(r => r.id)) : ganados(rewardIds);
 
 // Sorteo: primero la rareza (por peso), luego un premio que aún no tenga. Si ya tiene todos los de esa rareza: repetido → XP.
 export function rollReward(ownedIds, rnd = Math.random) {
-  const owned = ownedSet(ownedIds);
+  const owned = ganados(ownedIds);
   const total = Object.values(RARITY).reduce((s, r) => s + r.weight, 0);
   let x = rnd() * total, rarity = 'common';
   for (const [k, r] of Object.entries(RARITY)) { if ((x -= r.weight) < 0) { rarity = k; break; } }
