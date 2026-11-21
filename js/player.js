@@ -5,7 +5,7 @@
 import { el, esc, fmtDuration, evalMode, confirmDialog } from './ui.js';
 import { templates } from './templates/index.js';
 import { themeById, themeSound, DEFAULT_THEME } from './temas.js';
-import { mostrarEmote } from './cebollo.js';
+import { mostrarEmote, urlEmote } from './cebollo.js';
 
 const IDLE_MS = 60_000; // sin interacción por más de 1 min → no cuenta tiempo
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -54,9 +54,8 @@ const CONSIGNA = {
 // tramo: { index, total } → la barra muestra el avance de toda la unidad (actividad index de total).
 // portada: false la quita (dentro de una unidad se pasa directo a la actividad).
 // colores: true deja las fichas de colores del estilo (Presentar en clase); si no, fichas neutras y verde/rojo solo al corregir.
-// mascota: HTML del avatar del estudiante (reacciona en la franja de respuesta).
 export function mountPlayer(root, { activity, saved = null, durationSec = 0, onProgress = () => {}, onFinish = () => {}, clock = { mode: 'up' }, hideAnswers = false, theme = null, ceremonia = true,
-  salir = null, tramo = null, portada = true, colores = false, mascota = '', encabezado = null }) {
+  salir = null, tramo = null, portada = true, colores = false, encabezado = null }) {
   evalMode.hide = !!hideAnswers;
   const hide = !!hideAnswers;
   // Modo serio (elegido por el estudiante o forzado en una evaluación): sin decoración ni sonidos.
@@ -183,7 +182,8 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
       else if (OK.some(c => x.classList.contains(c))) queue('ok', x);
     }
   };
-  // ---------- Franja de respuesta (pantalla completa): mascota que reacciona y racha de aciertos ----------
+  // ---------- Franja de respuesta (pantalla completa): Cebollo reacciona y racha de aciertos ----------
+  // Acierto: pulgar (copa desde 3 seguidas). Error: triste.
   let racha = 0;
   const franja = node => {
     if (!inmersivo || hide || node.nodeType !== 1) return;
@@ -193,7 +193,8 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     const ok = fb.classList.contains('ok');
     racha = ok ? racha + 1 : 0;
     fb.classList.add('franja');
-    if (mascota) fb.insertAdjacentHTML('afterbegin', `<span class="fb-masc ${ok ? 'feliz' : 'triste'}" aria-hidden="true">${mascota}</span>`);
+    const emote = ok ? (racha >= 3 ? 'copa' : 'pulgar') : 'triste';
+    fb.insertAdjacentHTML('afterbegin', `<span class="fb-masc ${ok ? 'feliz' : 'triste'}" aria-hidden="true"><img src="${urlEmote(emote)}" alt=""></span>`);
     if (ok && racha >= 2) fb.querySelector(':scope > span:not(.fb-masc)')?.insertAdjacentHTML('beforeend', ` <span class="fb-racha">🔥 ${racha} seguidas</span>`);
   };
   const franjas = inmersivo ? new MutationObserver(list => list.forEach(m => m.addedNodes.forEach(franja))) : null;

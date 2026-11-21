@@ -319,7 +319,6 @@ export async function play(root, { user, params, query }) {
     salir: { href: back },
     tramo: r.unit ? { index: r.acts.indexOf(act), total: r.acts.length } : null,
     portada: !r.unit,
-    mascota: avatarSVG(user.prefs?.avatar, 56),
     // En modo serio/evaluación se ve el título y el intento (estilo examen); en modo juego, solo la actividad.
     encabezado: { titulo: act.title, detalle: [r.unit ? `${r.unit.title} · ${pos} de ${r.acts.length}` : templates[act.type].label, a.showAnswers === false ? 'Evaluación' : '', maxT !== Infinity ? `Intento ${item.tries + 1} de ${maxT}` : ''].filter(Boolean).join(' · ') },
     // El reloj lo decide el docente al asignar; el estudiante no lo puede quitar.
@@ -445,7 +444,7 @@ export async function practice(root, { user }) {
   let navT = null;
   const player = mountPlayer($('#stage', root), {
     activity: { type: 'quiz', title: 'Repaso', content: { questions: qs } },
-    clock: { mode: 'none' }, salir: { href: '#/s/tasks' }, mascota: avatarSVG(user.prefs?.avatar, 56),
+    clock: { mode: 'none' }, salir: { href: '#/s/tasks' },
     async onFinish(res) {
       // Se guarda como intento de repaso (sin asignación): así se sabe qué ya domina y abre el cofre del día.
       const t = await attempts.start(null, user.id, null, null, { practice: true });

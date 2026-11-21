@@ -6,7 +6,7 @@ import { esc, el, $, icons, fmtDuration } from '../ui.js';
 import { templates } from '../templates/index.js';
 import { mountPlayer } from '../player.js';
 import { RETOS, RETO_XP, retoPassed, itemCount, quizFromAnswers, activityIdsOf, progressOf } from '../logic.js';
-import { byId, rewardPreview, avatarSVG } from '../rewards.js';
+import { byId, rewardPreview } from '../rewards.js';
 import { levelOf, levelCost, chestState, openDailyChest } from './student.js';
 
 // XP que falta para llegar a un nivel.
@@ -182,7 +182,7 @@ export async function retoPlay(root, { user, params, query }) {
 
   root.querySelector('.juego-aviso button')?.addEventListener('click', e => e.currentTarget.parentElement.remove());
   player = mountPlayer($('#stage', root), {
-    activity, clock, salir: { href: '#/s/retos' }, mascota: avatarSVG(user.prefs?.avatar, 56),
+    activity, clock, salir: { href: '#/s/retos' },
     // Sin errores: al primer fallo se ve la respuesta correcta y el reto termina con la racha lograda.
     onProgress: st => {
       if (id !== 'perfecto' || ended || !Array.isArray(st?.answers)) return;

@@ -71,6 +71,7 @@ export function crearCebollo(contenedor, { tocable = true } = {}) {
 //   mostrarEmote(contenedor, "pulgar" | "triste" | "copa" | "enojado", { duracion: 2400 })   // 0 = se queda
 export const EMOTES = { pulgar: "¡Bien hecho!", triste: "Ay, casi…", copa: "¡Lo lograste!", enojado: "¡Grr!" };
 const RUTA_EMOTES = new URL("../img/cebollo/emotes/", import.meta.url).href;
+export const urlEmote = nombre => `${RUTA_EMOTES}${nombre}.webp`;
 
 export function mostrarEmote(contenedor, nombre, { duracion = 2400 } = {}) {
   if (!EMOTES[nombre]) return null;
@@ -79,7 +80,7 @@ export function mostrarEmote(contenedor, nombre, { duracion = 2400 } = {}) {
   el.dataset.emote = nombre;
   el.setAttribute("role", "img");
   el.setAttribute("aria-label", `Cebollo: ${EMOTES[nombre]}`);
-  el.innerHTML = `<span class="emote-marco"></span><img src="${RUTA_EMOTES}${nombre}.webp" alt="" draggable="false">`;
+  el.innerHTML = `<span class="emote-marco"></span><img src="${urlEmote(nombre)}" alt="" draggable="false">`;
   contenedor.appendChild(el);
   if (duracion > 0) {
     setTimeout(() => {
