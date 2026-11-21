@@ -269,6 +269,9 @@ a.practice-card:hover{box-shadow:0 0 0 2px var(--accent)}
 .info-tip[open] > p{position:absolute; right:0; top:34px; z-index:5; width:min(300px, 80vw); margin:0; padding:12px 14px; border-radius:12px; background:#fff; color:var(--ink); box-shadow:var(--shadow); font-size:14px; line-height:1.4}
 .unit-done,.unit-late{margin-top:var(--sp-3); padding:10px 14px; border-radius:12px; font-weight:600}
 .unit-done{background:var(--success-soft); color:var(--success)}
+.unit-fin{margin-top:var(--sp-3)}
+.unit-fin h2{margin:0 0 8px}
+.unit-fin .score-ring{margin:8px auto}
 .unit-late{background:var(--danger-soft); color:var(--danger)}
 .unit-go{display:flex; width:100%; margin:var(--sp-4) 0 var(--sp-2); min-height:56px; font-size:18px}
 .path2{list-style:none; margin:var(--sp-5) 0 0; padding:0; display:flex; flex-direction:column; align-items:center; gap:18px}

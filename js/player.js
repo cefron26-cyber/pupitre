@@ -17,6 +17,7 @@ const ICON = {
   on: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
   off: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   cerrar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>',
+  unidad: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="6" r="1.8" fill="currentColor"/><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="5" cy="18" r="1.8" fill="currentColor"/><path d="M10 6h10M10 12h10M10 18h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
   full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
@@ -52,11 +53,13 @@ const CONSIGNA = {
 // ceremonia: portada y cierre del escenario (Presentar lo apaga: va pregunta por pregunta).
 // salir: { href } → reproductor a pantalla completa (estudiante): ✕ arriba, una sola barra de avance, franja de respuesta.
 // tramo: { index, total } → la barra muestra el avance de toda la unidad (actividad index de total).
+// unidad: { href } → botón "Ver unidad" junto a la ✕: muestra el camino de la unidad (el avance queda guardado).
 // portada: false la quita (dentro de una unidad se pasa directo a la actividad).
 // colores: true deja las fichas de colores del estilo (Presentar en clase); si no, fichas neutras y verde/rojo solo al corregir.
 export function mountPlayer(root, { activity, saved = null, durationSec = 0, onProgress = () => {}, onFinish = () => {}, clock = { mode: 'up' }, hideAnswers = false, theme = null, ceremonia = true,
-  salir = null, tramo = null, portada = true, colores = false, encabezado = null }) {
+  salir = null, unidad = null, tramo = null, portada = true, colores = false, encabezado = null }) {
   evalMode.hide = !!hideAnswers;
+  evalMode.fin = tramo ? 'Continuar' : 'Ver resultado';
   const hide = !!hideAnswers;
   // Modo serio (elegido por el estudiante o forzado en una evaluación): sin decoración ni sonidos.
   const serio = document.documentElement.dataset.modo === 'serio';
@@ -83,6 +86,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     ${decorado ? '<div class="esc-fondo" aria-hidden="true"></div>' : ''}
     <div class="player-top">
       ${inmersivo ? `<button type="button" class="esc-btn esc-salir" data-b="salir" aria-label="Salir (tu avance queda guardado)">${ICON.cerrar}</button>` : ''}
+      ${inmersivo && unidad ? `<button type="button" class="esc-btn esc-unidad" data-b="unidad" title="Ver las actividades de la unidad (tu avance queda guardado)">${ICON.unidad}<span>Ver unidad</span></button>` : ''}
       ${inmersivo && !decorado && encabezado ? `<div class="pt-head"><b>${esc(encabezado.titulo)}</b>${encabezado.detalle ? `<span>${esc(encabezado.detalle)}</span>` : ''}</div>` : ''}
       <div class="progress" role="progressbar" aria-label="Progreso" aria-valuemin="0" aria-valuemax="100"><i style="width:0%"></i></div>
       <span class="timer ${clock.mode === 'none' ? 'off' : ''} ${clock.mode === 'down' ? 'down' : ''}" aria-label="${clock.mode === 'down' ? 'Tiempo restante' : 'Tiempo'}" ${clock.mode === 'none' ? 'hidden' : ''}></span>
@@ -124,6 +128,11 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   });
   shell.querySelector('[data-b="salir"]')?.addEventListener('click', async () => {
     if (finished || await confirmDialog('¿Salir de la actividad? Tu avance queda guardado y puedes seguir después.', 'Salir')) location.hash = salir.href;
+  });
+  // Ver la unidad no pide confirmar: se guarda el avance (y el tiempo) y se vuelve a la actividad desde el camino.
+  shell.querySelector('[data-b="unidad"]')?.addEventListener('click', () => {
+    if (!finished && lastState) safe(() => onProgress(lastState, seconds));
+    location.hash = unidad.href;
   });
   shell.querySelector('[data-b="full"]')?.addEventListener('click', () => {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});

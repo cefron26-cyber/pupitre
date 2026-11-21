@@ -12,7 +12,8 @@ export const $ = (sel, root = document) => root.querySelector(sel);
 
 // Evaluación sin respuestas: mientras dura la actividad, las plantillas no muestran si acertó ni la respuesta correcta.
 // La pone el reproductor (player.js) según la asignación; vuelve a false al salir.
-export const evalMode = { hide: false };
+// fin: texto del botón de la última pregunta (en una unidad se sigue a la siguiente actividad, no a un resultado).
+export const evalMode = { hide: false, fin: 'Ver resultado' };
 
 // Funciones guardadas pero apagadas. codeLogin: entrada con código de clase + dibujos y la vista "Mis cursos y accesos".
 export const FEATURES = { codeLogin: false };

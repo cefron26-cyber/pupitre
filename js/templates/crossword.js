@@ -294,7 +294,7 @@ export default {
       const fb = el(`<div class="feedback ${hide ? 'neutral' : bien === total ? 'ok' : 'bad'}">
         ${hide ? neutralFb() : `<span>${bien === total ? '¡Crucigrama perfecto!' : `${bien} de ${total} palabras correctas.`}</span>`}
         ${hide || bien === total ? '' : '<button class="btn ghost" type="button" data-sol>Ver solución</button>'}
-        <button class="btn" type="button" data-fin>Ver resultado</button></div>`);
+        <button class="btn" type="button" data-fin>${evalMode.fin}</button></div>`);
       fb.querySelector('[data-fin]').onclick = () => onTerminar({ score: bien, maxScore: total, answers: st.answers });
       fb.querySelector('[data-sol]')?.addEventListener('click', e => {
         for (const [k, inp] of Object.entries(inputs)) if (st.letters[k] !== sol[k]) { inp.value = sol[k]; inp.parentElement.classList.add('fixed'); }

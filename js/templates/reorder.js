@@ -251,7 +251,7 @@ export default {
       const last = st.i === total - 1;
       const fb = el(`<div class="feedback ${hide ? 'neutral' : a.correct ? 'ok' : 'bad'}">
         ${hide ? neutralFb() : `<span>${a.correct ? '¡Perfecto!' : `Correcta: <b>${esc(content.items[st.i].sentence)}</b>`}</span>`}
-        <button class="btn" type="button">${last ? 'Ver resultado' : 'Siguiente'}</button></div>`);
+        <button class="btn" type="button">${last ? evalMode.fin : 'Siguiente'}</button></div>`);
       fb.querySelector('button').onclick = next;
       root.querySelector('.fb-slot').replaceChildren(fb);
       fb.querySelector('button').focus({ preventScroll: true });

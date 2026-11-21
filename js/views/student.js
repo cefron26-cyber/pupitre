@@ -243,6 +243,11 @@ export async function tasks(root, { user }) {
   }
 }
 
+// XP ganado en la pasada actual por la unidad (se suma actividad tras actividad hasta el resumen final).
+function leerRecorrido(id) {
+  try { const r = JSON.parse(sessionStorage.getItem('plat.unitRun')); return r?.id === id ? r : null; } catch { return null; }
+}
+
 // Ruta de la unidad: actividades en orden, con su estado. El estudiante puede hacerlas en cualquier orden.
 export async function unit(root, { user, params }) {
   const a = await assignments.get(params.id);
@@ -253,6 +258,21 @@ export async function unit(root, { user, params }) {
 
   const reglas = `Cada actividad vale de 0 a 100 y tienes ${UNIT_MAX_TRIES} intentos (cuenta el mejor). La nota de la unidad es el promedio. Al completarla ganas +${UNIT_BONUS_XP} XP.`;
   const cur = nextIdx >= 0 ? nextIdx : -1;
+  // Resumen al terminar la pasada por la unidad (las actividades se encadenan sin resultado intermedio).
+  let fin = null;
+  try { const f = JSON.parse(sessionStorage.getItem('plat.unitFin')); if (f?.id === a.id) { fin = f; sessionStorage.removeItem('plat.unitFin'); } } catch {}
+  const subio = fin && levelOf(fin.xpBefore + fin.gained).level > levelOf(fin.xpBefore).level ? levelOf(fin.xpBefore + fin.gained).level : null;
+  const cofre = fin && (await chestState(user.id)).state === 'ready';
+  const resumen = !fin ? '' : `<div class="card result unit-fin" role="status">
+      <h2>${fin.unitDone ? '¡Completaste la unidad!' : '¡Terminaste las actividades!'}</h2>
+      ${p.status === 'done' ? `<div class="score-ring" style="--p:${p.unitPoints}"><b>${(p.unitPoints / 10).toFixed(1)}</b><span>de 10</span></div>` : ''}
+      ${fin.gained ? `<p><span class="xp-gain">${icons.star} +${fin.gained} XP</span>${fin.unitDone ? ` <span class="small muted">(incluye +${UNIT_BONUS_XP} de bono)</span>` : ''}</p>` : ''}
+      ${subio ? `<div class="level-up">¡Subiste al nivel ${subio}!${rangoDe(subio).desde === subio ? ` <b>¡Nuevo rango: ${rangoDe(subio).icon} ${rangoDe(subio).name}!</b>` : ''}${RETOS.some(x => x.level === subio) ? ` Se abrió el reto <a href="#/s/retos">${esc(RETOS.find(x => x.level === subio).name)}</a>.` : ''}</div>` : ''}
+      <p class="small muted">Toca cada actividad del camino para ver tu puntaje y revisar tus respuestas.</p>
+      ${cofre ? `<div class="chest-card ready result-chest"><div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt=""></div>
+        <div class="chest-txt"><b>¡Ganaste el cofre de hoy!</b><span class="small">Ábrelo para ver tu premio.</span></div>
+        <button class="btn chest-open" id="open-chest">Abrir cofre</button></div>` : ''}
+    </div>`;
   root.innerHTML = `<div class="unit-page">
     <a href="#/s/tasks" class="back-link">← Misiones</a>
     <header class="unit-banner">
@@ -264,8 +284,12 @@ export async function unit(root, { user, params }) {
     </header>
     ${p.status === 'done' ? `<div class="unit-done">¡Unidad completada${p.lateDone ? ' (entregada tarde)' : ''}! Nota <b>${(p.unitPoints / 10).toFixed(1)}</b> · ${p.unitPoints}/100</div>`
       : p.status === 'late' ? '<div class="unit-late">Está atrasada: puedes hacerla, pero quedará como entregada tarde.</div>' : ''}
+    ${resumen}
     ${cur >= 0 ? `<a class="btn unit-go" href="#/s/play/${a.id}/${acts[cur].id}">${p.done || p.items[cur].status === 'doing' ? 'Continuar' : 'Empezar'}: ${esc(acts[cur].title)}</a>` : ''}
     <ol class="path2" id="path"></ol></div>`;
+  const oc = $('#open-chest', root);
+  if (oc) oc.onclick = () => { oc.disabled = true; openDailyChest(user); };
+  if (fin?.gained) { const chip = document.getElementById('xp-chip'); chip?.classList.remove('bump'); void chip?.offsetWidth; chip?.classList.add('bump'); }
   const path = $('#path', root);
   let fasePrev = null;
   acts.forEach((act, i) => {
@@ -339,6 +363,7 @@ export async function play(root, { user, params, query }) {
     onProgress: (state, sec) => attempts.saveProgress(attempt.id, state, sec),
     hideAnswers: a.showAnswers === false,
     salir: { href: back },
+    unidad: r.unit ? { href: back } : null,
     tramo: r.unit ? { index: r.acts.indexOf(act), total: r.acts.length } : null,
     portada: !r.unit,
     // En modo serio/evaluación se ve el título y el intento (estilo examen); en modo juego, solo la actividad.
@@ -361,6 +386,22 @@ export async function play(root, { user, params, query }) {
         if (after.status === 'done') { unitDone = true; gained += UNIT_BONUS_XP; await xp.add(user.id, UNIT_BONUS_XP, `unit:${a.id}`); }
       }
       events.log(user.id, 'finish_activity', { assignmentId: a.id, activityId: act.id, score: res.score, maxScore: res.maxScore });
+      // Unidad en curso: sin pantalla de resultado entre actividades; pasa directo a la siguiente pendiente
+      // (primero las que siguen en orden). Al terminar la última, el camino de la unidad muestra el resumen.
+      // Una unidad que ya estaba completa (reintento) sigue mostrando el resultado de esa actividad.
+      if (r.unit && !unitDoneBefore) {
+        const run = leerRecorrido(a.id) || { id: a.id, xpBefore: before, gained: 0 };
+        run.gained += gained;
+        const mine = await attempts.listFor(a.id, user.id);
+        const pend = r.acts.filter(x => !mine.some(t => t.activityId === x.id && t.state === 'done'));
+        const i = r.acts.indexOf(act);
+        const next = pend.find(x => r.acts.indexOf(x) > i) || pend[0];
+        if (next) { sessionStorage.setItem('plat.unitRun', JSON.stringify(run)); navT = setTimeout(() => { location.hash = `#/s/play/${a.id}/${next.id}`; }, 400); return; }
+        sessionStorage.removeItem('plat.unitRun');
+        sessionStorage.setItem('plat.unitFin', JSON.stringify({ ...run, unitDone }));
+        navT = setTimeout(() => { location.hash = back; }, 400);
+        return;
+      }
       const levelUp = levelOf(before + gained).level > levelOf(before).level ? levelOf(before + gained).level : null;
       sessionStorage.setItem('plat.xpGained', JSON.stringify({ attemptId: done.id, gained, unitDone, levelUp }));
       navT = setTimeout(() => { location.hash = `#/s/result/${done.id}`; }, 400);
