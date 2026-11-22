@@ -14,7 +14,6 @@ import { unitsList, unitEditor } from './views/units.js';
 import { unitStart, unitWizard } from './views/unit-wizard.js';
 import { present } from './views/present.js';
 import { DEFAULT_PREFS, backgroundVars, fijarDesbloqueo } from './rewards.js';
-import { cebolloMini } from './cebollo.js';
 import { mundoHTML } from './mundo.js';
 import { configurarClave, claveIA } from './ia.js';
 
@@ -131,9 +130,8 @@ async function router() {
     const prefs = { ...DEFAULT_PREFS, ...(currentUser.prefs || {}) };
     // El docente puede forzar el modo serio en una evaluación: solo mientras se hace esa actividad.
     const forced = path.startsWith('/s/play/') && !!(await assignments.get(m.params.id))?.forceSerious;
-    // Cebollo del encabezado: triste mientras el estudiante no ha jugado hoy.
-    const jugoHoy = (await student.streakOf(currentUser.id)).hoy;
-    info = { ...prefs, modo: forced ? 'serio' : prefs.modo, forced, avatarHTML: cebolloMini(prefs.ropa, 36, { vivo: true, triste: !jugoHoy }) };
+    // (El Cebollo pequeño del encabezado se quitó el 2026-11-22: no aportaba; queda "Visitar a Cebollo".)
+    info = { ...prefs, modo: forced ? 'serio' : prefs.modo, forced };
     currentUser.prefs = prefs;
   }
   applySkin(info);

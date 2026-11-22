@@ -3,7 +3,7 @@
 // Monedas = XP ganado − lo gastado (storage.compras). La ropa sale del cofre y de los retos (colección).
 import { xp, users, userRewards, compras, events } from '../storage.js';
 import { ROPA, SLOTS, VARIOS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO, puestas, ponerPrenda, quitarPrenda } from '../rewards.js';
-import { crearCebollo, cebolloMini } from '../cebollo.js';
+import { crearCebollo } from '../cebollo.js';
 import { prefsOf } from './student.js';
 import { esc, $, toast } from '../ui.js';
 import { CAJAS, PISO_CEBOLLO } from '../cuarto-cajas.js';
@@ -422,7 +422,7 @@ export async function cuarto(root, { user }) {
     ropa = quita ? quitarPrenda(ropa, slot, id) : ponerPrenda(ropa, slot, id);
     await users.setPrefs(user.id, { ropa });
     ceb.vestir(ropa); ceb.reaccion('feliz'); decir(id && !quita ? azar(FRASES_ROPA) : '¡Así estoy cómodo!');
-    pintarPanel(); refrescarEncabezado();
+    pintarPanel();
   }
 
   async function tocarDeco(id) {
@@ -449,7 +449,6 @@ export async function cuarto(root, { user }) {
   }
 
   // El busto del encabezado también se viste (sin recargar la página).
-  const refrescarEncabezado = () => { const h = document.querySelector('.head-avatar'); if (h) h.innerHTML = cebolloMini(ropa, 36, { vivo: true, triste: !!h.querySelector('[data-vivo="triste"]') }); };
 
   return () => { clearTimeout(tGlobo); ceb.destruir(); vista?.destruir(); document.documentElement.classList.remove('cu-agarrando'); };
 }

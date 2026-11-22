@@ -167,7 +167,6 @@ export function headerHTML({ school = {}, user, nav = [], active = '', xp = null
       <div class="user-box">
         ${modeBtn}
         ${xp !== null ? `<span class="xp-chip" id="xp-chip" title="Tu experiencia acumulada">${icons.star}<span id="xp-val">${xp}</span> XP</span>` : ''}
-        ${student ? `<span class="head-avatar">${student.avatarHTML}</span>` : ''}
         ${user.role === 'teacher' ? `
         <details class="more create-menu"><summary class="btn sm">${icons.plus}<span>Crear</span></summary>
           <div class="more-menu"><a href="#/t/create">Actividad</a><a href="#/t/units/new">Unidad</a></div></details>

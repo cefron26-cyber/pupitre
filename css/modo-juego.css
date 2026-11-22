@@ -52,7 +52,6 @@
 [data-modo="juego"] .mode-toggle{background:#ffd23f; color:#6b4300; border:0; box-shadow:inset 0 -3px 0 #f0b800, 0 4px 0 #c99a00; transition:transform .1s}
 [data-modo="juego"] .mode-toggle:active{transform:translateY(3px); box-shadow:inset 0 -3px 0 #f0b800, 0 1px 0 #c99a00}
 [data-modo="juego"] .xp-chip{background:#fff4c2; color:#7a4b00; box-shadow:inset 0 -3px 0 #ffe27a}
-[data-modo="juego"] .head-avatar .ceb-mini{animation:respirar 1.6s steps(2) infinite}
 @keyframes respirar{50%{transform:translateY(-3px)}}
 
 /* Títulos de página en letra de juego con sombra (la pixel queda para cifras cortas) */

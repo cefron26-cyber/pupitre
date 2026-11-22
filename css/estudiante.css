@@ -8,8 +8,6 @@
 }
 .mode-toggle:hover{background:var(--accent-soft)}
 .mode-toggle[aria-disabled="true"]{cursor:help; opacity:.8}
-.head-avatar{display:inline-flex}
-.head-avatar .ceb-mini{display:block}
 
 /* Cebollo mini: busto quieto y vestido (cebolloMini en js/cebollo.js). Se ve del brote al pecho. */
 .ceb-mini{--s:48px; position:relative; display:inline-block; flex:none; width:var(--s); height:var(--s); overflow:hidden; vertical-align:middle}
@@ -143,7 +141,6 @@
 @media (max-width:640px){
   .mode-toggle{padding:0 10px; min-height:40px}
   .mode-toggle span{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
-  .head-avatar{display:none}
 }
 @media (max-width:420px){
   .user-box{gap:6px}
@@ -373,7 +370,7 @@ html,body{overflow-x:clip}
 @media (max-width:960px){
   .hero{grid-template-columns:1fr}
   /* Tablet: sin nombre ni avatar en el encabezado para que la marca y los botones quepan. */
-  .app-header .user-box .user-name,.app-header .head-avatar{display:none}
+  .app-header .user-box .user-name{display:none}
 }
 
 /* ---- Cebollo, la mascota (js/cebollo.js) ----
