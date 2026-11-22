@@ -179,7 +179,25 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
       x.classList.toggle('t-largo', n > (q ? 60 : 24));
       x.classList.toggle('t-muy-largo', n > (q ? 120 : 48));
     });
+    encajar();
   };
+  // Escenario fijo (quiz fuera de la pantalla completa): la letra de cada ficha es la más grande que cabe en ella.
+  const fichasFijas = decorado && !inmersivo && activity.type === 'quiz';
+  const encajar = () => {
+    if (!fichasFijas) return;
+    stage.querySelectorAll('.option').forEach(b => {
+      const t = b.querySelector('span:not(.key)');
+      if (!t || !b.clientHeight) return;
+      const cs = getComputedStyle(b);
+      const w = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 8;
+      const h = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 4;
+      let px = Math.min(80, Math.floor(h * .5));
+      t.style.display = 'block'; t.style.width = w + 'px'; t.style.lineHeight = '1.1'; t.style.overflowWrap = 'normal'; // una palabra larga achica la letra, no se corta
+      t.style.fontSize = px + 'px';
+      while (px > 14 && (t.scrollWidth > t.clientWidth + 1 || t.offsetHeight > h)) { px -= 2; t.style.fontSize = px + 'px'; }
+    });
+  };
+  if (fichasFijas) new ResizeObserver(() => encajar()).observe(shell);
 
   // ---------- Sonidos y chispas según las clases que ponen las plantillas ----------
   // Con respuestas ocultas (evaluación) no suena ni brilla nada que delate si acertó.
