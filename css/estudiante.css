@@ -455,7 +455,8 @@ html,body{overflow-x:clip}
    Escena 4:3 con el fondo del cuarto; cada lugar tiene posición fija (en % de la escena). Arte en img/cuarto/. */
 .monedas{display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:999px; background:#fff4cc; color:#7a5200; font-weight:700; white-space:nowrap; box-shadow:0 3px 0 #e8c25a}
 /* La escena lleva el ancho (el cuarto + su barra de iconos, que en PC flota encima y en teléfono va debajo). */
-.cuarto-escena{--cu-w:min(100vw - 32px, 1400px, (100dvh - 152px) * 4 / 3); position:relative; width:var(--cu-w); min-width:min(100%, 520px); margin:0 calc(50% - var(--cu-w) / 2)}
+/* isolation: los botones (z-index 320) quedan dentro de la escena y pasan por debajo del encabezado fijo al desplazarse (2026-11-22) */
+.cuarto-escena{--cu-w:min(100vw - 32px, 1400px, (100dvh - 152px) * 4 / 3); position:relative; isolation:isolate; width:var(--cu-w); min-width:min(100%, 520px); margin:0 calc(50% - var(--cu-w) / 2)}
 .cuarto{position:relative; isolation:isolate; width:100%; margin:0; aspect-ratio:4/3; border-radius:24px; overflow:hidden;
   box-shadow:0 8px 0 rgba(10,4,40,.25), var(--shadow); background:#f6efe0; container-type:inline-size; user-select:none; -webkit-user-select:none}
 .cu-fondo{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
