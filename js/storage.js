@@ -112,6 +112,25 @@ function load() {
     cache.activities = cache.activities.filter(a => !esDemo(a.id));
     cache.sinDemoV1 = true; fixed = true;
   }
+  // La demo nueva para la cuenta de demostración (2026-11-22, pedido del docente): "estudiante" (Estudiante Demo) pasa a
+  // Quinto A y ahí se le asignan la unidad 7 y las actividades de Quinto Pruebas (las mismas actividades, otras asignaciones;
+  // el grado del curso tiene que coincidir con el de las actividades). Cebollo sigue abierto para esta cuenta. Una sola vez.
+  if (!cache.estudianteQuintoV1) {
+    const est = cache.users.find(x => x.id === 'usr-est' || x.username === 'estudiante');
+    const curso = cache.courses.find(c => c.id === 'crs-5a') || cache.courses.find(c => c.grade === 5 && c.id !== CURSO_QUINTO.id);
+    if (est && est.role === 'student' && curso) {
+      est.courseIds = [curso.id];
+      const doc = cache.users.find(x => x.id === 'usr-doc');
+      if (doc && !doc.courseIds.includes(curso.id)) doc.courseIds.push(curso.id);
+      const pack = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: curso.id, daysAgo });
+      for (const a of pack.assignments) {
+        const id = a.id.replace('asg-q5-', 'asg-q5a-');
+        const existe = x => (x.activityId && cache.activities.some(y => y.id === x.activityId)) || (x.unitId && cache.units.some(y => y.id === x.unitId));
+        if (existe(a) && !cache.assignments.some(x => x.id === id)) cache.assignments.push({ ...a, id });
+      }
+    }
+    cache.estudianteQuintoV1 = true; fixed = true;
+  }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
   return cache;
