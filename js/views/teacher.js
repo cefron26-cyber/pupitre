@@ -7,7 +7,7 @@ import { letras } from '../templates/wordsearch.js';
 import { safeSrc } from '../imagenes.js';
 import { mountPlayer } from '../player.js';
 import { progressOf, activityIdsOf, gradeLabel } from '../logic.js';
-import { themePicker, DEFAULT_THEME, themeById } from '../temas.js';
+import { themePicker, DEFAULT_THEME, themeById, temaPara } from '../temas.js';
 import { templateArt, ALL_ART } from '../iconos.js';
 import { iaBar } from './ia-panel.js';
 import { nuevoCurso, editarCurso, eliminarCurso, agregarEstudiantes, mostrarAccesos, renombrarEstudiante, nuevaContrasena, moverEstudiante, eliminarEstudiante } from './cursos-admin.js';
@@ -462,12 +462,12 @@ export async function preview(root, { params }) {
         <section class="side-box"><h2>Estilo visual</h2><div id="temas"></div></section>
       </aside>
     </div>`;
-  themePicker($('#temas', root), themeById(act.theme || DEFAULT_THEME).id, async id => {
+  themePicker($('#temas', root), temaPara(act.theme || DEFAULT_THEME, act.type), async id => {
     act.theme = id;
     await activities.setTheme(act.id, id);
     toast(`Estilo: ${themeById(id).name}`);
     start();
-  });
+  }, act.type);
   // El estilo en uso va primero (así siempre se ve marcado aunque solo se muestren 4).
   const tg = root.querySelector('#temas .tema-grid'), on = tg?.querySelector('[aria-checked="true"]');
   if (tg && on) tg.prepend(on);

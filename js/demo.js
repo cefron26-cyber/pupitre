@@ -49,7 +49,7 @@ export function demoPack({ schoolId, ownerId, courseId, daysAgo }) {
     tf('"I gets up at seven." is correct.', false),
   ] }, 12);
 
-  act('act-demo-matching', 'matching', 'Demo · Emparejar: daily routine', 'cielo', 'Match each English phrase with its meaning.', { pairs: [
+  act('act-demo-matching', 'matching', 'Demo · Emparejar: daily routine', 'oceano', 'Match each English phrase with its meaning.', { pairs: [
     { left: 'get up', right: 'levantarse' },
     { left: 'have breakfast', right: 'desayunar' },
     { left: 'brush my teeth', right: 'cepillarme los dientes' },

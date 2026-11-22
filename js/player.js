@@ -4,7 +4,7 @@
 // barra inferior (avance en puntos, sonido, pantalla completa), chispas al acertar y cierre con estrellas.
 import { el, esc, fmtDuration, evalMode, confirmDialog } from './ui.js';
 import { templates } from './templates/index.js';
-import { themeById, themeSound, DEFAULT_THEME } from './temas.js';
+import { themeById, themeSound, DEFAULT_THEME, temaPara } from './temas.js';
 import { mostrarEmote, urlEmote, emoteAcierto } from './cebollo.js';
 
 const IDLE_MS = 60_000; // sin interacción por más de 1 min → no cuenta tiempo
@@ -67,7 +67,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const hide = !!hideAnswers;
   // Modo serio (elegido por el estudiante o forzado en una evaluación): sin decoración ni sonidos.
   const serio = document.documentElement.dataset.modo === 'serio';
-  const tema = serio ? 'sencillo' : themeById(theme || activity.theme || DEFAULT_THEME).id;
+  const tema = serio ? 'sencillo' : temaPara(theme || activity.theme || DEFAULT_THEME, activity.type);
   const decorado = tema !== 'sencillo';
   const sound = kind => { if (decorado && !muted()) themeSound(tema, kind); };
   const tpl = templates[activity.type];
@@ -110,6 +110,23 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
       ${botones}</div>` : ''}
   </div>`);
   root.append(shell);
+  // ---------- Cebollo acompaña (pantalla completa del estudiante, 2026-11-22) ----------
+  // Aparece en la esquina al responder (Comprobar, elegir opción, hacer una pareja…) y se va a los 2 s; en todas las plantillas (antes solo salía en la franja de respuesta, que Emparejar, Memoria,
+  // Clasificar, Sopa o Crucigrama no tienen). Reacciona a los mismos aciertos/errores que suenan (queue); en evaluación
+  // (respuestas ocultas) se queda quieto para no delatar nada.
+  const compa = inmersivo && decorado ? el(`<div class="esc-compa" aria-hidden="true"><img src="${urlEmote('sonrisa')}" alt="" draggable="false"></div>`) : null;
+  if (compa) shell.append(compa);
+  let rachaCompa = 0, compaT = null;
+  const reaccionar = ok => {
+    if (!compa) return;
+    rachaCompa = ok ? rachaCompa + 1 : 0;
+    const img = compa.querySelector('img');
+    img.src = urlEmote(ok ? (rachaCompa >= 3 ? 'copa' : emoteAcierto()) : 'triste');
+    compa.classList.remove('feliz', 'triste'); void compa.offsetWidth; compa.classList.add(ok ? 'feliz' : 'triste');
+    compa.classList.add('ve');
+    clearTimeout(compaT);
+    compaT = setTimeout(() => compa.classList.remove('ve'), 2200); // se va solo: no está siempre en pantalla
+  };
   const bar = shell.querySelector('.progress');
   const timerEl = shell.querySelector('.timer');
   const stage = shell.querySelector('.stage');
@@ -216,7 +233,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     if (kind === 'ok' && target && !target.classList.contains('feedback') && !target.matches('.hm-key, .slots.linea .word, input.gap')
       && !(tema === 'clasico' && target.classList.contains('option'))) okTargets.push(target);
     if (!pend) setTimeout(() => {
-      if (pend) sound(pend);
+      if (pend) { sound(pend); reaccionar(pend === 'ok'); }
       if (pend === 'ok') okTargets.forEach(chispas);
       pend = null; okTargets = [];
     }, 60);
@@ -230,7 +247,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     }
   };
   // ---------- Franja de respuesta (pantalla completa): Cebollo reacciona y racha de aciertos ----------
-  // Acierto: pulgar, sonrisa, 👌 o brazos abiertos al azar (copa desde 3 seguidas). Error: triste.
+  // La franja muestra la racha; la reacción de Cebollo la hace el compañero de la esquina (pulgar, sonrisa, 👌 o brazos; copa desde 3 seguidas; triste al fallar).
   let racha = 0;
   const franja = node => {
     if (!inmersivo || hide || node.nodeType !== 1) return;
@@ -240,8 +257,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     const ok = fb.classList.contains('ok');
     racha = ok ? racha + 1 : 0;
     fb.classList.add('franja');
-    const emote = ok ? (racha >= 3 ? 'copa' : emoteAcierto()) : 'triste';
-    fb.insertAdjacentHTML('afterbegin', `<span class="fb-masc ${ok ? 'feliz' : 'triste'}" aria-hidden="true"><img src="${urlEmote(emote)}" alt=""></span>`);
+    // Cebollo ya no va dentro de la franja: es el compañero de la esquina (esc-compa), que reacciona solo.
     if (ok && racha >= 2) fb.querySelector(':scope > span:not(.fb-masc)')?.insertAdjacentHTML('beforeend', ` <span class="fb-racha">🔥 ${racha} seguidas</span>`);
   };
   const franjas = inmersivo ? new MutationObserver(list => list.forEach(m => m.addedNodes.forEach(franja))) : null;
@@ -326,7 +342,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   }, 1000);
   let inst = null; // lo que devuelve la plantilla (opcional { destroy })
   const stop = () => {
-    evalMode.hide = false; watcher?.disconnect(); franjas?.disconnect(); autos?.disconnect(); clearTimeout(autoT); clearInterval(tick); document.removeEventListener('visibilitychange', onVis);
+    evalMode.hide = false; clearTimeout(compaT); watcher?.disconnect(); franjas?.disconnect(); autos?.disconnect(); clearTimeout(autoT); clearInterval(tick); document.removeEventListener('visibilitychange', onVis);
     if (document.fullscreenElement === shell) document.exitFullscreen().catch(() => {});
     try { inst?.destroy?.(); } catch {} inst = null;
   };

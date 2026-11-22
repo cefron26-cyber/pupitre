@@ -1,9 +1,9 @@
 // Salón de pruebas de Quinto (2026-11-22): curso "Quinto Pruebas" con la estudiante Daniela (daniela/1234, Cebollo
 // bloqueado: lo desbloquea jugando). Contenido del libro Here We Go Now! 5:
-//   - Unidad completa de la Unit 7 "Many Food Choices" (todas sus actividades con el estilo básico).
+//   - Unidad de la Unit 7 "Many Food Choices" con las reglas del asistente (10 ejercicios, 20 preguntas, estilo básico).
 //   - Una actividad suelta de cada tipo (8-10 puntos), de las Units 6 "A Matter of Respect" y 7, con estilos variados.
 // Nada de traducción directa en lo que va con imagen o definición: imagen ↔ palabra en inglés, palabra ↔ definición en inglés.
-// Lo agrega load() en storage.js una sola vez (marca quintoPruebasV1).
+// Lo agrega load() en storage.js una sola vez (marca quintoPruebasV1; quintoPruebasV2 cambia la unidad vieja por esta).
 
 export const CURSO_QUINTO = { id: 'crs-5prueba', name: 'Quinto Pruebas', grade: 5, section: 'PRUEBAS', code: 'QPRUE5' };
 export const DANIELA = { id: 'usr-daniela', name: 'Daniela', username: 'daniela', password: '1234' };
@@ -48,110 +48,97 @@ export function quintoPack({ schoolId, ownerId, courseId, daysAgo }) {
   const act = (id, type, title, theme, instruction, content) =>
     A.push({ id, schoolId, ownerId, type, grade: 5, title, theme, instruction, content, createdAt: daysAgo(0, orden--) });
 
-  // ================= Unidad: Unit 7 · Many Food Choices (estilo básico en todas) =================
+  // ================= Unidad: Unit 7 · Many Food Choices =================
+  // Reglas del asistente de unidades (estilo Cambridge One): 10 ejercicios cortos, 20 preguntas (2 por ejercicio), mezcla
+  // recomendada (Ordenar, ABCD, Completar escribiendo, Audio, Lectura) sin dos iguales seguidos, Completar sin banco con
+  // pista entre paréntesis, Lectura y Audio con textos cortos, V/F alternados y la opción correcta repartida en A/B/C/D.
+  // Todo con el estilo de la unidad (UNIT_THEME). Sin fases: se deducen del tipo, como en el asistente.
   const U = 'clasico';
   const fondos = ['#fff4dc', '#e6f4ea', '#eaf0fa', '#fdecea', '#f3e8fd', '#e8f7f7', '#fff0e0', '#eef2e2', '#fbe9f1'];
 
-  act('act-q5-u7-match', 'matching', 'U7 · Food containers', U, 'Match each picture with the correct phrase.', { pairs: [
-    ['🥛', 'a glass of milk'], ['☕', 'a cup of coffee'], ['🍕', 'a slice of pizza'], ['🥣', 'a bowl of cereal'], ['🧃', 'a box of juice'],
-    ['🥫', 'a can of soup'], ['🍫', 'a bar of chocolate'], ['🍯', 'a jar of honey'], ['🧂', 'a pinch of salt'],
-  ].map(([e, right], i) => ({ left: '', right, image: emojiPng(e, fondos[i]) })) });
-
-  act('act-q5-u7-classify', 'classify', 'U7 · Countable or uncountable?', U, 'Put each food in the correct group.', { groups: [
-    { name: 'Countable', items: ['apple', 'egg', 'sandwich', 'cookie', 'banana'] },
-    { name: 'Uncountable', items: ['milk', 'rice', 'sugar', 'water', 'cheese'] },
-  ] });
-
-  act('act-q5-u7-fill', 'fill', 'U7 · Quantities and containers', U, 'Complete the sentences with the correct word.', { items: [
-    { text: 'Can I have a {{glass}} of orange juice, please?', bank: ['glass', 'slice'] },
-    { text: 'I\'d like a {{slice}} of pizza.', bank: ['cup', 'slice'] },
-    { text: 'We need a {{carton}} of milk for breakfast.', bank: ['carton', 'pinch'] },
-    { text: 'Add a {{pinch}} of salt to the soup.', bank: ['bowl', 'pinch'] },
-    { text: 'How {{much}} is the hamburger? It\'s $3.50.', bank: ['much', 'many'] },
-    { text: 'How {{many}} eggs did you use?', bank: ['much', 'many'] },
-    { text: 'There is {{some}} cheese on the table.', bank: ['some', 'many'] },
-    { text: 'Grandma bought a {{bag}} of flour.', bank: ['glass', 'bag'] },
-    { text: 'I usually eat a {{bowl}} of cereal in the morning.', bank: ['bowl', 'can'] },
-    { text: 'She drank a {{bottle}} of water after the game.', bank: ['slice', 'bottle'] },
-  ] });
-
-  act('act-q5-u7-reorder', 'reorder', 'U7 · At the store', U, 'Put the words in the correct order.', { items: [
-    { sentence: 'How much is a slice of pizza?' },
-    { sentence: 'How many oranges do you need?' },
+  act('act-q5-u7b-01', 'reorder', 'U7 · Ordenar: at the store', U, 'Put the words in the correct order.', { items: [
+    { sentence: 'How much is a bottle of water?' },
     { sentence: 'I need a carton of milk, please.' },
-    { sentence: 'Can I have a bottle of water?' },
-    { sentence: 'There is some cheese in the fridge.' },
-    { sentence: 'We bought a few apples at the market.' },
-    { sentence: 'She drinks a glass of juice every morning.' },
-    { sentence: 'How much sugar did you use?' },
   ] });
 
-  act('act-q5-u7-reading', 'reading', 'U7 · Lunch at the cafeteria', U, 'Read the text and answer the questions.', {
-    title: 'Lunch at Green Hill School',
-    text: 'Every day at noon, the students at Green Hill School have lunch in the cafeteria. Today, Sara and her brother Ben have fifteen dollars.\n\n'
-      + 'Sara orders a bowl of tomato soup ($2.75), a slice of pizza ($1.75), and a bottle of water ($0.50). Her lunch costs five dollars.\n\n'
-      + 'Ben is very hungry. He orders a hamburger ($3.50), a bag of chips ($1.00), and a glass of orange juice ($1.50). His lunch costs six dollars.\n\n'
-      + 'After lunch, they have four dollars left. Ben wants a can of soda, but Sara says, "Water is healthier!" So they buy a big bowl of fruit salad and share it.',
-    questions: [
-      mc('How much money do Sara and Ben have?', ['$11', '$15', '$4', '$6'], 1),
-      mc('What does Sara order to drink?', ['A glass of juice', 'A can of soda', 'A bottle of water', 'A cup of tea'], 2),
-      mc('How much does Sara\'s lunch cost?', ['$5.00', '$6.00', '$2.75', '$4.00'], 0),
-      mc('What does Ben eat?', ['Tomato soup and pizza', 'Only fruit salad', 'A sandwich and cookies', 'A hamburger and chips'], 3),
-      mc('How much money do they have after lunch?', ['$1.50', '$4.00', '$11.00', '$0.50'], 1),
-      tf('Ben buys a can of soda.', false),
-      tf('Sara thinks water is healthier than soda.', true),
-      tf('They have lunch in the classroom.', false),
-    ],
-  });
+  act('act-q5-u7b-02', 'quiz', 'U7 · How many or how much?', U, 'Choose the correct answer.', { questions: [
+    mc('___ eggs do you need?', ['How much', 'How many', 'How far', 'How old'], 1),
+    mc('Can I have a ___ of pizza, please?', ['glass', 'pinch', 'slice', 'can'], 2),
+  ] });
 
-  act('act-q5-u7-listening', 'listening', 'U7 · Shopping for a cake', U, 'Listen to the conversation and answer the questions.', {
+  act('act-q5-u7b-03', 'fill', 'U7 · Completar: in the kitchen', U, 'Write the missing word. Use the clue in parentheses.', { items: [
+    { text: 'How {{much}} (much / many) sugar did you use?', bank: [] },
+    { text: 'Mom bought a {{bag}} (bag / glass) of flour.', bank: [] },
+  ] });
+
+  act('act-q5-u7b-04', 'listening', 'U7 · Audio: lunch time', U, 'Listen to the conversation and answer the questions.', {
     audio: { kind: 'tts', rate: 1, script: [
-      'Shopkeeper: Good morning! How can I help you?',
-      'Emma: Hi! I need some things for a cake. How much is a bag of flour?',
-      'Shopkeeper: It\'s two dollars.',
-      'Emma: OK, I\'ll take it. I also need some eggs.',
-      'Shopkeeper: How many eggs do you need?',
-      'Emma: Six, please. And a carton of milk.',
-      'Shopkeeper: Here you are. Do you need sugar?',
-      'Emma: No, thanks. We have a lot of sugar at home. Can I have a jar of strawberry jam?',
-      'Shopkeeper: Sure. That\'s eight dollars in total.',
-      'Emma: Here\'s ten dollars.',
-      'Shopkeeper: Thank you. Here is your change: two dollars.',
+      'Waiter: Hi! What would you like?',
+      'Tom: A slice of pizza and a glass of orange juice, please.',
+      'Waiter: Here you are. That\'s three dollars and twenty-five cents.',
     ].join('\n') },
     maxPlays: 0, showScript: false,
     questions: [
-      mc('What is Emma making?', ['A pizza', 'A cake', 'A salad'], 1),
-      mc('How much is a bag of flour?', ['$2', '$8', '$10'], 0),
-      mc('How many eggs does Emma need?', ['Seven', 'Twelve', 'Six'], 2),
-      mc('Emma buys a ___ of milk.', ['glass', 'carton', 'bottle'], 1),
-      mc('What kind of jam does Emma buy?', ['Strawberry', 'Cherry', 'Orange'], 0),
-      mc('How much change does Emma get?', ['$8', '$10', '$2'], 2),
-      tf('Emma buys some sugar.', false),
-      tf('Emma pays with ten dollars.', true),
+      mc('What does Tom want to drink?', ['A can of soda', 'A bottle of water', 'A cup of tea', 'A glass of orange juice'], 3),
+      tf('Tom\'s lunch costs $3.25.', true),
     ],
   });
 
-  act('act-q5-u7-quiz', 'quiz', 'U7 · How much or how many?', U, 'Choose the correct answer.', { questions: [
-    mc('___ apples do you need?', ['How much', 'How many', 'How far'], 1),
-    mc('___ milk is there in the fridge?', ['How much', 'How many', 'How old'], 0),
-    mc('"How much is the pizza?" "___"', ['I need two.', 'A slice, please.', 'It\'s $2.'], 2),
-    mc('I\'d like ___ water, please.', ['some', 'a', 'many'], 0),
-    mc('There are only ___ eggs in the box: just three.', ['a ton of', 'a few', 'a glass of'], 1),
-    mc('Can I have a ___ of soda?', ['slice', 'pinch', 'can'], 2),
-    mc('Mom needs a ___ of salt for the soup.', ['pinch', 'bottle', 'slice'], 0),
-    mc('I eat ___ fruit every day. It\'s healthy!', ['many', 'a lot of', 'a'], 1),
-    mc('How many ___ did you buy?', ['cheese', 'milk', 'tomatoes'], 2),
-    tf('"How many sugar do you need?" is correct.', false),
+  act('act-q5-u7b-05', 'reading', 'U7 · Lectura: Grandma\'s pancakes', U, 'Read the text and answer the questions.', {
+    title: 'Grandma\'s Pancakes',
+    text: 'On Sundays, Lily makes pancakes with her grandma. They use two cups of flour, two eggs, a cup of milk, and a spoonful of sugar. Lily adds a pinch of salt, too.\n\n'
+      + 'They eat the pancakes with honey and a few strawberries.',
+    questions: [
+      mc('How many eggs do they use?', ['Two', 'One', 'Four', 'Six'], 0),
+      tf('They eat the pancakes with chocolate.', false),
+    ],
+  });
+
+  act('act-q5-u7b-06', 'quiz', 'U7 · Some, many, a few', U, 'Choose the correct answer.', { questions: [
+    mc('There is ___ milk in the fridge.', ['some', 'many', 'a few', 'an'], 0),
+    mc('How much ___ the apples?', ['is', 'are', 'do', 'does'], 1),
   ] });
 
-  const enUnidad = ['act-q5-u7-match', 'act-q5-u7-classify', 'act-q5-u7-fill', 'act-q5-u7-reorder', 'act-q5-u7-reading', 'act-q5-u7-listening', 'act-q5-u7-quiz'];
+  act('act-q5-u7b-07', 'reorder', 'U7 · Ordenar: healthy food', U, 'Put the words in the correct order.', { items: [
+    { sentence: 'We need a few tomatoes for the salad.' },
+    { sentence: 'She drinks a lot of water every day.' },
+  ] });
+
+  act('act-q5-u7b-08', 'reading', 'U7 · Lectura: Ben\'s shopping', U, 'Read the text and answer the questions.', {
+    title: 'Ben\'s Shopping',
+    text: 'Ben is at the supermarket with fifteen dollars. He buys a box of cereal ($4), a carton of milk ($2), and a bag of apples ($3).\n\n'
+      + 'Then, he buys a jar of honey for his mom ($5). He has one dollar left, so he buys a small bottle of water.',
+    questions: [
+      mc('How much is the jar of honey?', ['$2', '$4', '$5', '$3'], 2),
+      tf('Ben has two dollars left after he buys the honey.', false),
+    ],
+  });
+
+  act('act-q5-u7b-09', 'fill', 'U7 · Completar: my order', U, 'Write the missing word. Use the clue in parentheses.', { items: [
+    { text: 'I\'d like a {{glass}} (glass / slice) of juice, please.', bank: [] },
+    { text: 'There are only a {{few}} (few / much) cookies in the box.', bank: [] },
+  ] });
+
+  act('act-q5-u7b-10', 'listening', 'U7 · Audio: at the fruit stand', U, 'Listen to the conversation and answer the questions.', {
+    audio: { kind: 'tts', rate: 1, script: [
+      'Shopkeeper: Good afternoon! Can I help you?',
+      'Emma: Yes, please. How much are the bananas?',
+      'Shopkeeper: They\'re fifty cents each.',
+      'Emma: I\'ll take six bananas and a can of soup, please.',
+    ].join('\n') },
+    maxPlays: 0, showScript: false,
+    questions: [
+      mc('How many bananas does Emma buy?', ['Two', 'Four', 'Five', 'Six'], 3),
+      tf('Emma buys a can of soup.', true),
+    ],
+  });
+
+  const enUnidad = Array.from({ length: 10 }, (_, i) => `act-q5-u7b-${String(i + 1).padStart(2, '0')}`);
   const unit = {
     id: 'unit-q5-u7', schoolId, ownerId, grade: 5, cefr: '', createdAt: daysAgo(0, 45),
     title: 'Unit 7 · Many Food Choices',
-    description: 'Here We Go Now! 5. Countable and uncountable nouns, containers, how much / how many, some / a few / a lot of, prices.',
-    activityIds: enUnidad,
-    fases: { 'act-q5-u7-match': 'Vocabulario', 'act-q5-u7-classify': 'Vocabulario', 'act-q5-u7-fill': 'Gramática', 'act-q5-u7-reorder': 'Gramática',
-      'act-q5-u7-reading': 'Lectura y escucha', 'act-q5-u7-listening': 'Lectura y escucha', 'act-q5-u7-quiz': 'Evaluación' },
+    description: 'How much / how many, some / a few / a lot of · Vocabulario: containers (glass, bottle, carton, bag, slice), food, prices',
+    activityIds: enUnidad, fases: {},
   };
 
   // ================= Actividades sueltas: una de cada tipo (Units 6 y 7), estilos variados =================
@@ -168,7 +155,7 @@ export function quintoPack({ schoolId, ownerId, courseId, daysAgo }) {
     tf('"She were walking to school." is correct.', false),
   ] });
 
-  act('act-q5-matching', 'matching', 'U6 · Emparejar: words and meanings', 'cielo', 'Match each word with its definition.', { pairs: [
+  act('act-q5-matching', 'matching', 'U6 · Emparejar: words and meanings', 'oceano', 'Match each word with its definition.', { pairs: [
     { left: 'bully', right: 'a person who hurts or scares others again and again' },
     { left: 'gossip', right: 'talk about other people\'s private lives' },
     { left: 'comfort', right: 'make a sad person feel better' },

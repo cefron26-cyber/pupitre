@@ -88,6 +88,21 @@ function load() {
     for (const c of ['activities', 'units', 'assignments']) for (const r of pack[c]) if (!cache[c].some(x => x.id === r.id)) cache[c].push(r);
     cache.quintoPruebasV1 = true; fixed = true;
   }
+  // V2 (2026-11-22): la unidad sigue las reglas del asistente (10 ejercicios, 20 preguntas). Se quitan las 7 actividades
+  // viejas de la unidad (y los intentos de esa asignación) y se pone la unidad nueva. Las actividades sueltas no cambian.
+  if (!cache.quintoPruebasV2) {
+    const pack = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: CURSO_QUINTO.id, daysAgo });
+    const nueva = pack.units[0];
+    cache.activities = cache.activities.filter(a => !a.id.startsWith('act-q5-u7-'));
+    const k = cache.units.findIndex(u => u.id === nueva.id);
+    if (k >= 0) { // si el docente borró la unidad, no se vuelve a crear
+      for (const a of pack.activities) if (nueva.activityIds.includes(a.id) && !cache.activities.some(x => x.id === a.id)) cache.activities.push(a);
+      cache.units[k] = nueva;
+      const asg = cache.assignments.filter(a => a.unitId === nueva.id).map(a => a.id);
+      cache.attempts = cache.attempts.filter(t => !asg.includes(t.assignmentId));
+    }
+    cache.quintoPruebasV2 = true; fixed = true;
+  }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
   return cache;

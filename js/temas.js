@@ -31,8 +31,13 @@ export const themeThumb = id => `<span class="tema-mini escenario tematico" data
   <span class="tm-opts"><i></i><i></i><i></i><i></i></span></span>`;
 
 // Rejilla de selección (editor y vista previa). onPick(id) al elegir.
-export function themePicker(container, value, onPick) {
-  container.innerHTML = `<div class="tema-grid" role="radiogroup" aria-label="Estilo visual">${THEMES.map(t => `
+// Estilos desactivados por tipo de actividad (2026-11-22, pedido del docente): Emparejar no usa "Cielo" (las nubes
+// se cortaban y la pareja hecha perdía su forma). Una actividad que ya lo tenía se ve con el estilo por defecto.
+export const TEMAS_OFF = { matching: ['cielo'] };
+export const temaPara = (id, tipo) => { const t = themeById(id).id; return TEMAS_OFF[tipo]?.includes(t) ? DEFAULT_THEME : t; };
+
+export function themePicker(container, value, onPick, tipo = null) {
+  container.innerHTML = `<div class="tema-grid" role="radiogroup" aria-label="Estilo visual">${THEMES.filter(t => !TEMAS_OFF[tipo]?.includes(t.id)).map(t => `
     <button type="button" class="tema-op" role="radio" data-id="${t.id}" aria-checked="${t.id === value}" title="${t.desc}">
       ${themeThumb(t.id)}<span class="tema-nombre">${t.name}</span></button>`).join('')}</div>`;
   container.querySelectorAll('.tema-op').forEach(b => b.onclick = () => {

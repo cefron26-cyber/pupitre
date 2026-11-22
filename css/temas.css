@@ -1119,3 +1119,41 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .escenario.tematico[data-tema="clasico"].inmersivo{--e-img:none; --e-scrim:none; --e-bg:#f4f6fb; --e-bg-solido:#1f3a68}
 .escenario.tematico[data-tema="clasico"].inmersivo .q-title{font-size:clamp(26px,5cqi,56px)}
 .escenario.tematico[data-tema="clasico"].inmersivo .option{min-height:clamp(84px,14cqi,150px)}
+
+/* ---------- Correcto bien visible (2026-11-22, pedido del docente) ----------
+   El verde de "bien" se confundía con las fichas verdes de la paleta. Ahora lo correcto es verde vivo con anillo blanco,
+   halo verde detrás y una ✓: se nota que ya quedó respondido. Vale para todos los estilos. */
+:root{--ok-vivo:#1fd65f; --ok-vivo-osc:#0c9a40; --ok-vivo-cla:#86f2ad; --ok-halo:rgba(40,225,105,.6)}
+.escenario.tematico[data-tema] :is(.match-item.matched,.classify-card.ok,.bin-chip.ok,.ws-word.done),
+.escenario.tematico[data-tema] .option.correct{
+  --cc:var(--ok-vivo); --tc:var(--ok-vivo);
+  background:linear-gradient(to top, var(--ok-vivo-osc), var(--ok-vivo) 55%, var(--ok-vivo-cla)) !important; color:#fff !important; filter:none !important; opacity:1 !important;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.16), 0 0 0 3px #fff, 0 0 0 6px var(--ok-vivo), 0 0 24px 8px var(--ok-halo) !important;
+  text-shadow:0 1px 1px rgba(0,0,0,.25); position:relative; z-index:1; overflow:visible !important}
+.escenario.tematico[data-tema] :is(.match-item.matched,.classify-card.ok,.bin-chip.ok,.ws-word.done)::after{
+  content:"✓"; position:absolute; top:-11px; right:-11px; width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  background:#fff; color:var(--ok-vivo-osc); font:900 18px/1 var(--font); box-shadow:0 2px 6px rgba(0,0,0,.25); animation:esc-sello .45s cubic-bezier(.3,1.9,.5,1) both}
+.escenario.tematico[data-tema] .mem-card.matched .front{box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--ok-vivo), 0 0 24px 8px var(--ok-halo) !important; border-color:var(--ok-vivo) !important}
+/* Las fichas de quiz conservan su ✓ dibujada (la marca grande y la chica) en lugar del sello */
+.escenario.tematico[data-tema] .option.correct::after{display:none}
+
+/* ---------- Cebollo acompaña en todas las actividades (pantalla completa del estudiante, 2026-11-22) ---------- */
+.esc-compa{position:absolute; left:clamp(6px,1.6vw,20px); bottom:calc(6px + env(safe-area-inset-bottom)); z-index:9; width:clamp(80px,9vw,110px);
+  aspect-ratio:104/120; pointer-events:none; transform-origin:50% 100%; visibility:hidden; opacity:0; translate:0 60%;
+  transition:translate .3s cubic-bezier(.2,.9,.3,1.2), opacity .2s, visibility 0s .3s}
+/* Solo al responder: sube desde abajo, reacciona y se va */
+.esc-compa.ve{visibility:visible; opacity:1; translate:0 0; transition:translate .3s cubic-bezier(.2,.9,.3,1.2), opacity .15s, visibility 0s}
+.esc-compa img{width:100%; height:100%; object-fit:contain; object-position:50% 100%; filter:drop-shadow(0 3px 0 rgba(0,0,0,.18))}
+.esc-compa.feliz{animation:masc-salta .6s cubic-bezier(.3,1.6,.5,1) both}
+.esc-compa.triste{animation:masc-no .5s ease both}
+.escenario:has(> .esc-portada) .esc-compa,.escenario:has(.esc-final) .esc-compa{display:none}
+/* La franja de respuesta deja libre la esquina de Cebollo */
+.player.inmersivo .feedback.franja{padding-left:max(clamp(16px,5vw,64px), clamp(86px,10.5vw,128px))}
+@media (prefers-reduced-motion: reduce){.esc-compa{animation:none !important}}
+
+/* ---------- Lectura y Audio (2026-11-22): la pregunta va al lado del texto, así que las opciones son más bajas para que
+   quepan las cuatro sin desplazarse (antes medían hasta 150 px y la última quedaba fuera de la pantalla). ---------- */
+.escenario.tematico:is([data-tipo="reading"],[data-tipo="listening"]) .option{min-height:clamp(50px,6.5cqi,74px) !important; font-size:clamp(17px,2.1cqi,24px)}
+.escenario.tematico:is([data-tipo="reading"],[data-tipo="listening"]) .q-title{font-size:clamp(22px,3.4cqi,40px) !important; margin-bottom:clamp(10px,1.8cqi,18px)}
+.escenario.tematico:is([data-tipo="reading"],[data-tipo="listening"]) .options{gap:clamp(8px,1.2cqi,12px)}
+
