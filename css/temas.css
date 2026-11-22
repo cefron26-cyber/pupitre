@@ -1157,3 +1157,17 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .escenario.tematico:is([data-tipo="reading"],[data-tipo="listening"]) .q-title{font-size:clamp(22px,3.4cqi,40px) !important; margin-bottom:clamp(10px,1.8cqi,18px)}
 .escenario.tematico:is([data-tipo="reading"],[data-tipo="listening"]) .options{gap:clamp(8px,1.2cqi,12px)}
 
+
+/* ---------- Ordenar como WordWall (2026-11-22): palabras que van seguidas en la oración (.par) y la oración terminada
+   (.fija) se ponen en letra verde, sin recuadro. Al marcarse (.recien) sale un ✓ blanco en un círculo verde que salta
+   y desaparece. Las .par se siguen pudiendo mover. ---------- */
+.escenario.tematico .slots.linea .word:is(.fija,.par),.escenario.tematico[data-tema] .slots.linea .word:is(.fija,.par){
+  background:none !important; box-shadow:none !important; filter:none; color:var(--ok-vivo-osc) !important; position:relative; overflow:visible}
+.escenario.tematico .slots.linea .word.par{cursor:grab}
+.escenario.tematico .slots.linea .word.recien{animation:none}
+.escenario.tematico .slots.linea .word.recien::after{content:"✓"; position:absolute; left:50%; top:50%; width:1.15em; height:1.15em; margin:-.575em 0 0 -.575em;
+  display:grid; place-items:center; border-radius:50%; background:var(--ok-vivo); color:#fff; font:normal 900 .62em/1 var(--font);
+  box-shadow:0 0 0 3px #fff, 0 4px 10px rgba(0,0,0,.2); pointer-events:none; animation:rd-chulito .95s ease-out forwards}
+/* Cada ✓ dura ~1 s: entra con rebote, se queda un momento y se va hacia arriba (la cola de reorder.js espera 1 s entre uno y otro) */
+@keyframes rd-chulito{0%{transform:scale(0); opacity:0} 18%{transform:scale(1.2); opacity:1} 28%{transform:scale(1)} 72%{transform:scale(1); opacity:1} 100%{transform:translateY(-.5em) scale(.85); opacity:0}}
+@media (prefers-reduced-motion: reduce){.escenario.tematico .slots.linea .word.recien::after{animation-duration:.01s}}

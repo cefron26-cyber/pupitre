@@ -116,8 +116,10 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   // (respuestas ocultas) se queda quieto para no delatar nada.
   const compa = inmersivo && decorado ? el(`<div class="esc-compa" aria-hidden="true"><img src="${urlEmote('sonrisa')}" alt="" draggable="false"></div>`) : null;
   if (compa) shell.append(compa);
-  let rachaCompa = 0, compaT = null;
-  const reaccionar = ok => {
+  let rachaCompa = 0, compaT = null, compaFb = null;
+  // fb: mensaje con botón (Siguiente/Continuar). Entonces Cebollo se queda hasta que ese mensaje se va (al avanzar);
+  // si no hay mensaje (una pareja, una carta…), se va solo a los 2 s.
+  const reaccionar = (ok, fb = null) => {
     if (!compa) return;
     rachaCompa = ok ? rachaCompa + 1 : 0;
     const img = compa.querySelector('img');
@@ -125,8 +127,11 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     compa.classList.remove('feliz', 'triste'); void compa.offsetWidth; compa.classList.add(ok ? 'feliz' : 'triste');
     compa.classList.add('ve');
     clearTimeout(compaT);
-    compaT = setTimeout(() => compa.classList.remove('ve'), 2200); // se va solo: no está siempre en pantalla
+    compaFb = fb;
+    if (!fb) compaT = setTimeout(() => compa.classList.remove('ve'), 2200); // se va solo: no está siempre en pantalla
   };
+  // Lo llama el observador de la actividad: el mensaje se fue (pulsó Siguiente) → Cebollo también.
+  const compaSigue = () => { if (compaFb && !compaFb.isConnected) { compaFb = null; compa?.classList.remove('ve'); } };
   const bar = shell.querySelector('.progress');
   const timerEl = shell.querySelector('.timer');
   const stage = shell.querySelector('.stage');
@@ -225,7 +230,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const OK = ['correct', 'matched', 'ok'], BAD = ['wrong', 'miss', 'bad'];
   // Se agrupan los cambios de un mismo momento: si hubo algún error suena (y no brilla) solo el error;
   // así, al fallar en el quiz, la ficha correcta que se muestra no lanza chispas.
-  let pend = null, okTargets = [], reacciona = false;
+  let pend = null, okTargets = [], reacciona = false, fbBoton = null, logro = false;
   const queue = (kind, target) => {
     if (hide) return;
     // En "Colores" la ficha correcta lleva su palomita dibujada (como WordWall): sin chispas encima.
@@ -235,17 +240,21 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     // Cebollo no sale por cada palabra que se fija en Ordenar: solo cuando la oración entera queda revisada (la línea y el
     // mensaje de correcto/incorrecto también entran por aquí). Pedido del docente, 2026-11-22.
     if (!target?.matches?.('.slots.linea .word')) reacciona = true;
+    if (target?.matches?.('.feedback') && target.querySelector('button')) fbBoton = target;
+    // Oración de Ordenar completa: sonido de logro (más largo) en vez del acierto de cada palabra.
+    if (kind === 'ok' && activity.type === 'reorder' && target?.matches?.('.feedback.ok, .slots.linea.ok')) logro = true;
     if (!pend) setTimeout(() => {
-      // Una palabra de Ordenar que se fija suena a "pieza en su lugar", no a acierto.
-      if (pend) { sound(pend === 'ok' && !reacciona ? 'pieza' : pend); if (reacciona) reaccionar(pend === 'ok'); }
+      if (pend) { sound(pend === 'ok' && logro ? 'logro' : pend); if (reacciona) reaccionar(pend === 'ok', fbBoton); }
       if (pend === 'ok') okTargets.forEach(chispas);
-      pend = null; okTargets = []; reacciona = false;
+      pend = null; okTargets = []; reacciona = false; fbBoton = null; logro = false;
     }, 60);
     if (pend !== 'bad') pend = kind === 'bad' ? 'bad' : pend || kind;
   };
   const judge = node => {
     if (node.nodeType !== 1) return;
     for (const x of [node, ...node.querySelectorAll('.correct, .matched, .ok, .wrong, .miss, .bad')]) {
+      // Ordenar reacomoda las palabras volviéndolas a insertar: eso no es un acierto nuevo (lo nuevo llega como cambio de clase).
+      if (x.matches('.slots.linea .word')) continue;
       if (BAD.some(c => x.classList.contains(c))) queue('bad', x);
       else if (OK.some(c => x.classList.contains(c))) queue('ok', x);
     }
@@ -300,7 +309,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
         const added = [...m.target.classList].filter(c => !was.includes(c));
         if (added.some(c => BAD.includes(c))) queue('bad', m.target); else if (added.some(c => OK.includes(c))) queue('ok', m.target);
       });
-      if (nuevos) ajustar();
+      if (nuevos) { ajustar(); compaSigue(); }
     });
   }
 

@@ -122,13 +122,17 @@ const KITS = {
   },
 };
 
-// Pieza en su lugar (Ordenar, 2026-11-22): "toc" corto y suave, distinto del acierto. El acierto (campanita) queda
-// solo para la oración completa. Igual en todos los estilos que tienen sonido.
-const PIEZA = () => { tone(vary(470, .05), .07, { type: 'triangle', vol: .16, to: 330 }); noise(.025, { filter: 'highpass', freq: 2600, vol: .05 }); };
+// Logro (2026-11-22): oración de Ordenar completa. Más largo y distinto del acierto: arpegio que sube, acorde que se
+// queda sonando y un brillo. Igual en todos los estilos que tienen sonido.
+const LOGRO = () => {
+  arp([N.C5, N.E5, N.G5, N.C6, N.E6], .09, (f, at) => bell(f, at, .16, .6));
+  [N.C5, N.E5, N.G5, N.C6].forEach(f => bell(f, .5, .09, 1.4));
+  noise(.4, { filter: 'highpass', freq: 5000, vol: .05, at: .48 });
+};
 
-/** Sonido del tema: 'tap' | 'ok' | 'bad' | 'end' | 'start' | 'pieza'. Nunca lanza error (sin audio = silencio). */
+/** Sonido del tema: 'tap' | 'ok' | 'bad' | 'end' | 'start' | 'logro'. Nunca lanza error (sin audio = silencio). */
 export function themeSound(id, kind) {
   const kit = KITS[themeById(id).kit];
   if (!kit) return;
-  try { if (audio()) (kind === 'pieza' ? PIEZA : kit[kind])?.(); } catch { /* sin sonido */ }
+  try { if (audio()) (kind === 'logro' ? LOGRO : kit[kind])?.(); } catch { /* sin sonido */ }
 }

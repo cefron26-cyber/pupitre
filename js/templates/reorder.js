@@ -1,6 +1,7 @@
 // Plantilla Reordenar oraciones: la oración aparece desordenada en una línea y el estudiante arrastra las palabras;
-// se reacomodan en vivo y la palabra que el estudiante deja en su lugar se pone verde y queda fija (las que solo se
-// corren por el movimiento de otra no se fijan, aunque caigan bien). Tocar dos palabras las cambia.
+// se reacomodan en vivo. Como en WordWall (2026-11-22, pedido del docente): se resuelve EN ORDEN desde el principio; una
+// palabra se pone verde con ✓ y queda fija (ya no se mueve) cuando ella y todas las anteriores están en su lugar. Las de
+// más atrás no se marcan aunque estén bien mientras falte alguna antes. La oración termina cuando todas están en orden. Tocar dos palabras las cambia.
 // En evaluación (respuestas ocultas) no se fija nada: se ordena y se comprueba al final.
 import { evalMode, neutralFb, el, esc, icons, shuffle } from '../ui.js';
 import { norm } from './fill.js';
@@ -93,7 +94,36 @@ export default {
 
     // En su lugar: se compara el texto (dos "the" valen igual). Fija: solo los lugares que el estudiante acertó a mano.
     const enLugar = k => norm(words()[st.order[k]]) === norm(words()[k]);
+    // Fija = parte del comienzo ya resuelto (st.fijas guarda esas posiciones). No se mueve ni la corren las demás.
     const fija = k => !alFinal && st.fijas.includes(k);
+    // Comienzo resuelto: desde la primera palabra, mientras cada una esté en su lugar (posiciones 0..n-1).
+    const resueltas = () => { let n = 0; while (n < st.order.length && enLugar(n)) n++; return n; };
+    // Las que entran al comienzo resuelto se traban en el acto (no se pueden mover) y se pintan en cola: de una en una
+    // (verde + ✓ + sonido de correcto); la siguiente sale cuando el ✓ de la anterior ya desapareció. Al retomar (sin
+    // animar) se pintan todas de una vez.
+    const marcarPares = animar => {
+      const n = resueltas();
+      for (let k = 0; k < n; k++) {
+        const b = nodo(st.order[k]); if (!b || b.classList.contains('trabada')) continue;
+        if (!st.fijas.includes(k)) st.fijas.push(k);
+        b.classList.add('trabada'); b.setAttribute('aria-disabled', 'true'); b.classList.remove('sel');
+        if (sel === st.order[k]) sel = null;
+        if (animar) encolar(b); else b.classList.add('ok', 'par');
+      }
+    };
+    // Cola de chulitos: uno a la vez, PASO ms cada uno (aparece, suena, se va).
+    const PASO = 1000;
+    let cola = [], corriendo = false, alVaciar = null, colaT = null;
+    const encolar = b => { if (!cola.includes(b)) cola.push(b); if (!corriendo) siguiente(); };
+    const siguiente = () => {
+      const b = cola.shift();
+      if (!b) { corriendo = false; const f = alVaciar; alVaciar = null; f?.(); return; }
+      corriendo = true;
+      if (!b.isConnected) return siguiente();
+      b.classList.add('ok', 'par'); chulito(b);
+      colaT = setTimeout(siguiente, PASO);
+    };
+    let cerrando = false;
     let linea, sel = null;
     const nodo = wi => linea.querySelector(`[data-wi="${wi}"]`);
     const sinMovimiento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -101,6 +131,7 @@ export default {
     const draw = () => {
       const w = words();
       sel = null;
+      clearTimeout(colaT); cola = []; corriendo = false; alVaciar = null; cerrando = false;
       root.innerHTML = '';
       const wrap = el(`<div class="reorder">
         <div class="small muted" style="margin-bottom:6px">Oración ${st.i + 1} de ${total} · ${alFinal ? 'Ordena las palabras y comprueba' : 'Arrastra las palabras hasta ordenar la oración'}</div>
@@ -119,14 +150,19 @@ export default {
         linea.append(b);
       });
       if (punto()) linea.append(el(`<span class="rd-punto" aria-hidden="true">${esc(punto())}</span>`));
+      if (!alFinal && !st.checked) marcarPares(false);
       wrap.querySelector('[data-check]')?.addEventListener('click', comprobar);
       root.append(wrap);
       if (st.checked) showFeedback();
     };
 
-    const marcar = (b, animar) => {
+    // ✓ blanco que salta y desaparece (una sola vez: la clase se quita al terminar, así reacomodar no lo repite).
+    const chulito = b => {
+      b.classList.remove('recien'); void b.offsetWidth; b.classList.add('recien');
+      clearTimeout(b._chulito); b._chulito = setTimeout(() => b.classList.remove('recien'), PASO - 50);
+    };
+    const marcar = b => {
       b.classList.add('ok', 'fija');
-      if (animar) b.classList.add('recien');
       b.setAttribute('aria-disabled', 'true');
       b.setAttribute('aria-label', `${b.textContent}, en su lugar`);
       b.classList.remove('sel');
@@ -161,18 +197,18 @@ export default {
       acomodar();
     };
 
-    // Al soltar: se fijan solo las palabras que movió el estudiante y quedaron bien; si toda la oración está bien, lista.
-    const asentar = movidas => {
-      if (!alFinal) movidas.forEach(wi => {
-        const k = st.order.indexOf(wi);
-        if (enLugar(k) && !st.fijas.includes(k)) { st.fijas.push(k); marcar(nodo(wi), true); }
-      });
+    // Al soltar: se marcan los pares buenos; si toda la oración está en orden, queda lista.
+    const asentar = () => {
       save();
       if (alFinal) return;
+      marcarPares(true);
       if (st.order.every((_, k) => enLugar(k))) {
+        // Oración completa: ya no se mueve nada; los ✓ que falten salen en fila y, al terminar, se cierra la oración.
+        cerrando = true;
         st.order.forEach((_, k) => { if (!st.fijas.includes(k)) st.fijas.push(k); });
-        linea.querySelectorAll('.word').forEach(b => { if (!b.classList.contains('fija')) marcar(b, true); b.disabled = true; });
-        setTimeout(() => terminarOracion(true), 500);
+        linea.querySelectorAll('.word').forEach(b => { b.disabled = true; if (!b.classList.contains('par')) encolar(b); });
+        const cerrar = () => { linea.querySelectorAll('.word').forEach(b => marcar(b)); terminarOracion(true); };
+        if (corriendo) alVaciar = cerrar; else cerrar();
       }
     };
 
@@ -181,7 +217,7 @@ export default {
       b.draggable = false;
       b.addEventListener('dragstart', e => e.preventDefault());
       b.addEventListener('pointerdown', e => {
-        if (e.button !== 0 || b.classList.contains('fija') || st.checked) return;
+        if (e.button !== 0 || b.classList.contains('trabada') || st.checked) return;
         e.preventDefault();
         const sx = e.clientX, sy = e.clientY;
         let ghost = null, dx = 0, dy = 0;
@@ -200,7 +236,7 @@ export default {
           ghost.style.left = ev.clientX - dx + 'px';
           ghost.style.top = ev.clientY - dy + 'px';
           // La palabra libre que está bajo el dedo cede su lugar en el acto.
-          const t = [...linea.querySelectorAll('.word:not(.fija):not(.dragging)')].find(x => {
+          const t = [...linea.querySelectorAll('.word:not(.trabada):not(.dragging)')].find(x => {
             const r = x.getBoundingClientRect();
             return ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top - 4 && ev.clientY <= r.bottom + 4;
           });
@@ -215,7 +251,7 @@ export default {
             const r = b.getBoundingClientRect(), g = ghost.getBoundingClientRect();
             ghost.remove(); b.classList.remove('dragging');
             if (!sinMovimiento()) b.animate([{ transform: `translate(${g.left - r.left}px,${g.top - r.top}px)` }, { transform: 'none' }], { duration: 160, easing: 'ease-out' });
-            asentar([wi]);
+            asentar();
             return;
           }
           if (ev.type !== 'pointercancel') tocar(wi);
@@ -226,13 +262,13 @@ export default {
       });
       // Teclado: Enter/Espacio elige y cambia; las flechas corren la palabra un lugar.
       b.addEventListener('keydown', e => {
-        if (b.classList.contains('fija') || st.checked) return;
+        if (b.classList.contains('trabada') || st.checked) return;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tocar(wi); return; }
         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
         e.preventDefault();
-        const libres = [...linea.querySelectorAll('.word:not(.fija)')];
+        const libres = [...linea.querySelectorAll('.word:not(.trabada)')];
         const vecino = libres[libres.indexOf(b) + (e.key === 'ArrowLeft' ? -1 : 1)];
-        if (vecino && mover(wi, +vecino.dataset.wi)) { asentar([wi]); b.focus(); }
+        if (vecino && mover(wi, +vecino.dataset.wi)) { asentar(); b.focus(); }
       });
     };
 
@@ -244,7 +280,7 @@ export default {
       nodo(otro)?.classList.remove('sel');
       if (otro === wi) return;
       intercambiar(otro, wi);
-      asentar([otro, wi]);
+      asentar();
     };
 
     const comprobar = () => {

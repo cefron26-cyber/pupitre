@@ -274,6 +274,7 @@ td.name{font-weight:600; white-space:normal}
 .slots.linea .word.dragging{opacity:.25}
 .slots.linea .word.sel{outline:3px solid var(--accent); outline-offset:3px; transform:translateY(-3px)}
 .slots.linea .word.fija{border-color:var(--success); background:var(--success-soft); color:var(--success); box-shadow:0 2px 0 var(--success); cursor:default}
+.slots.linea .word.par{color:var(--success)}
 .slots.linea .word.recien{animation:palabra-fija .4s cubic-bezier(.3,1.7,.5,1)}
 @keyframes palabra-fija{0%{transform:scale(.85)} 60%{transform:scale(1.12)} 100%{transform:none}}
 @media (prefers-reduced-motion: reduce){ .slots.linea .word.recien{animation:none} }
