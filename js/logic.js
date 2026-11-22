@@ -155,7 +155,7 @@ export const UNIT_BONUS_XP = 20;
 
 // Secciones de la unidad (como las lecciones de EVOLVE / Cambridge One). Si el docente no elige, se deduce del tipo.
 export const FASES = ['Vocabulario', 'Gramática', 'Lectura y escucha', 'Repaso', 'Evaluación'];
-const FASE_TIPO = { matching: 'Vocabulario', memory: 'Vocabulario', wordsearch: 'Vocabulario', crossword: 'Vocabulario', hangman: 'Vocabulario', classify: 'Vocabulario',
+const FASE_TIPO = { matching: 'Vocabulario', memory: 'Vocabulario', wordsearch: 'Vocabulario', crossword: 'Vocabulario', hangman: 'Vocabulario', classify: 'Vocabulario', anagram: 'Vocabulario', diagram: 'Vocabulario', random: 'Repaso',
   quiz: 'Gramática', fill: 'Gramática', reorder: 'Gramática', reading: 'Lectura y escucha', listening: 'Lectura y escucha', dictation: 'Lectura y escucha' };
 export const faseDe = (unit, act) => unit?.fases?.[act.id] || FASE_TIPO[act.type] || 'Gramática';
 

@@ -11,6 +11,13 @@ import dictation from './dictation.js';
 import wordsearch from './wordsearch.js';
 import hangman from './hangman.js';
 import crossword from './crossword.js';
+import anagram from './anagram.js';
+import diagram from './diagram.js';
+import random from './random.js';
 
-export const templateList = [quiz, matching, fill, reorder, classify, memory, reading, listening, dictation, wordsearch, hangman, crossword];
+// Diagrama con etiquetas: sin publicar todavía (2026-11-22). Solo aparece con el servidor local, no en GitHub Pages.
+export const SOLO_LOCAL = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+
+export const templateList = [quiz, matching, fill, reorder, classify, memory, reading, listening, dictation, wordsearch, hangman, crossword, anagram,
+  ...(SOLO_LOCAL ? [diagram] : []), random];
 export const templates = Object.fromEntries(templateList.map(t => [t.type, t]));

@@ -52,6 +52,16 @@ export const TEMPLATE_ART = {
   crossword: svg(`${[[1, 0], [1, 1], [1, 2], [1, 3], [0, 2], [2, 2], [3, 2], [3, 0], [3, 1], [3, 3], [4, 0]].map(([r, c]) =>
       `<rect x="${12 + c * 14}" y="${8 + r * 14}" width="13" height="13" rx="1.5" fill="${W}" stroke="${T}" stroke-width="1.2"/>`).join('')}
     ${txt(18.5, 28.5, 'C', 7, TD)}${txt(32.5, 28.5, 'A', 7, TD)}${txt(46.5, 28.5, 'T', 7, TD)}${txt(46.5, 14.5, 'S', 7, OK)}`),
+  anagram: svg(`${tile(10, 12, 17, 17, 'T', T, 9)}${tile(31.5, 12, 17, 17, 'A', P, 9)}${tile(53, 12, 17, 17, 'C', T, 9)}
+    ${tile(10, 48, 17, 17, 'C', OK, 9)}${slot(31.5, 48, 17, 17)}${slot(53, 48, 17, 17)}
+    ${arrow('M40 30 C 40 36, 40 40, 40 45', 'M40 47.5 l-2.4 -4 l4.8 0z')}`),
+  diagram: svg(`${card(22, 10, 36, 60)}<circle cx="40" cy="24" r="7" fill="${L}"/><rect x="31" y="34" width="18" height="24" rx="5" fill="${L}"/>
+    <circle cx="40" cy="24" r="2.2" fill="${W}" stroke="${TD}" stroke-width="1.2"/><circle cx="44" cy="46" r="2.2" fill="${W}" stroke="${TD}" stroke-width="1.2"/>
+    ${tile(4, 18, 15, 11, 'head', T, 5)}<path d="M19 23.5 H37.8" stroke="${P}" stroke-width="1.4"/>
+    ${tile(61, 40, 15, 11, 'arm', OK, 5.5)}<path d="M61 45.5 H46" stroke="${OK}" stroke-width="1.4"/>`),
+  random: svg(`${[T, P, OK, Y, TD, '#a36fe6'].map((c, k) => { const a0 = k * 60 * Math.PI / 180, a1 = (k + 1) * 60 * Math.PI / 180;
+      return `<path d="M42 40L${(42 + 28 * Math.cos(a0)).toFixed(1)} ${(40 + 28 * Math.sin(a0)).toFixed(1)}A28 28 0 0 1 ${(42 + 28 * Math.cos(a1)).toFixed(1)} ${(40 + 28 * Math.sin(a1)).toFixed(1)}Z" fill="${c}"/>`; }).join('')}
+    <circle cx="42" cy="40" r="6" fill="${W}"/><path d="M5 34h6v-4l7 10-7 10v-4H5z" fill="${W}" stroke="${G}" stroke-width="1.2" stroke-linejoin="round"/>`),
 };
 // "Todas": un montoncito de fichas de colores.
 export const ALL_ART = svg(`${tile(10, 10, 27, 27, '', T)}${tile(43, 10, 27, 27, '', P)}${tile(10, 43, 27, 27, '', OK)}${tile(43, 43, 27, 27, '', Y)}

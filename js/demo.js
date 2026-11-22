@@ -15,6 +15,26 @@ function emojiPng(emoji, bg) {
   } catch { return ''; }
 }
 
+// Diagrama con etiquetas: una cara sencilla dibujada en un canvas (JPEG, que safeSrc acepta).
+function caraPng() {
+  try {
+    const c = document.createElement('canvas'); c.width = 640; c.height = 480;
+    const g = c.getContext('2d');
+    g.fillStyle = '#e8f1fb'; g.fillRect(0, 0, 640, 480);
+    g.lineWidth = 5; g.strokeStyle = '#16213d';
+    const elipse = (x, y, rx, ry, fill) => { g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); g.stroke(); };
+    elipse(198, 250, 30, 44, '#f4c39d'); elipse(442, 250, 30, 44, '#f4c39d');          // orejas
+    elipse(320, 250, 128, 160, '#f7d0ae');                                               // cara
+    g.beginPath(); g.ellipse(320, 140, 140, 86, 0, Math.PI, Math.PI * 2); g.lineTo(460, 170); g.quadraticCurveTo(320, 120, 180, 170); g.closePath();
+    g.fillStyle = '#6b3f22'; g.fill(); g.stroke();                                        // pelo
+    elipse(272, 236, 20, 24, '#fff'); elipse(368, 236, 20, 24, '#fff');                  // ojos
+    g.fillStyle = '#16213d'; [272, 368].forEach(x => { g.beginPath(); g.arc(x, 240, 9, 0, Math.PI * 2); g.fill(); });
+    g.beginPath(); g.moveTo(320, 262); g.quadraticCurveTo(300, 300, 322, 306); g.stroke(); // nariz
+    g.beginPath(); g.moveTo(276, 340); g.quadraticCurveTo(320, 378, 364, 340); g.stroke(); // boca
+    return c.toDataURL('image/jpeg', 0.85);
+  } catch { return ''; }
+}
+
 const tf = (q, verdadero) => ({ q, options: ['True', 'False'], correct: verdadero ? 0 : 1, tf: true });
 
 export function demoPack({ schoolId, ownerId, courseId, daysAgo }) {
@@ -99,6 +119,21 @@ export function demoPack({ schoolId, ownerId, courseId, daysAgo }) {
     { answer: 'lunch', clue: 'The meal in the middle of the day.' },
     { answer: 'dinner', clue: 'The meal in the evening.' },
     { answer: 'snack', clue: 'A small amount of food between meals.' },
+  ] }, 1);
+
+  act('act-demo-anagram', 'anagram', 'Demo · Anagrama: daily routine', 'clasico', 'Put the letters in order.', { items: [
+    { word: 'breakfast', hint: 'You eat it in the morning.' },
+    { word: 'shower', hint: 'You wash your body here.' },
+    { word: 'homework', hint: 'Tasks from school you do at home.' },
+  ] }, 1);
+  // El diagrama aún no se publica: su demo solo con el servidor local (ver SOLO_LOCAL en templates/index.js).
+  if (['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) act('act-demo-diagram', 'diagram', 'Demo · Diagrama: my face', 'clasico', 'Drag the labels to the picture.', { image: caraPng(), labels: [
+    { text: 'hair', x: 50, y: 16 }, { text: 'eye', x: 57.5, y: 49 }, { text: 'ear', x: 31, y: 52 },
+    { text: 'nose', x: 50, y: 61 }, { text: 'mouth', x: 50, y: 74 },
+  ] }, 1);
+  act('act-demo-random', 'random', 'Demo · Al azar: talk about your day', 'clasico', 'Spin the wheel and answer.', { look: 'wheel', items: [
+    { text: 'What time do you get up?' }, { text: 'What do you eat for breakfast?' }, { text: 'How do you go to school?' },
+    { text: 'What do you do after school?' }, { text: 'When do you do your homework?' }, { text: 'What time do you go to bed?' },
   ] }, 1);
 
   // Unidad de prueba: 5 actividades, en el orden de la unidad (vocabulario → gramática → lectura/escucha → evaluación).

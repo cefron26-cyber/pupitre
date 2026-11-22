@@ -4,6 +4,7 @@ import { esc, el, $, toast, confirmDialog, fmtDate, fmtAgo, fmtDuration, grade, 
 import { templates, templateList } from '../templates/index.js';
 import { armarCrucigrama } from '../templates/crossword.js';
 import { letras } from '../templates/wordsearch.js';
+import { safeSrc } from '../imagenes.js';
 import { mountPlayer } from '../player.js';
 import { progressOf, activityIdsOf, gradeLabel } from '../logic.js';
 import { themePicker, DEFAULT_THEME, themeById } from '../temas.js';
@@ -248,8 +249,8 @@ export async function chooseType(root, { query }) {
       return;
     }
     // Agrupadas por propósito, como se arma una clase.
-    const GRUPOS = [['Vocabulario', ['matching', 'memory', 'wordsearch', 'crossword', 'hangman', 'classify']],
-      ['Gramática', ['quiz', 'fill', 'reorder']], ['Comprensión', ['reading', 'listening', 'dictation']]];
+    const GRUPOS = [['Vocabulario', ['matching', 'memory', 'anagram', 'diagram', 'wordsearch', 'crossword', 'hangman', 'classify']],
+      ['Gramática', ['quiz', 'fill', 'reorder']], ['Comprensión', ['reading', 'listening', 'dictation']], ['Para la clase', ['random']]];
     $('#tpls', root).innerHTML = GRUPOS.map(([n, tipos]) => { const ts = list.filter(t => tipos.includes(t.type)); return ts.length ? `<h2 class="tpl-group">${n}</h2><div class="tpl-list">${ts.map(card).join('')}</div>` : ''; }).join('');
   };
   $('#tplq', root).oninput = draw;
@@ -268,6 +269,7 @@ const INSTR_EJ = {
   reorder: 'Put the words in order.', classify: 'Put each word in the correct group.', memory: 'Find the pairs.',
   reading: 'Read the text and answer the questions.', listening: 'Listen and answer the questions.', dictation: 'Listen and write what you hear.',
   wordsearch: 'Find the words.', hangman: 'Guess the word.', crossword: 'Complete the crossword.',
+  anagram: 'Put the letters in order.', diagram: 'Drag the labels to the picture.', random: 'Spin the wheel and answer.',
 };
 
 export async function editor(root, { user, params, query }) {
@@ -401,6 +403,8 @@ function termsOf(a) {
     case 'crossword': return (c.items || []).map(i => ({ term: i.answer, def: i.clue })).filter(x => x.term);
     case 'hangman': return (c.items || []).map(i => ({ term: i.word, def: i.hint })).filter(x => x.term);
     case 'wordsearch': return (c.items || []).map(i => ({ term: i.word, def: '' })).filter(x => x.term);
+    case 'anagram': return (c.items || []).map(i => ({ term: i.word, def: i.hint || '' })).filter(x => x.term);
+    case 'random': return (c.items || []).map(i => ({ term: i.text, def: '' })).filter(x => x.term);
     default: return null;
   }
 }
@@ -415,6 +419,10 @@ const CONVERTIR = {
     make: t => ({ items: t.filter(x => PALABRA.test(x.term) && x.term.length <= 12).slice(0, 15).map(x => ({ word: x.term.toLowerCase() })), diagonal: true, backwards: false }) },
   hangman: { need: t => t.some(x => PALABRA.test(x.term)), why: 'Hace falta al menos una palabra sin espacios.',
     make: t => ({ items: t.filter(x => PALABRA.test(x.term)).slice(0, 15).map(x => ({ word: x.term.toLowerCase(), hint: x.def || '' })), lives: 6 }) },
+  anagram: { need: t => t.some(x => PALABRA.test(x.term) && x.term.length <= 16), why: 'Hace falta al menos una palabra sin espacios (máx. 16 letras).',
+    make: t => ({ items: t.filter(x => PALABRA.test(x.term) && x.term.length <= 16).slice(0, 20).map(x => ({ word: x.term.toLowerCase(), hint: x.def || '' })) }) },
+  random: { need: t => t.length >= 2, why: 'Hacen falta al menos 2 palabras.',
+    make: t => ({ look: 'wheel', items: t.slice(0, 24).map(x => ({ text: x.term })) }) },
 };
 
 export async function preview(root, { params }) {
@@ -540,6 +548,9 @@ export function snippet(a) {
     case 'wordsearch': return words((c.items || []).map(i => i.word));
     case 'hangman': return (c.items || []).map(i => '_ '.repeat(Math.min(i.word?.length || 0, 8)).trim())[0] || '';
     case 'crossword': return words((c.items || []).map(i => i.answer));
+    case 'anagram': return words((c.items || []).map(i => i.word));
+    case 'random': return words((c.items || []).map(i => i.text));
+    case 'diagram': return words((c.labels || []).map(l => l.text));
     default: return '';
   }
 }
@@ -580,6 +591,15 @@ export function actThumb(a) {
       body = `<span class="mt-cw" style="--px:${px}px;grid-template-columns:repeat(${L.w},${px}px);grid-template-rows:repeat(${L.h},${px}px)">${[...casillas].map(k => { const [r, cc] = k.split(',').map(Number); return `<i style="grid-area:${r + 1}/${cc + 1}"></i>`; }).join('')}</span>`;
       break;
     }
+    case 'anagram': {
+      const w = String(c.items?.[0]?.word || '').replace(/\s+/g, '').slice(0, 7);
+      body = `<span class="mt-an">${[...w].reverse().map(l => `<i>${e(l)}</i>`).join('')}</span><span class="mt-an vacias">${[...w].map(() => '<i></i>').join('')}</span>`;
+      break;
+    }
+    case 'diagram': body = `<span class="mt-dg">${safeSrc(c.image) ? `<img src="${safeSrc(c.image)}" alt="">` : ''}${(c.labels || []).slice(0, 5).map(l => `<i style="left:${Number(l.x) || 0}%;top:${Number(l.y) || 0}%"></i>`).join('')}</span>`; break;
+    case 'random': body = c.look === 'boxes' ? `<span class="mt-cajas">${(c.items || []).slice(0, 8).map((_, k) => `<i>${k + 1}</i>`).join('')}</span>`
+      : c.look === 'cards' ? `<span class="mt-cartas"><i></i><b>${e(cut(c.items?.[0]?.text || '', 22))}</b></span>`
+      : '<span class="mt-rueda"></span>'; break;
     default: body = `<b class="mt-q">${e(snippet(a))}</b>`;
   }
   return `<div class="act-thumb mini" data-tipo="${a.type}" aria-hidden="true"><span class="at-k">${e(templates[a.type]?.label || '')}</span>${body}</div>`;

@@ -45,6 +45,9 @@ const CONSIGNA = {
   wordsearch: 'Find the words.',
   hangman: 'Guess the word.',
   crossword: 'Complete the crossword.',
+  anagram: 'Put the letters in order.',
+  diagram: 'Drag the labels to the picture.',
+  random: '',
 };
 
 // clock: { mode: 'up' (cronómetro) | 'down' (cuenta regresiva) | 'none', limitSec, deadlineAt (ms), onHidden(n) }. Lo decide el docente.

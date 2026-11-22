@@ -18,7 +18,7 @@ export function slicesOf(act) {
   const one = (key, list) => list.map(x => ({ ...c, [key]: [x] }));
   switch (act.type) {
     case 'quiz': case 'reading': case 'listening': return c.questions?.length ? one('questions', c.questions) : [c];
-    case 'fill': case 'reorder': case 'dictation': case 'hangman': return c.items?.length ? one('items', c.items) : [c];
+    case 'fill': case 'reorder': case 'dictation': case 'hangman': case 'anagram': return c.items?.length ? one('items', c.items) : [c];
     case 'classify': {
       const flat = c.groups.flatMap((g, gi) => g.items.map(item => ({ gi, item })));
       return flat.length ? flat.map(({ gi, item }) => ({ ...c, groups: c.groups.map((g, k) => ({ ...g, items: k === gi ? [item] : [] })) })) : [c];
@@ -34,7 +34,7 @@ function respuestaDe(act, c) {
     case 'fill': return (c.items?.[0]?.text.match(/\{\{(.+?)\}\}/g) || []).map(m => m.slice(2, -2).split('|')[0]).join(' · ');
     case 'reorder': return c.items?.[0]?.sentence || '';
     case 'dictation': return c.items?.[0]?.text || '';
-    case 'hangman': return c.items?.[0]?.word || '';
+    case 'hangman': case 'anagram': return c.items?.[0]?.word || '';
     case 'classify': { const g = c.groups.find(x => x.items.length); return g ? `${g.items[0]} → ${g.name}` : ''; }
     default: return '';
   }
