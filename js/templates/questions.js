@@ -3,6 +3,9 @@
 import { el, esc, icons, shuffle, evalMode, neutralFb, confirmDialog } from '../ui.js';
 
 const LETTERS = 'ABCD';
+// Palomita grande que se dibuja y se va + marca chica que queda (✓); ✗ chica en la elegida mal. Las pinta el CSS de "Colores".
+export const MARCA_OK = '<svg class="marca-grande" viewBox="0 0 100 100" aria-hidden="true"><path d="M18 52 L42 76 L84 22" pathLength="1"/></svg><svg class="marca" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" pathLength="1"/></svg>';
+export const MARCA_MAL = '<svg class="marca x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" pathLength="1"/></svg>';
 const TF = ['True', 'False'];
 
 export const emptyQuestion = () => ({ q: '', options: ['', ''], correct: 0 });
@@ -104,9 +107,9 @@ export function questionsPlayer(root, questions, st, { onChange, onDone }) {
     root.innerHTML = '';
     const wrap = el(`<div>
       ${examen ? navHTML() : ''}
-      <div class="small muted" style="margin-bottom:6px">Pregunta ${st.i + 1} de ${total}${q.tf ? ' · ¿Verdadero o falso?' : ''}</div>
+      <div class="small muted q-cuenta" style="margin-bottom:6px">Pregunta ${st.i + 1} de ${total}${q.tf ? ' · ¿Verdadero o falso?' : ''}</div>
       <p class="q-title">${esc(q.q)}</p>
-      <div class="options ${q.tf ? 'tf' : ''}" role="group" aria-label="Opciones"></div>
+      <div class="options ${q.tf ? 'tf' : ''}" data-paleta="${st.i % 2}" role="group" aria-label="Opciones"></div>
       <div class="fb-slot" role="status" aria-live="polite"></div>
     </div>`);
     const box = wrap.querySelector('.options');
@@ -159,9 +162,11 @@ export function questionsPlayer(root, questions, st, { onChange, onDone }) {
       b.disabled = true;
       const oi = +b.dataset.oi;
       if (hide) { if (oi === ans.givenIndex) b.classList.add('picked'); return; }
-      if (oi === q.correct) b.classList.add('correct');
-      else if (oi === ans.givenIndex) b.classList.add('wrong');
+      // Marcas que se dibujan (las muestra el estilo "Colores", como WordWall): ✓ en la correcta, ✗ en la elegida mal.
+      if (oi === q.correct) { b.classList.add('correct'); b.insertAdjacentHTML('beforeend', MARCA_OK); }
+      else if (oi === ans.givenIndex) { b.classList.add('wrong'); b.insertAdjacentHTML('beforeend', MARCA_MAL); }
     });
+    if (!hide) root.querySelector('.options')?.classList.add('respondida', ans.correct ? 'acerto' : 'fallo');
     const last = st.i === total - 1;
     const fb = el(`<div class="feedback ${hide ? 'neutral' : ans.correct ? 'ok' : 'bad'}">
       ${hide ? neutralFb() : `<span>${ans.correct ? '¡Correcto!' : `La respuesta era: <b>${esc(q.options[q.correct])}</b>`}</span>`}

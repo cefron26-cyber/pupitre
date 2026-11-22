@@ -4,7 +4,8 @@ import { evalMode, neutralFb, el, esc, icons } from '../ui.js';
 import { letras } from './wordsearch.js';
 
 const MIN = 1, MAX = 15, LARGO = 24;
-const FILAS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; // en rejilla A–Z, como WordWall
+const MARCA = '<svg class="hm-marca" viewBox="0 0 100 100" aria-hidden="true"><path d="M18 52 L42 76 L84 22" pathLength="1"/></svg>';
 const valida = s => /^[\p{L}\s'-]+$/u.test(s.trim());
 const base = ch => letras(ch); // "é" → "E"; espacio/guion → ""
 
@@ -99,12 +100,13 @@ export default {
     const errores = () => st.guessed.filter(l => !objetivo().has(l)).length;
     const gano = () => [...objetivo()].every(l => st.guessed.includes(l));
 
-    const palabraHTML = (revelar = false) => [...item().word].map(ch => {
+    // Cada palabra va en un bloque que no se parte: una frase solo baja de línea entre palabras.
+    const palabraHTML = (revelar = false) => item().word.split(' ').map(pal => `<span class="hm-palabra">${[...pal].map(ch => {
       const b = base(ch);
-      if (!b) return ch === ' ' ? '<span class="hm-gap"></span>' : `<span class="hm-sym">${esc(ch)}</span>`;
+      if (!b) return `<span class="hm-sym">${esc(ch)}</span>`;
       const visto = st.guessed.includes(b);
       return `<span class="hm-slot ${visto ? 'shown' : revelar ? 'reveal' : ''}">${visto || revelar ? esc(ch.toUpperCase()) : ''}</span>`;
-    }).join('');
+    }).join('')}</span>`).join('');
 
     const draw = () => {
       root.innerHTML = '';
@@ -118,8 +120,8 @@ export default {
             <div class="hm-word" data-word aria-live="polite"></div>
             <div class="hm-lives" data-lives></div>
           </div>
+          <div class="hm-keys" aria-label="Teclado">${[...ABC].map(l => `<button class="hm-key" type="button" data-l="${l}" aria-label="Letra ${l}">${l}</button>`).join('')}</div>
         </div>
-        <div class="hm-keys" aria-label="Teclado">${FILAS.map(f => `<div class="hm-row">${[...f].map(l => `<button class="hm-key" type="button" data-l="${l}" aria-label="Letra ${l}">${l}</button>`).join('')}</div>`).join('')}</div>
         <div class="fb-slot" role="status" aria-live="polite"></div>
       </div>`);
       ui = { wrap, word: wrap.querySelector('[data-word]'), fig: wrap.querySelector('.hm-fig'), lives: wrap.querySelector('[data-lives]') };
@@ -175,6 +177,11 @@ export default {
         ${hide() ? neutralFb() : `<span>${a.correct ? '¡Adivinaste!' : `La palabra era: <b>${esc(item().word)}</b>`}</span>`}
         <button class="btn" type="button">${last ? evalMode.fin : 'Siguiente'}</button></div>`);
       fb.querySelector('button').onclick = next;
+      // Momento propio al terminar la palabra: palomita grande que entra (ganó) o acercamiento al dibujo (perdió).
+      if (!hide()) {
+        ui.wrap.classList.add(a.correct ? 'gano' : 'perdio');
+        if (a.correct && !ui.wrap.querySelector('.hm-marca')) ui.wrap.querySelector('.hm-play').insertAdjacentHTML('beforeend', MARCA);
+      }
       ui.wrap.querySelector('.fb-slot').replaceChildren(fb);
       fb.querySelector('button').focus({ preventScroll: true });
     };

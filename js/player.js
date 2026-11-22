@@ -56,8 +56,9 @@ const CONSIGNA = {
 // unidad: { href } → botón "Ver unidad" junto a la ✕: muestra el camino de la unidad (el avance queda guardado).
 // portada: false la quita (dentro de una unidad se pasa directo a la actividad).
 // colores: true deja las fichas de colores del estilo (Presentar en clase); si no, fichas neutras y verde/rojo solo al corregir.
+// finalFijo + onReplay: el cierre queda dentro del escenario (puntaje, tiempo, "Volver a empezar"); lo usa la vista previa del docente.
 export function mountPlayer(root, { activity, saved = null, durationSec = 0, onProgress = () => {}, onFinish = () => {}, clock = { mode: 'up' }, hideAnswers = false, theme = null, ceremonia = true,
-  salir = null, unidad = null, tramo = null, portada = true, colores = false, encabezado = null }) {
+  salir = null, unidad = null, tramo = null, portada = true, colores = false, encabezado = null, finalFijo = false, onReplay = null }) {
   evalMode.hide = !!hideAnswers;
   evalMode.fin = tramo ? 'Continuar' : 'Ver resultado';
   const hide = !!hideAnswers;
@@ -79,10 +80,15 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
 
   root.innerHTML = '';
   const inmersivo = !!salir;
+  // Como en WordWall: fuera de la pantalla completa del estudiante, tras responder se avanza solo (un toque adelanta).
+  // No en evaluaciones (respuestas ocultas) ni en Presentar (sin ceremonia: el docente lleva el ritmo).
+  const autoAvance = decorado && !inmersivo && !hide && ceremonia;
+  // Cebollo del cierre: se precarga para que su marco no aparezca vacío.
+  if (decorado && ceremonia && !finalFijo) ['pulgar', 'sonrisa', 'ok', 'brazos', 'triste', 'copa'].forEach(n => { const i = new Image(); i.src = urlEmote(n); });
   const botones = `<span class="esc-btns">
         <button type="button" class="esc-btn" data-b="sonido" aria-label="${muted() ? 'Activar sonido' : 'Silenciar'}" aria-pressed="${!muted()}">${muted() ? ICON.off : ICON.on}</button>
         <button type="button" class="esc-btn" data-b="full" aria-label="Pantalla completa">${ICON.full}</button></span>`;
-  const shell = el(`<div class="player escenario ${decorado ? 'tematico' : ''} ${inmersivo ? 'inmersivo' : ''} ${colores ? '' : 'neutro'}" data-tema="${tema}">
+  const shell = el(`<div class="player escenario ${decorado ? 'tematico' : ''} ${inmersivo ? 'inmersivo' : ''} ${colores ? '' : 'neutro'}" data-tema="${tema}" data-tipo="${esc(activity.type)}">
     ${decorado ? '<div class="esc-fondo" aria-hidden="true"></div>' : ''}
     <div class="player-top">
       ${inmersivo ? `<button type="button" class="esc-btn esc-salir" data-b="salir" aria-label="Salir (tu avance queda guardado)">${ICON.cerrar}</button>` : ''}
@@ -90,6 +96,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
       ${inmersivo && !decorado && encabezado ? `<div class="pt-head"><b>${esc(encabezado.titulo)}</b>${encabezado.detalle ? `<span>${esc(encabezado.detalle)}</span>` : ''}</div>` : ''}
       <div class="progress" role="progressbar" aria-label="Progreso" aria-valuemin="0" aria-valuemax="100"><i style="width:0%"></i></div>
       <span class="timer ${clock.mode === 'none' ? 'off' : ''} ${clock.mode === 'down' ? 'down' : ''}" aria-label="${clock.mode === 'down' ? 'Tiempo restante' : 'Tiempo'}" ${clock.mode === 'none' ? 'hidden' : ''}></span>
+      ${decorado && !inmersivo && !hide ? '<span class="esc-aciertos" aria-label="Aciertos">✓ <b>0</b></span>' : ''}
       ${inmersivo && decorado ? botones : ''}
     </div>
     <div class="esc-cuerpo ${decorado ? '' : 'card'}">
@@ -112,11 +119,14 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     const p = Math.round(avance(st && st.total ? Math.min(st.done / st.total, 1) : 0));
     bar.firstElementChild.style.width = p + '%';
     bar.setAttribute('aria-valuenow', p);
+    const aciertos = shell.querySelector('.esc-aciertos b');
+    if (aciertos && Array.isArray(st?.answers)) aciertos.textContent = st.answers.filter(a => a?.correct).length;
     if (!puntos || !st?.total) return;
     const total = st.total, done = Math.min(st.done || 0, total);
-    if (total <= 12) puntos.innerHTML = Array.from({ length: total }, (_, k) => `<i class="${k < done ? 'hecho' : k === done ? 'actual' : ''}"></i>`).join('');
-    else puntos.innerHTML = '';
-    cuenta.textContent = total > 12 ? `${Math.min(done + 1, total)} / ${total}` : '';
+    // Como en WordWall: "2 de 4" (los puntos quedan solo en Presentar, que oculta esta barra).
+    puntos.innerHTML = '';
+    const actual = Number.isInteger(st.i) ? st.i + 1 : done + 1; // la pregunta en pantalla (no cambia al responder)
+    cuenta.textContent = `${Math.min(actual, total)} de ${total}`;
   };
   setBar(saved);
   shell.querySelector('[data-b="sonido"]')?.addEventListener('click', e => {
@@ -134,9 +144,13 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     if (!finished && lastState) safe(() => onProgress(lastState, seconds));
     location.hash = unidad.href;
   });
+  // Pantalla completa; si el navegador no la concede (iPhone, marcos), el escenario se agranda a toda la ventana.
   shell.querySelector('[data-b="full"]')?.addEventListener('click', () => {
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else shell.requestFullscreen?.().catch(() => {});
+    if (document.fullscreenElement) return void document.exitFullscreen().catch(() => {});
+    if (shell.classList.contains('esc-max')) return void shell.classList.remove('esc-max');
+    const pedir = shell.requestFullscreen || shell.webkitRequestFullscreen;
+    const max = () => shell.classList.add('esc-max');
+    try { const p = pedir?.call(shell); if (p?.catch) p.catch(max); else if (!pedir) max(); } catch { max(); }
   });
 
   // ---------- Chispas al acertar (desde el centro de la ficha) ----------
@@ -176,7 +190,10 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   let pend = null, okTargets = [];
   const queue = (kind, target) => {
     if (hide) return;
-    if (kind === 'ok' && target && !target.classList.contains('feedback')) okTargets.push(target);
+    // En "Colores" la ficha correcta lleva su palomita dibujada (como WordWall): sin chispas encima.
+    // Tampoco en las letras del ahorcado ni en las palabras de reordenar (destellan y se marcan solas).
+    if (kind === 'ok' && target && !target.classList.contains('feedback') && !target.matches('.hm-key, .slots.linea .word, input.gap')
+      && !(tema === 'clasico' && target.classList.contains('option'))) okTargets.push(target);
     if (!pend) setTimeout(() => {
       if (pend) sound(pend);
       if (pend === 'ok') okTargets.forEach(chispas);
@@ -207,6 +224,28 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     if (ok && racha >= 2) fb.querySelector(':scope > span:not(.fb-masc)')?.insertAdjacentHTML('beforeend', ` <span class="fb-racha">🔥 ${racha} seguidas</span>`);
   };
   const franjas = inmersivo ? new MutationObserver(list => list.forEach(m => m.addedNodes.forEach(franja))) : null;
+  // ---------- Avance automático (vista previa y actividades sueltas con estilo) ----------
+  // La plantilla sigue poniendo su mensaje con "Siguiente"; aquí se oculta el botón y se pulsa solo.
+  // Quiz y ahorcado ya muestran la respuesta en las fichas/letras; Reordenar y Completar dejan ver la corrección un poco más.
+  const conCorreccion = ['reorder', 'fill', 'dictation'].includes(activity.type);
+  let autoT = null;
+  const auto = node => {
+    if (node.nodeType !== 1) return;
+    const fb = node.matches?.('.feedback') ? node : node.querySelector?.('.feedback');
+    if (!fb || fb.dataset.auto || !(fb.classList.contains('ok') || fb.classList.contains('bad'))) return;
+    const btn = fb.querySelector('button');
+    if (!btn) return;
+    fb.dataset.auto = '1';
+    const ok = fb.classList.contains('ok');
+    fb.classList.add('auto', conCorreccion && !ok ? 'auto-ver' : 'auto-oculto');
+    let ido = false;
+    const ir = () => { if (ido || !btn.isConnected) return; ido = true; clearTimeout(autoT); stage.removeEventListener('pointerdown', ir); btn.click(); };
+    clearTimeout(autoT);
+    autoT = setTimeout(ir, ok ? 1600 : conCorreccion ? 3200 : 2300);
+    // Un toque en el escenario adelanta (después de un instante, para no saltarse la animación de la marca).
+    setTimeout(() => stage.addEventListener('pointerdown', ir, { once: true }), 500);
+  };
+  const autos = autoAvance ? new MutationObserver(list => list.forEach(m => m.addedNodes.forEach(auto))) : null;
   let watcher = null;
   if (decorado) {
     root.addEventListener('pointerdown', e => { if (e.target.closest?.(TAP) && !e.target.closest(':disabled')) sound('tap'); });
@@ -264,7 +303,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   }, 1000);
   let inst = null; // lo que devuelve la plantilla (opcional { destroy })
   const stop = () => {
-    evalMode.hide = false; watcher?.disconnect(); franjas?.disconnect(); clearInterval(tick); document.removeEventListener('visibilitychange', onVis);
+    evalMode.hide = false; watcher?.disconnect(); franjas?.disconnect(); autos?.disconnect(); clearTimeout(autoT); clearInterval(tick); document.removeEventListener('visibilitychange', onVis);
     if (document.fullscreenElement === shell) document.exitFullscreen().catch(() => {});
     try { inst?.destroy?.(); } catch {} inst = null;
   };
@@ -272,7 +311,24 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const safe = fn => { try { return fn(); } catch (e) { console.error(e); } };
 
   // ---------- Cierre: puntaje grande y estrellas; luego sigue la plataforma (resultado, siguiente actividad) ----------
+  // Vista previa (finalFijo): "¡Terminaste!" con contorno y una tarjeta compacta que se queda: puntaje, tiempo, volver a empezar.
+  const cierreFijo = (result, done) => {
+    stage.replaceChildren();
+    const box = el(`<div class="esc-final fijo" role="status">
+      <b class="esc-fin-titulo">¡Terminaste!</b>
+      <div class="esc-fin-tarjeta">
+        <div class="esc-fin-datos">
+          ${hide ? '' : `<span><small>Puntuación</small><b>${result.score}<i>/${result.maxScore}</i></b></span>`}
+          <span><small>Tiempo</small><b>${fmtDuration(seconds)}</b></span></div>
+        ${onReplay ? '<button type="button" class="esc-fin-op" data-replay>Volver a empezar</button>' : ''}</div></div>`);
+    box.querySelector('[data-replay]')?.addEventListener('click', () => onReplay());
+    shell.append(box);
+    done();
+  };
   const cierre = (result, done) => {
+    if (finalFijo) return cierreFijo(result, done);
+    // La última pregunta no queda asomada (con su "Ver resultado") detrás ni después del cierre.
+    stage.replaceChildren();
     const pct = result.maxScore ? result.score / result.maxScore : 0;
     const estrellas = pct >= .9 ? 3 : pct >= .6 ? 2 : pct > 0 ? 1 : 0;
     const frase = hide ? '¡Terminaste!' : ['¡Sigue practicando!', '¡Casi lo logras!', '¡Muy bien!', '¡Excelente!'][estrellas];
@@ -319,8 +375,10 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
       // Se observa después de pintar la primera vez: al retomar no suenan las respuestas viejas.
       watcher?.observe(stage, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
       franjas?.observe(stage, { subtree: true, childList: true });
+      autos?.observe(stage, { subtree: true, childList: true });
       // Al retomar, la respuesta ya dada se pinta antes de observar: convertirla también en franja.
       stage.querySelectorAll('.feedback').forEach(franja);
+      if (autos) stage.querySelectorAll('.feedback').forEach(auto);
     } catch (e) {
       console.error(e);
       // Si el progreso guardado no sirve, empezar limpio en vez de bloquear.

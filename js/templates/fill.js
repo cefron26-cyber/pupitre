@@ -1,5 +1,6 @@
 // Plantilla Completar texto: huecos {{resp}} o {{resp1|resp2}}, banco de palabras opcional.
 import { evalMode, neutralFb, el, esc, icons, shuffle } from '../ui.js';
+import { MARCA_OK, MARCA_MAL } from './questions.js';
 
 const GAP_RE = /\{\{(.+?)\}\}/g;
 export const norm = s => String(s).trim().toLowerCase().replace(/[’‘`´]/g, "'").replace(/\s+/g, ' ');
@@ -119,7 +120,10 @@ export default {
       if (st.values.length !== gaps.length) st.values = gaps.map(() => '');
 
       root.innerHTML = '';
-      const wrap = el(`<div>
+      // Color de cada ficha según su lugar en el banco; la ficha puesta en un hueco conserva su color (como WordWall).
+      const colorDe = [], libre = bank.map(() => true);
+      st.values.forEach((v, k) => { const bi = bank.findIndex((w, j) => libre[j] && w === v); if (bi !== -1) { libre[bi] = false; colorDe[k] = bi % 6; } });
+      const wrap = el(`<div class="fill-wrap ${useBank ? 'con-banco' : ''}">
         <div class="small muted" style="margin-bottom:6px">Frase ${st.i + 1} de ${total} · ${useBank ? 'Toca las palabras para completar' : 'Escribe la palabra que falta'}</div>
         <p class="fill-text"></p>
         <div class="bank" ${useBank ? '' : 'hidden'}></div>
@@ -134,6 +138,7 @@ export default {
         const inp = el(`<input class="gap" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Hueco ${k + 1}">`);
         inp.value = st.values[k];
         inp.size = Math.max(6, Math.max(...part.gap.map(a => a.length)) + 2);
+        if (useBank && st.values[k] && colorDe[k] !== undefined) { inp.classList.add('lleno'); inp.dataset.c = colorDe[k]; }
         if (useBank) { inp.readOnly = true; inp.title = 'Toca para vaciar'; inp.onclick = () => { if (!st.checked && st.values[k]) { st.values[k] = ''; save(); draw(); } }; }
         else inp.oninput = () => { st.values[k] = inp.value; save(); };
         inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); (inputs[k + 1] || checkBtn).focus(); } };
@@ -143,10 +148,12 @@ export default {
       // Banco: cada ficha se usa una vez (se cuentan repetidas).
       const bankBox = wrap.querySelector('.bank');
       const used = [...st.values];
-      bank.forEach(w => {
+      bank.forEach((w, j) => {
         const ui = used.indexOf(w);
         const isUsed = ui !== -1; if (isUsed) used[ui] = null;
-        const c = el(`<button class="chip ${isUsed ? 'used' : ''}" type="button" ${isUsed || st.checked ? 'disabled' : ''}>${esc(w)}</button>`);
+        // La ficha usada sale del banco (no queda un hueco fantasma); vuelve al tocar el hueco.
+        if (isUsed) return;
+        const c = el(`<button class="chip" type="button" data-c="${j % 6}" ${st.checked ? 'disabled' : ''}>${esc(w)}</button>`);
         c.onclick = () => { const k = st.values.findIndex(v => !v); if (k !== -1) { st.values[k] = w; save(); draw(); } };
         bankBox.append(c);
       });
@@ -178,7 +185,15 @@ export default {
     const showFeedback = (gaps, inputs) => {
       const res = st.answers.filter(a => a.item === st.i);
       const hide = evalMode.hide;
-      inputs.forEach((inp, k) => { inp.readOnly = true; if (!hide) inp.classList.add(res[k]?.correct ? 'correct' : 'wrong'); });
+      inputs.forEach((inp, k) => {
+        inp.readOnly = true;
+        if (hide) return;
+        const ok = res[k]?.correct;
+        inp.classList.add(ok ? 'correct' : 'wrong');
+        // Marca que se dibuja sobre la ficha (la muestra el estilo "Colores"), una tras otra.
+        const m = el(`<span class="fill-marca ${ok ? 'ok' : 'mal'}" style="--d:${k * 220}ms">${ok ? MARCA_OK : MARCA_MAL}</span>`);
+        inp.after(m);
+      });
       const allOk = res.every(a => a.correct);
       const fixes = res.filter(a => !a.correct).map(a => `<b>${esc(a.expected)}</b>`).join(', ');
       const last = st.i === total - 1;

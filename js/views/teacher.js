@@ -482,9 +482,11 @@ export async function preview(root, { params }) {
   let player;
   const start = () => {
     player?.stop();
+    // El resultado se queda dentro del escenario (como WordWall); con "Sencillo" no hay escenario y se muestra la tarjeta.
     player = mountPlayer($('#stage', root), {
-      activity: act,
+      activity: act, finalFijo: true, onReplay: start,
       onFinish: r => {
+        if ($('#stage', root).querySelector('.esc-final.fijo')) return;
         const box = el(`<div class="card result" style="margin-top:12px">
           <h2>Vista previa terminada</h2><p>${r.score}/${r.maxScore} aciertos · nota <b>${grade(r.score, r.maxScore)}</b> · ${fmtDuration(r.durationSec)}</p>
           <button class="btn ghost" type="button">Jugar de nuevo</button></div>`);

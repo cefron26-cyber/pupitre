@@ -190,6 +190,9 @@ export function mostrarEmote(contenedor, nombre, { duracion = 2400 } = {}) {
   el.setAttribute("role", "img");
   el.setAttribute("aria-label", `Cebollo: ${EMOTES[nombre]}`);
   el.innerHTML = `<span class="emote-marco"></span><img src="${urlEmote(nombre)}" alt="" draggable="false">`;
+  // El marco no aparece vacío mientras llega la imagen.
+  const img = el.querySelector("img");
+  if (!img.complete && img.decode) { el.style.visibility = "hidden"; img.decode().then(() => { el.style.visibility = ""; }, () => el.remove()); }
   contenedor.appendChild(el);
   if (duracion > 0) {
     setTimeout(() => {

@@ -6,17 +6,25 @@ import { evalMode, neutralFb, el, esc, icons, shuffle } from '../ui.js';
 import { norm } from './fill.js';
 
 const tokens = s => s.trim().split(/\s+/).filter(Boolean);
+// Como WordWall, el signo final (. ! ?) queda fijo al final y no se arrastra con la última palabra.
+const partir = s => {
+  const w = tokens(s), m = w.at(-1)?.match(/^(.+?)([.!?]+)$/u);
+  if (m) w[w.length - 1] = m[1];
+  return { w, punto: m ? m[2] : '' };
+};
 
 // Desordena procurando que ninguna palabra arranque ya en su lugar (quedaría fija desde el inicio).
 function scramble(words) {
   const idx = words.map((_, i) => i);
   if (words.length < 2) return idx;
   const enSuLugar = s => s.filter((wi, k) => norm(words[wi]) === norm(words[k])).length;
-  let mejor = [...idx].reverse();
-  for (let t = 0; t < 60; t++) {
+  // El orden exactamente al revés también se evita (se adivina de un vistazo).
+  const reverso = s => s.every((wi, k) => wi === idx.length - 1 - k);
+  let mejor = null, m = Infinity;
+  for (let t = 0; t < 80 && m > 0; t++) {
     const s = shuffle(idx);
-    if (enSuLugar(s) < enSuLugar(mejor)) mejor = s;
-    if (!enSuLugar(mejor)) break;
+    const n = enSuLugar(s) + (reverso(s) && words.length > 3 ? 0.5 : 0);
+    if (n < m) { mejor = s; m = n; }
   }
   return mejor;
 }
@@ -75,11 +83,12 @@ export default {
     const hide = evalMode.hide; // en evaluación no se marca nada y tampoco se dice al final si estuvo bien
     // Comprobar al final (opción del docente, o evaluación): sin marcas mientras ordena; se revisa con «Comprobar».
     const alFinal = hide || !!content.alFinal;
-    const fresh = i => ({ order: scramble(tokens(content.items[i].sentence)), fijas: [], checked: false });
+    const fresh = i => ({ order: scramble(partir(content.items[i].sentence).w), fijas: [], checked: false });
     // Progreso de la versión anterior (palabras en dos zonas): se empieza la oración de nuevo.
     const st = saved?.order ? saved : { i: saved?.i || 0, answers: saved?.answers || [], ...fresh(saved?.i || 0) };
     if (!Array.isArray(st.fijas)) st.fijas = [];
-    const words = () => tokens(content.items[st.i].sentence);
+    const words = () => partir(content.items[st.i].sentence).w;
+    const punto = () => partir(content.items[st.i].sentence).punto;
     const save = () => onProgreso({ ...st, done: st.answers.length, total });
 
     // En su lugar: se compara el texto (dos "the" valen igual). Fija: solo los lugares que el estudiante acertó a mano.
@@ -103,10 +112,13 @@ export default {
       st.order.forEach((wi, k) => {
         const b = el(`<button class="word" type="button">${esc(w[wi])}</button>`);
         b.dataset.wi = wi;
-        if (fija(k)) marcar(b, false);
+        // Al revisar, todas las que quedaron en su lugar se ven verdes (también las que nunca se movieron).
+        if (fija(k) || (st.checked && !hide && enLugar(k))) marcar(b, false);
+        else if (st.checked && !hide) b.classList.add('fuera');
         if (st.checked) b.disabled = true; else attach(b);
         linea.append(b);
       });
+      if (punto()) linea.append(el(`<span class="rd-punto" aria-hidden="true">${esc(punto())}</span>`));
       wrap.querySelector('[data-check]')?.addEventListener('click', comprobar);
       root.append(wrap);
       if (st.checked) showFeedback();
@@ -124,6 +136,7 @@ export default {
     const acomodar = () => {
       const antes = new Map([...linea.children].map(b => [b, b.getBoundingClientRect()]));
       st.order.forEach(wi => linea.append(nodo(wi)));
+      const p = linea.querySelector('.rd-punto'); if (p) linea.append(p);
       if (sinMovimiento()) return;
       for (const [b, r] of antes) {
         const n = b.getBoundingClientRect(), dx = r.left - n.left, dy = r.top - n.top;
@@ -157,6 +170,7 @@ export default {
       save();
       if (alFinal) return;
       if (st.order.every((_, k) => enLugar(k))) {
+        st.order.forEach((_, k) => { if (!st.fijas.includes(k)) st.fijas.push(k); });
         linea.querySelectorAll('.word').forEach(b => { if (!b.classList.contains('fija')) marcar(b, true); b.disabled = true; });
         setTimeout(() => terminarOracion(true), 500);
       }
@@ -241,7 +255,7 @@ export default {
     const terminarOracion = correct => {
       if (st.checked) return;
       const w = words();
-      st.answers.push({ item: st.i, question: content.items[st.i].sentence, given: st.order.map(i => w[i]).join(' '), correct });
+      st.answers.push({ item: st.i, question: content.items[st.i].sentence, given: st.order.map(i => w[i]).join(' ') + punto(), correct });
       st.checked = true; save(); draw();
     };
 
