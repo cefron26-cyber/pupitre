@@ -175,7 +175,7 @@ export default {
       const last = st.i === total - 1;
       const fb = el(`<div class="feedback ${hide() ? 'neutral' : a.correct ? 'ok' : 'bad'}">
         ${hide() ? neutralFb() : `<span>${a.correct ? '¡Adivinaste!' : `La palabra era: <b>${esc(item().word)}</b>`}</span>`}
-        <button class="btn" type="button">${last ? evalMode.fin : 'Siguiente'}</button></div>`);
+        <button class="btn" type="button" data-next>${last ? evalMode.fin : 'Siguiente'}</button></div>`);
       fb.querySelector('button').onclick = next;
       // Momento propio al terminar la palabra: palomita grande que entra (ganó) o acercamiento al dibujo (perdió).
       if (!hide()) {

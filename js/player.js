@@ -233,11 +233,13 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     if (node.nodeType !== 1) return;
     const fb = node.matches?.('.feedback') ? node : node.querySelector?.('.feedback');
     if (!fb || fb.dataset.auto || !(fb.classList.contains('ok') || fb.classList.contains('bad'))) return;
-    const btn = fb.querySelector('button');
+    // Solo el botón de avanzar (data-next); si hay varios sin marcar, o ninguno (avisos por palabra), no se avanza solo.
+    const btns = fb.querySelectorAll('button');
+    const btn = fb.querySelector('[data-next]') || (btns.length === 1 ? btns[0] : null);
     if (!btn) return;
     fb.dataset.auto = '1';
     const ok = fb.classList.contains('ok');
-    fb.classList.add('auto', conCorreccion && !ok ? 'auto-ver' : 'auto-oculto');
+    fb.classList.add('auto', (conCorreccion && !ok) || btns.length > 1 ? 'auto-ver' : 'auto-oculto');
     let ido = false;
     const ir = () => { if (ido || !btn.isConnected) return; ido = true; clearTimeout(autoT); stage.removeEventListener('pointerdown', ir); btn.click(); };
     clearTimeout(autoT);

@@ -567,7 +567,7 @@
 .escenario[data-tema="pixel"] .consigna,.escenario[data-tema="pixel"] .esc-portada-c{border-radius:0}
 
 /* ---------- Juegos de palabras (2026-11-19): sopa de letras, ahorcado, crucigrama ---------- */
-.escenario.tematico .ws-grid,.escenario.tematico .cw-clues,.escenario.tematico .ws-word{background:var(--e-panel); color:var(--e-panel-ink); border-color:rgba(0,0,0,.12)}
+.escenario.tematico .ws-grid,.escenario.tematico .ws-word{background:var(--e-panel); color:var(--e-panel-ink); border-color:rgba(0,0,0,.12)}
 .escenario.tematico .ws-grid{border-radius:22px; box-shadow:0 8px 22px rgba(0,0,0,.18)}
 .escenario.tematico .ws-cell{color:var(--e-panel-ink); font-family:var(--t-font)}
 .escenario.tematico .ws-cell.found{color:#fff}
@@ -583,11 +583,6 @@
 .escenario.tematico .hm-key{background:var(--t-bg); color:var(--t-ink); border:var(--t-bd); border-radius:min(var(--t-r),12px); box-shadow:var(--t-sh); font-family:var(--t-font); font-size:clamp(16px,2.4cqi,24px); height:clamp(44px,6.4cqi,58px); flex-basis:clamp(30px,6.4cqi,60px)}
 .escenario.tematico .hm-key.ok,.escenario.tematico .hm-key.k-ok{background:var(--ok); color:var(--ok-ink); box-shadow:none}
 .escenario.tematico .hm-key.bad,.escenario.tematico .hm-key.k-bad{background:rgba(0,0,0,.14); color:rgba(0,0,0,.42); box-shadow:none; text-decoration:line-through}
-.escenario.tematico .cw-clues{padding:14px 16px; border-radius:20px; box-shadow:0 6px 18px rgba(0,0,0,.14)}
-.escenario.tematico .cw-clues h3{color:var(--e-panel-ink); font-family:var(--e-title-font)}
-.escenario.tematico .cw-clues li{font-size:clamp(15px,1.9cqi,19px)}
-.escenario.tematico .cw-cell{border-color:#13213f}
-.escenario.tematico .cw-cell.ok{background:#d9f5e3} .escenario.tematico .cw-cell.bad{background:#fde0e3}
 
 /* ==================== Reproductor a pantalla completa (2026-11-19, revisión externa) ====================
    Al jugar (tarea, repaso, reto) solo se ve la actividad: ✕ para salir, UNA barra de avance (de la unidad completa
@@ -717,7 +712,7 @@ body.inmersivo .juego-main{max-width:none; padding:0; margin:0}
 /* Aventura pixel: todo cuadrado, con borde de píxel y letra pixel en botones y etiquetas cortas */
 .escenario[data-tema="pixel"] .stage .btn,.escenario[data-tema="pixel"] .esc-empezar{border-radius:0 !important; font-family:"Pixel",monospace !important; font-size:13px !important; letter-spacing:0}
 .escenario[data-tema="pixel"] .ws-grid,.escenario[data-tema="pixel"] .ws-word,.escenario[data-tema="pixel"] .consigna,
-.escenario[data-tema="pixel"] .hm-play,.escenario[data-tema="pixel"] .cw-clues,.escenario[data-tema="pixel"] .passage,
+.escenario[data-tema="pixel"] .hm-play,.escenario[data-tema="pixel"] .passage,
 .escenario[data-tema="pixel"] .bin,.escenario[data-tema="pixel"] .chip{border-radius:0 !important; box-shadow:4px 4px 0 #2a1a00 !important}
 .escenario[data-tema="pixel"] .ws-cell{font-family:"Pixel",monospace; font-size:clamp(12px,1.8cqi,18px)}
 /* Pizarra: botones y paneles de tiza */
@@ -775,9 +770,9 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 
 /* ---------- Marco ---------- */
 /* Escenario 16:10 que no cambia de alto entre preguntas (quiz, ahorcado, reordenar, completar) */
-.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"]):not(.present-stage .escenario){
+.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"],[data-tipo="crossword"]):not(.present-stage .escenario){
   aspect-ratio:16/10; min-height:0; height:auto; width:100%; max-width:min(980px, calc((100dvh - 120px) * 1.6))}
-.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"]) .esc-cuerpo{min-height:0; overflow-y:auto; scrollbar-width:thin}
+.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"],[data-tipo="crossword"]) .esc-cuerpo{min-height:0; overflow-y:auto; scrollbar-width:thin}
 /* Barra inferior como banda propia: no se monta sobre el contenido ni sobre los mensajes */
 .escenario.tematico:not(.inmersivo) .esc-barra{position:absolute; left:0; right:0; bottom:0; z-index:7; height:48px; margin:0; padding:0 12px; max-width:none;
   border-radius:0; background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; color:var(--e-ink); justify-content:center}
@@ -796,7 +791,7 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .escenario.tematico:not(.inmersivo) .stage > div > .small.muted:first-child{display:none}
 .escenario.tematico:not(.inmersivo):not(.present-stage .escenario) .esc-cuerpo > .consigna{display:none}
 /* Mensaje con avance automático: sin botón; en quiz y ahorcado no se ve (la respuesta ya está en las fichas) */
-.escenario.tematico .feedback.auto .btn{display:none}
+.escenario.tematico .feedback.auto [data-next]{display:none}
 .escenario.tematico .feedback.auto-oculto{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; padding:0; margin:0; border:0; box-shadow:none}
 .escenario.tematico .feedback.auto-ver{background:none; border:0; box-shadow:none; padding:4px 0; animation:esc-aparece .3s ease both}
 /* Botón de revisar discreto (como "Enviar respuestas"): contorno, centrado */
@@ -914,7 +909,7 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 @keyframes hm-vuela{from{transform:translate(40px,-80%) scale(.3)}}
 .escenario.tematico .hm.perdio .hm-fig{transform:scale(1.35); transform-origin:50% 35%}
 .escenario.tematico .hm.perdio .hm-keys,.escenario.tematico .hm.perdio .hm-hint{opacity:.15; transition:opacity .4s}
-@container (max-width: 640px){
+@container (max-width: 480px){
   .escenario.tematico .hm-play{grid-template-columns:1fr; grid-template-areas:"pista" "fig" "palabra" "teclas"; justify-items:center}
   .escenario.tematico .hm-hint{text-align:center; justify-content:center}
   .escenario.tematico .hm-fig{width:150px}
@@ -947,7 +942,7 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .escenario.tematico .fill-wrap.con-banco{display:grid; grid-template-columns:clamp(140px,22cqi,230px) minmax(0,1fr); grid-template-areas:"banco texto" "banco fb";
   gap:8px clamp(16px,3cqi,40px); align-items:center; text-align:left}
 .escenario.tematico .fill-wrap.con-banco > .bank{grid-area:banco; flex-direction:column; flex-wrap:nowrap; align-self:stretch; justify-content:flex-start; margin:0;
-  padding:8px; gap:8px; border:1px solid color-mix(in srgb, var(--e-ink) 30%, transparent); border-radius:6px; min-height:clamp(160px,30cqi,320px)}
+  padding:8px; gap:8px; border:1px solid color-mix(in srgb, var(--e-ink) 30%, transparent); border-radius:6px; min-height:clamp(110px,22cqi,260px)}
 .escenario.tematico .fill-wrap.con-banco > .fill-text{grid-area:texto}
 .escenario.tematico .fill-wrap.con-banco > .fb-slot{grid-area:fb}
 .escenario.tematico .fill-text{background:none !important; box-shadow:none !important; border:0; padding:0; color:var(--e-ink); font-size:clamp(26px,5.4cqi,56px); line-height:1.6; text-align:left}
@@ -955,7 +950,7 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .escenario.tematico .fill-wrap.con-banco .fill-text input.gap{border-radius:3px; border:1.5px solid color-mix(in srgb, var(--e-ink) 40%, transparent); background:#fff; height:1.5em; min-height:0;
   vertical-align:middle; text-align:center; font:500 .7em/1 var(--t-font); color:#111; box-shadow:none; cursor:pointer}
 .escenario.tematico .fill-wrap.con-banco .bank .chip{width:100%; animation:none}
-@container (max-width: 640px){
+@container (max-width: 480px){
   .escenario.tematico .fill-wrap.con-banco{grid-template-columns:1fr; grid-template-areas:"texto" "banco" "fb"}
   .escenario.tematico .fill-wrap.con-banco > .bank{flex-direction:row; flex-wrap:wrap; min-height:0; justify-content:center}
   .escenario.tematico .fill-wrap.con-banco .bank .chip{width:auto}
@@ -985,3 +980,79 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
   .marca-grande,.marca,.hm-marca,.fill-marca svg{animation:none !important; stroke-dashoffset:0 !important}
   .escenario.tematico .hm.perdio .hm-fig{transform:none}
 }
+
+/* ---------- Escenario fijo en todos los estilos (2026-11-21): márgenes según el marco de cada arte ----------
+   Con el alto fijo, los márgenes grandes de los estilos con marco (pizarra, gran show, cuaderno, mural) desbordaban:
+   aquí se miden en cqi (crecen con el escenario), la barra inferior queda dentro del marco y el quiz llena el espacio. */
+.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"],[data-tipo="crossword"]):not(.present-stage .escenario){
+  --pad-top:clamp(10px,2.4cqi,22px); --pad-x:clamp(14px,4cqi,40px); --barra-b:0px}
+.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"],[data-tipo="crossword"]):not(.present-stage .escenario) .esc-cuerpo{
+  padding:2px var(--pad-x) calc(46px + var(--barra-b))}
+.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"],[data-tipo="crossword"]):not(.present-stage .escenario) .esc-barra{
+  bottom:var(--barra-b); left:var(--pad-x); right:var(--pad-x)}
+.escenario.tematico:not(.inmersivo):is([data-tipo="quiz"],[data-tipo="hangman"],[data-tipo="reorder"],[data-tipo="fill"],[data-tipo="crossword"]):not(.present-stage .escenario) .esc-barra .esc-btns{right:0}
+.escenario.tematico:not(.inmersivo)[data-tema="pizarra"]:not(.present-stage .escenario){--pad-top:6.6cqi; --pad-x:8.5cqi; --barra-b:5.2cqi}
+.escenario.tematico:not(.inmersivo)[data-tema="concurso"]:not(.present-stage .escenario){--pad-top:4.4cqi; --pad-x:7cqi; --barra-b:3.6cqi}
+.escenario.tematico:not(.inmersivo)[data-tema="cuaderno"]:not(.present-stage .escenario){--pad-top:6.4cqi; --pad-x:6.5cqi; --barra-b:1.5cqi}
+.escenario.tematico:not(.inmersivo)[data-tema="corcho"]:not(.present-stage .escenario){--pad-top:4cqi; --pad-x:5.5cqi; --barra-b:2.6cqi}
+.escenario.tematico:not(.inmersivo)[data-tema="pixel"]:not(.present-stage .escenario){--barra-b:6.5cqi}
+.escenario.tematico:not(.inmersivo)[data-tema="oceano"]:not(.present-stage .escenario){--barra-b:1.5cqi}
+/* Quiz: la pregunta arriba y las fichas ocupan el resto (en todos los estilos) */
+.escenario.tematico:not(.inmersivo)[data-tipo="quiz"]:not(.present-stage .escenario) .stage{height:100%; display:flex; flex-direction:column}
+.escenario.tematico:not(.inmersivo)[data-tipo="quiz"]:not(.present-stage .escenario) .stage > div{flex:1; display:flex; flex-direction:column; justify-content:center; min-height:0}
+.escenario.tematico:not(.inmersivo)[data-tipo="quiz"]:not(.present-stage .escenario) .q-title{font-size:clamp(20px,4.6cqi,52px); margin:0 auto clamp(8px,2cqi,20px); flex:none}
+.escenario.tematico:not(.inmersivo)[data-tipo="quiz"]:not(.present-stage .escenario) .q-title.t-largo{font-size:clamp(17px,3.4cqi,38px)}
+.escenario.tematico:not(.inmersivo)[data-tipo="quiz"]:not(.present-stage .escenario) .options{flex:1 1 auto; max-height:60cqi; grid-auto-rows:1fr; min-height:0; gap:clamp(8px,1.8cqi,18px)}
+.escenario.tematico:not(.inmersivo)[data-tipo="quiz"]:not(.present-stage .escenario) .option{min-height:0; padding-block:6px; font-size:clamp(16px,3.6cqi,40px)}
+.escenario[data-tema="clasico"]:not(.inmersivo)[data-tipo="quiz"] .options{max-height:none}
+.escenario[data-tema="clasico"]:not(.inmersivo)[data-tipo="quiz"] .option{font-size:clamp(18px,4.3cqi,48px)}
+/* Videojuego: el texto blanco sobre el cielo claro lleva el contorno de sus títulos */
+.escenario[data-tema="pixel"] .hm-hint,.escenario[data-tema="pixel"] .hm-key,.escenario[data-tema="pixel"] .hm-slot,
+.escenario[data-tema="pixel"] .slots.linea .word,.escenario[data-tema="pixel"] .rd-punto,.escenario[data-tema="pixel"] .fill-text,
+.escenario[data-tema="pixel"]:not(.inmersivo) .esc-cuenta,.escenario[data-tema="pixel"]:not(.inmersivo) .player-top .timer,.escenario[data-tema="pixel"] .esc-aciertos{text-shadow:var(--e-title-sh)}
+.escenario[data-tema="pixel"] .hm-key,.escenario[data-tema="pixel"] .hm-key:hover:not(:disabled){background:rgba(42,26,0,.35); border-color:#2a1a00 !important}
+.escenario[data-tema="pixel"]:not(.inmersivo) .stage .fb-slot > .row.end .btn{background:#2a1a00 !important; color:#fff !important}
+
+/* ---------- Crucigrama como WordWall (2026-11-21): pista grande | tablero que llena el escenario ----------
+   --cel (tamaño de casilla, registrado con @property en app.css) se calcula con el ancho del escenario (cqi):
+   con proporción 16:10 el alto es 62,5cqi. --w/--h ya traen el margen de los números. */
+.escenario.tematico .stage:has(> .cw){max-width:none; height:100%}
+.escenario.tematico .cw{display:grid; grid-template-columns:minmax(0,var(--cw-pista-w,26cqi)) auto; grid-template-areas:"pista tablero" "fb fb";
+  align-items:center; justify-content:center; gap:4px clamp(16px,3cqi,40px); height:100%;
+  --cw-alto:calc(62.5cqi - var(--pad-top, 14px) - 30px - 46px - var(--barra-b, 0px) - 14px)}
+.escenario.tematico .cw.eval{--cw-alto:calc(62.5cqi - var(--pad-top, 14px) - 30px - 46px - var(--barra-b, 0px) - 76px)}
+.escenario.tematico.inmersivo .cw{--cw-alto:calc(100dvh - 250px)}
+.present-stage .escenario.tematico .cw{--cw-alto:calc(100vh - 330px)}
+.escenario.tematico .cw-pista{grid-area:pista; text-align:left; color:var(--e-ink); font:500 clamp(20px,3.8cqi,44px)/1.15 var(--t-font); min-height:0}
+.escenario.tematico .cw-board{grid-area:tablero; width:auto}
+.escenario.tematico .cw > .fb-slot{grid-area:fb}
+.escenario.tematico .cw-grid{--cel:min(
+    calc((100cqi - 2 * var(--pad-x, 30px) - var(--cw-pista-w, 26cqi) - 3cqi) / (var(--w) * 1.08)),
+    calc(var(--cw-alto) / (var(--h) * 1.08)), 64px)}
+.escenario.tematico .cw-cell{border-color:color-mix(in srgb, var(--e-ink) 35%, transparent); background:color-mix(in srgb, #fff 92%, transparent)}
+.escenario.tematico .cw-cell input{font-family:var(--t-font); font-weight:500; color:#111}
+.escenario.tematico .cw-num{color:var(--e-ink); font-family:var(--t-font); font-weight:500}
+.escenario.tematico .cw-cell.on:not(.lleno){border-color:color-mix(in srgb, var(--e-ink) 70%, transparent)}
+.escenario.tematico .cw{--cw-ficha:var(--acc)}
+.escenario[data-tema="clasico"] .cw{--cw-ficha:#1e9be9}
+.escenario.tematico .cw-cell.lleno input,.escenario.tematico .cw-cell.resuelta input{color:var(--acc-ink, #fff)}
+.escenario[data-tema="clasico"] .cw-cell.lleno input,.escenario[data-tema="clasico"] .cw-cell.resuelta input{color:#fff}
+/* Los avisos por palabra (¡Correcto!, Inténtalo otra vez) se dicen con la marca y el sonido; fuera de la pantalla completa no se ven */
+.escenario.tematico:not(.inmersivo) .cw .feedback.cw-fb{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; padding:0; margin:0; border:0; box-shadow:none}
+.escenario[data-tema="pixel"] .cw-pista,.escenario[data-tema="pixel"] .cw-num{text-shadow:var(--e-title-sh)}
+/* Celular en vertical: escenario 3:4 y la pista encima del tablero */
+@media (max-width:600px) and (orientation:portrait){
+  .escenario.tematico:not(.inmersivo)[data-tipo="crossword"]:not(.present-stage .escenario){aspect-ratio:3/4; max-width:100%}
+  .escenario.tematico .cw{grid-template-columns:1fr; grid-template-areas:"pista" "tablero" "fb"; justify-items:center; --cw-pista-w:0px;
+    --cw-alto:calc(133cqi - var(--pad-top, 14px) - 30px - 46px - var(--barra-b, 0px) - 3.6em)}
+  .escenario.tematico.inmersivo .cw{--cw-alto:calc(100dvh - 300px)}
+  .escenario.tematico .cw-pista{text-align:center; font-size:clamp(18px,5.4cqi,28px)}
+  .escenario.tematico .cw-grid{--cel:min(calc((100cqi - 2 * var(--pad-x, 16px)) / (var(--w) * 1.08)), calc(var(--cw-alto) / (var(--h) * 1.08)), 56px)}
+}
+.escenario.tematico .cw > .small.muted{display:none}
+/* Fichas del crucigrama dentro del escenario (más específico que el fondo blanco de la casilla) */
+.escenario.tematico .cw-cell.lleno,.escenario.tematico .cw-cell.resuelta{background:var(--cw-ficha); border-color:var(--cw-ficha);
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.2), inset 0 2px 0 rgba(255,255,255,.22)}
+.escenario.tematico .cw-cell.lleno.cur{box-shadow:0 0 0 3px #0d5fa8, inset 0 -3px 0 rgba(0,0,0,.2)}
+.escenario.tematico .cw-cell.revelada{background:#fff; border-color:color-mix(in srgb, var(--e-ink) 35%, transparent); box-shadow:none}
+.escenario.tematico .cw-cell.revelada input{color:var(--ww-bad)}

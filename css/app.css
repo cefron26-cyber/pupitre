@@ -483,37 +483,56 @@ input.dict-input.wrong{border-color:var(--danger); background:var(--danger-soft)
 .hm-key:disabled:not(.ok):not(.bad):not(.k-ok):not(.k-bad){opacity:.5}
 @media (max-width:520px){ .hm-row{gap:4px} .hm-key{height:44px; font-size:16px; border-radius:9px} }
 
-/* Crucigrama */
-.cw-layout{display:grid; grid-template-columns:minmax(0,1.2fr) minmax(220px,1fr); gap:var(--sp-5); align-items:start}
-.cw-board{container-type:inline-size; width:100%}
-.cw-grid{
-  display:grid; grid-template-columns:repeat(var(--w),1fr); gap:0; margin:0 auto; container-type:inline-size;
-  width:min(100%, calc(var(--w) * 46px), calc(64vh * var(--w) / var(--h)));
-}
-.cw-empty{aspect-ratio:1}
-.cw-cell{position:relative; aspect-ratio:1; display:block; margin:0 -1px -1px 0; border:2px solid var(--primary); background:#fff; cursor:text}
-.cw-cell input{
-  position:absolute; inset:0; width:100%; height:100%; min-height:0; padding:0; border:0; border-radius:0; background:transparent;
-  text-align:center; text-transform:uppercase; font-weight:700; color:var(--ink); caret-color:var(--accent);
-  font-size:calc(100cqi / var(--w) * .5);
-}
+/* Crucigrama (2026-11-21, como WordWall): pista grande, tablero de casillas sueltas con los números afuera,
+   fichas al escribir. Base para el modo serio; el escenario (temas.css) lo pone al lado de la pista y lo escala. */
+@property --cel{syntax:'<length>'; inherits:true; initial-value:40px}
+.cw{display:flex; flex-direction:column; align-items:center; gap:12px}
+.cw-pista{margin:0; min-height:2.4em; text-align:center; font-weight:600; font-size:clamp(18px,2.6vw,26px); line-height:1.25; color:var(--ink); text-wrap:balance; animation:esc-aparece .22s ease-out}
+.cw-board{width:100%; display:flex; justify-content:center}
+.cw-grid{--cel:min(46px, calc((100vw - 64px) / (var(--w) * 1.08)), calc(58vh / (var(--h) * 1.08)));
+  display:grid; grid-template-columns:repeat(var(--w), var(--cel)); grid-auto-rows:var(--cel); gap:calc(var(--cel) * .08); margin:0 auto}
+.cw-empty{position:relative; display:block}
+.cw-cell{position:relative; display:block; border:2px solid #b4b8bf; border-radius:3px; background:#fff; cursor:text;
+  transition:opacity .25s ease, background .12s, border-color .12s}
+.cw-cell input{position:absolute; inset:0; width:100%; height:100%; min-height:0; padding:0; border:0; border-radius:0; background:transparent;
+  text-align:center; text-transform:uppercase; font-weight:600; color:var(--ink); caret-color:transparent; font-size:max(16px, calc(var(--cel) * .56))}
 .cw-cell input:focus{outline:none; box-shadow:none}
-.cw-n{position:absolute; top:1px; left:3px; font-size:calc(100cqi / var(--w) * .24); font-weight:700; color:var(--muted); line-height:1; pointer-events:none}
-.cw-cell.on{background:var(--accent-soft)}
-.cw-cell.cur{background:#ffe7a3}
-.cw-cell.ok{background:var(--success-soft)} .cw-cell.ok input{color:var(--success)}
-.cw-cell.bad{background:var(--danger-soft)} .cw-cell.bad input{color:var(--danger)}
-.cw-cell.fixed input{color:var(--primary); font-style:italic}
-.cw-clues h3{margin:0 0 6px; font-size:16px; color:var(--primary)}
-.cw-clues ol{list-style:none; margin:0 0 var(--sp-4); padding:0; display:flex; flex-direction:column; gap:4px}
-.cw-clues li{padding:6px 10px; border-radius:10px; cursor:pointer; line-height:1.35; font-size:15.5px}
-.cw-clues li b{display:inline-block; min-width:20px; color:var(--accent)}
-.cw-clues li:hover{background:var(--line)}
-.cw-clues li.on{background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent)}
+.cw-n{position:absolute; top:1px; left:3px; font-size:max(10px, calc(var(--cel) * .26)); font-weight:700; color:var(--muted); line-height:1; pointer-events:none; z-index:1}
+.cw-num{display:flex; height:100%; font-weight:600; font-size:calc(var(--cel) * .5); line-height:1; color:var(--ink)}
+.cw-num.h{justify-content:flex-end; align-items:center; padding-right:.2em}
+.cw-num.v{justify-content:center; align-items:flex-end; padding-bottom:.08em}
+/* Palabra activa: borde más oscuro; casilla activa en azul; el resto del tablero se atenúa */
+.cw-cell.on:not(.lleno){border-color:#8f949c}
+.cw-cell.cur{border-color:#1e9be9; box-shadow:0 0 0 2px #1e9be9}
+.cw-grid.activa .cw-cell:not(.on),.cw-grid.activa .cw-num{opacity:.3}
+/* Fichas: cada letra escrita se vuelve ficha (azul en "Colores", el color del botón en los demás) */
+.cw-cell.lleno,.cw-cell.resuelta{background:var(--cw-ficha, var(--primary)); border-color:var(--cw-ficha, var(--primary));
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.2), inset 0 2px 0 rgba(255,255,255,.22)}
+.cw-cell.lleno input,.cw-cell.resuelta input{color:#fff}
+.cw-cell.lleno.cur{box-shadow:0 0 0 3px #0d5fa8, inset 0 -3px 0 rgba(0,0,0,.2)}
+.cw-cell.lleno input{animation:cw-ficha .14s cubic-bezier(.3,1.5,.5,1)}
+.cw-cell.recien{animation:cw-bien .26s ease}
+.cw-cell.fallo{background:#6b6f76 !important; border-color:#6b6f76 !important; animation:cw-mal .36s ease-in-out}
+.cw-cell.fallo input{color:#fff}
+.cw-cell.revelada{background:#fff; border-color:#b4b8bf; box-shadow:none}
+.cw-cell.revelada input{color:var(--ww-bad, #e0394b)}
+@keyframes cw-ficha{from{transform:scale(.6); opacity:.2}}
+@keyframes cw-bien{50%{transform:scale(1.12)}}
+@keyframes cw-mal{20%{translate:-6px}40%{translate:6px}60%{translate:-4px}80%{translate:4px}}
+/* ✓ / ✗ dibujadas en la casilla libre que sigue a la palabra */
+.cw-marca{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
+.cw-marca svg{width:calc(var(--cel) * .7); height:calc(var(--cel) * .7); fill:none; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:1;
+  animation:trazo .3s cubic-bezier(.65,0,.35,1) forwards}
+.cw-marca.bien svg{stroke:var(--ww-ok, #1fb57a); animation:trazo .3s cubic-bezier(.65,0,.35,1) .15s forwards, cw-se-va .2s ease-in 1.3s forwards}
+.cw-marca.mal svg{stroke:var(--ww-bad, #e0394b)}
+@keyframes trazo{to{stroke-dashoffset:0}}
+@keyframes cw-se-va{to{opacity:0}}
+.cw-pista.fin{opacity:.35; transition:opacity .3s}
+.cw .feedback.cw-fb{justify-content:center}
 .cw-ed-row{display:flex; gap:var(--sp-2); flex-wrap:wrap}
 .cw-ed-row [data-a]{flex:0 1 220px}
 .cw-ed-row [data-c]{flex:1 1 260px}
-@media (max-width:760px){ .cw-layout{grid-template-columns:1fr; gap:var(--sp-4)} }
+@media (prefers-reduced-motion: reduce){ .cw-cell,.cw-cell input,.cw-marca svg,.cw-pista{animation:none !important; stroke-dashoffset:0 !important} }
 
 /* Toast */
 .toast{
@@ -1241,6 +1260,8 @@ h2{font-weight:600}
    Tarjeta con borde y sombra como los salones; miniatura en azul claro para separarla del fondo gris. */
 .act-card{border:1px solid var(--border); box-shadow:0 2px 8px rgba(22,33,61,.10); border-radius:12px; transition:box-shadow var(--dur-fast), transform var(--dur-fast)}
 .act-card:hover{box-shadow:0 0 0 2px var(--accent), 0 4px 14px rgba(22,33,61,.14); transform:translateY(-2px)}
+/* El transform del hover encierra el menú ⋮ en la tarjeta: con el menú abierto, la tarjeta va por encima de las vecinas */
+.act-card:has(details.more[open]),.unit-folder:has(details.more[open]),.unit-step:has(details.more[open]){position:relative; z-index:5} /* bajo el encabezado fijo (z-index 10) */
 .act-open{border-radius:12px 12px 0 0}
 .act-thumb.mini{background:var(--accent-soft); border-bottom:1px solid var(--border)}
 .act-thumb.mini .at-k{background:var(--primary); border-color:var(--primary); color:#fff}

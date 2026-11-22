@@ -199,7 +199,7 @@ export default {
       const last = st.i === total - 1;
       const fb = el(`<div class="feedback ${hide ? 'neutral' : allOk ? 'ok' : 'bad'}">
         ${hide ? neutralFb() : `<span>${allOk ? '¡Muy bien!' : `Respuesta${res.filter(a => !a.correct).length > 1 ? 's' : ''} correcta${res.filter(a => !a.correct).length > 1 ? 's' : ''}: ${fixes}`}</span>`}
-        <button class="btn" type="button">${last ? evalMode.fin : 'Siguiente'}</button></div>`);
+        <button class="btn" type="button" data-next>${last ? evalMode.fin : 'Siguiente'}</button></div>`);
       fb.querySelector('button').onclick = next;
       root.querySelector('.fb-slot').replaceChildren(fb);
       fb.querySelector('button').focus({ preventScroll: true });

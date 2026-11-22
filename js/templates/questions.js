@@ -170,7 +170,7 @@ export function questionsPlayer(root, questions, st, { onChange, onDone }) {
     const last = st.i === total - 1;
     const fb = el(`<div class="feedback ${hide ? 'neutral' : ans.correct ? 'ok' : 'bad'}">
       ${hide ? neutralFb() : `<span>${ans.correct ? '¡Correcto!' : `La respuesta era: <b>${esc(q.options[q.correct])}</b>`}</span>`}
-      <button class="btn" type="button">${last ? evalMode.fin : 'Siguiente'}</button></div>`);
+      <button class="btn" type="button" data-next>${last ? evalMode.fin : 'Siguiente'}</button></div>`);
     fb.querySelector('button').onclick = next;
     root.querySelector('.fb-slot').replaceChildren(fb);
     fb.querySelector('button').focus({ preventScroll: true });
