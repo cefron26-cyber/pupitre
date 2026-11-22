@@ -1,6 +1,5 @@
 // Capa de datos aislada. Hoy: localStorage. Mañana: Supabase con la misma API (todo es async).
 // Ninguna vista debe tocar localStorage directamente.
-import { demoPack } from './demo.js';
 import { quintoPack, CURSO_QUINTO, DANIELA } from './demo-quinto.js';
 
 const DB_KEY = 'plat.db.v1';
@@ -41,11 +40,8 @@ function seed() {
   u('usr-and', 'student', 'Andrés Pérez', 'andres', ['crs-6a'], daysAgo(4, 1));
   const pics = { 'usr-est': [0, 1, 2], 'usr-lau': [3, 4, 5], 'usr-and': [6, 7, 8] };
   for (const x of db.users) if (pics[x.id]) x.pictures = pics[x.id];
-  // Una actividad de cada tipo + unidad de prueba, asignadas a Sexto A (js/demo.js).
-  const demo = demoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: 'crs-6a', daysAgo });
-  db.activities.push(...demo.activities);
-  db.units.push(...demo.units);
-  db.assignments.push(...demo.assignments);
+  // La demo vieja de Sexto (js/demo.js: "Demo · …" + "Unidad de prueba") se quitó el 2026-11-22 a pedido del docente.
+  // Las actividades de muestra son ahora las de Quinto Pruebas (js/demo-quinto.js), que agrega load().
   return db;
 }
 
@@ -102,6 +98,19 @@ function load() {
       cache.attempts = cache.attempts.filter(t => !asg.includes(t.assignmentId));
     }
     cache.quintoPruebasV2 = true; fixed = true;
+  }
+  // Sin la demo vieja de Sexto (2026-11-22, pedido del docente): se borran las actividades "Demo · …" (act-demo-*), la
+  // "Unidad de prueba" (unit-demo), sus asignaciones y los resultados de esas asignaciones. Lo que creó el docente y lo de
+  // Quinto Pruebas no se toca. Una sola vez.
+  if (!cache.sinDemoV1) {
+    const esDemo = id => typeof id === 'string' && (id.startsWith('act-demo-') || id === 'unit-demo');
+    const asg = new Set(cache.assignments.filter(a => esDemo(a.activityId) || esDemo(a.unitId)).map(a => a.id));
+    cache.attempts = cache.attempts.filter(t => !asg.has(t.assignmentId) && !esDemo(t.activityId));
+    cache.assignments = cache.assignments.filter(a => !asg.has(a.id));
+    cache.units = cache.units.filter(u => !esDemo(u.id));
+    for (const u of cache.units) u.activityIds = u.activityIds.filter(id => !esDemo(id));
+    cache.activities = cache.activities.filter(a => !esDemo(a.id));
+    cache.sinDemoV1 = true; fixed = true;
   }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();

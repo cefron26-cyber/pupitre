@@ -8,7 +8,7 @@
 export const CURSO_QUINTO = { id: 'crs-5prueba', name: 'Quinto Pruebas', grade: 5, section: 'PRUEBAS', code: 'QPRUE5' };
 export const DANIELA = { id: 'usr-daniela', name: 'Daniela', username: 'daniela', password: '1234' };
 
-// Emoji dibujado en un canvas (PNG, que safeSrc acepta), como en demo.js.
+// Emoji dibujado en un canvas (PNG, que safeSrc acepta).
 function emojiPng(emoji, bg, size = 160) {
   try {
     const c = document.createElement('canvas'); c.width = c.height = size;
