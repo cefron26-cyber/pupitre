@@ -122,9 +122,13 @@ const KITS = {
   },
 };
 
-/** Sonido del tema: 'tap' | 'ok' | 'bad' | 'end' | 'start'. Nunca lanza error (sin audio = silencio). */
+// Pieza en su lugar (Ordenar, 2026-11-22): "toc" corto y suave, distinto del acierto. El acierto (campanita) queda
+// solo para la oración completa. Igual en todos los estilos que tienen sonido.
+const PIEZA = () => { tone(vary(470, .05), .07, { type: 'triangle', vol: .16, to: 330 }); noise(.025, { filter: 'highpass', freq: 2600, vol: .05 }); };
+
+/** Sonido del tema: 'tap' | 'ok' | 'bad' | 'end' | 'start' | 'pieza'. Nunca lanza error (sin audio = silencio). */
 export function themeSound(id, kind) {
   const kit = KITS[themeById(id).kit];
   if (!kit) return;
-  try { if (audio()) kit[kind]?.(); } catch { /* sin sonido */ }
+  try { if (audio()) (kind === 'pieza' ? PIEZA : kit[kind])?.(); } catch { /* sin sonido */ }
 }

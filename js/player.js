@@ -225,17 +225,21 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const OK = ['correct', 'matched', 'ok'], BAD = ['wrong', 'miss', 'bad'];
   // Se agrupan los cambios de un mismo momento: si hubo algún error suena (y no brilla) solo el error;
   // así, al fallar en el quiz, la ficha correcta que se muestra no lanza chispas.
-  let pend = null, okTargets = [];
+  let pend = null, okTargets = [], reacciona = false;
   const queue = (kind, target) => {
     if (hide) return;
     // En "Colores" la ficha correcta lleva su palomita dibujada (como WordWall): sin chispas encima.
     // Tampoco en las letras del ahorcado ni en las palabras de reordenar (destellan y se marcan solas).
     if (kind === 'ok' && target && !target.classList.contains('feedback') && !target.matches('.hm-key, .slots.linea .word, input.gap')
       && !(tema === 'clasico' && target.classList.contains('option'))) okTargets.push(target);
+    // Cebollo no sale por cada palabra que se fija en Ordenar: solo cuando la oración entera queda revisada (la línea y el
+    // mensaje de correcto/incorrecto también entran por aquí). Pedido del docente, 2026-11-22.
+    if (!target?.matches?.('.slots.linea .word')) reacciona = true;
     if (!pend) setTimeout(() => {
-      if (pend) { sound(pend); reaccionar(pend === 'ok'); }
+      // Una palabra de Ordenar que se fija suena a "pieza en su lugar", no a acierto.
+      if (pend) { sound(pend === 'ok' && !reacciona ? 'pieza' : pend); if (reacciona) reaccionar(pend === 'ok'); }
       if (pend === 'ok') okTargets.forEach(chispas);
-      pend = null; okTargets = [];
+      pend = null; okTargets = []; reacciona = false;
     }, 60);
     if (pend !== 'bad') pend = kind === 'bad' ? 'bad' : pend || kind;
   };
