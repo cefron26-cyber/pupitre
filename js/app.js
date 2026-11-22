@@ -13,7 +13,7 @@ import { assign, results } from './views/assign.js';
 import { unitsList, unitEditor } from './views/units.js';
 import { unitStart, unitWizard } from './views/unit-wizard.js';
 import { present } from './views/present.js';
-import { DEFAULT_PREFS, backgroundVars } from './rewards.js';
+import { DEFAULT_PREFS, backgroundVars, fijarDesbloqueo } from './rewards.js';
 import { cebolloMini } from './cebollo.js';
 import { mundoHTML } from './mundo.js';
 import { configurarClave, claveIA } from './ia.js';
@@ -119,6 +119,7 @@ async function router() {
 
   if (!s) { currentUser = null; applySkin(null); return renderLogin(app, school, onLogin); }
   currentUser = await users.get(s.userId);
+  fijarDesbloqueo(currentUser);
   const home = currentUser.role === 'teacher' ? '#/t/home' : '#/s/tasks';
   const m = match(path);
   if (!m || m.role !== currentUser.role) return go(home);

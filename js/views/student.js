@@ -7,6 +7,7 @@ import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast } fr
 import { templates } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
 import { mountPlayer } from '../player.js';
+import { UNIT_THEME } from '../temas.js';
 import { progressOf, activityIdsOf, xpFor, STATUS, UNIT_BONUS_XP, statusLabel, UNIT_MAX_TRIES, points, starsOf, contentHash, reviewQuestions, REVIEW_XP, RETOS, faseDe, rangoDe, siguienteRango } from '../logic.js';
 
 // Estrellas 0-3 según el puntaje 0-100 (solo motivación).
@@ -362,6 +363,7 @@ export async function play(root, { user, params, query }) {
     durationSec: attempt.durationSec,
     onProgress: (state, sec) => attempts.saveProgress(attempt.id, state, sec),
     hideAnswers: a.showAnswers === false,
+    theme: r.unit ? UNIT_THEME : null, // dentro de una unidad, un solo estilo
     salir: { href: back },
     unidad: r.unit ? { href: back } : null,
     tramo: r.unit ? { index: r.acts.indexOf(act), total: r.acts.length } : null,

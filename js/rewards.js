@@ -121,7 +121,10 @@ export const DEFAULT_PREFS = { modo: 'juego', fondo: 'f-morado', ropa: { torso: 
   cuarto: { ventana: 'ventana_clasica', alfombra: 'alfombra_redonda' } };
 // Demo: todo abierto (toda la ropa, los fondos, la decoración del cuarto y los retos). Poner en false para volver
 // a ganarlo: ropa y fondos del cofre y los retos, decoración con monedas, retos por nivel.
-export const DESBLOQUEADO = true;
+// Por estudiante (2026-11-22): user.cebolloBloqueado = true lo deja bloqueado aunque la demo esté abierta (lo pone app.js
+// al entrar con fijarDesbloqueo). Las vistas importan DESBLOQUEADO: como es `let`, ven el valor actual.
+export let DESBLOQUEADO = true;
+export const fijarDesbloqueo = user => { DESBLOQUEADO = !user?.cebolloBloqueado; };
 
 // Premios que de verdad ganó (con los alias de los premios viejos ya traducidos). El sorteo del cofre usa esta.
 const ganados = rewardIds => new Set([...rewardIds.map(id => ALIAS[id] || id), ...FREE]);

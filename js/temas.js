@@ -5,6 +5,9 @@
 import { audio, tone, noise, bell, vary } from './sfx.js';
 
 export const DEFAULT_THEME = 'clasico';
+// Regla del docente (2026-11-22): una unidad se ve siempre con un solo estilo, el básico; el estilo propio de cada
+// actividad solo se usa cuando se juega suelta. Lo aplican student.js (jugar), present.js (presentar) y el asistente.
+export const UNIT_THEME = DEFAULT_THEME;
 
 // kit = juego de sonidos (abajo). Orden = orden en el selector.
 export const THEMES = [

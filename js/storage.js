@@ -1,6 +1,7 @@
 // Capa de datos aislada. Hoy: localStorage. Mañana: Supabase con la misma API (todo es async).
 // Ninguna vista debe tocar localStorage directamente.
 import { demoPack } from './demo.js';
+import { quintoPack, CURSO_QUINTO, DANIELA } from './demo-quinto.js';
 
 const DB_KEY = 'plat.db.v1';
 const SESSION_KEY = 'plat.session.v1';
@@ -74,6 +75,18 @@ function load() {
     const doc = cache.users.find(x => x.id === 'usr-doc');
     if (doc && !doc.courseIds.includes(CURSO_PRUEBAS.id)) doc.courseIds.push(CURSO_PRUEBAS.id);
     cache.pruebaV2 = true; fixed = true;
+  }
+  // Salón de pruebas de Quinto (2026-11-22, js/demo-quinto.js): curso "Quinto Pruebas", Daniela (daniela/1234, Cebollo
+  // bloqueado: lo gana jugando), la unidad 7 de Here We Go Now! 5 y una actividad de cada tipo, todo asignado. Una sola vez.
+  if (!cache.quintoPruebasV1) {
+    if (!cache.courses.some(c => c.id === CURSO_QUINTO.id)) cache.courses.push({ ...CURSO_QUINTO, schoolId: SCHOOL_ID });
+    if (!cache.users.some(x => x.id === DANIELA.id || x.username === DANIELA.username))
+      cache.users.push({ ...DANIELA, schoolId: SCHOOL_ID, role: 'student', courseIds: [CURSO_QUINTO.id], lastSeenAt: null, cebolloBloqueado: true });
+    const doc = cache.users.find(x => x.id === 'usr-doc');
+    if (doc && !doc.courseIds.includes(CURSO_QUINTO.id)) doc.courseIds.push(CURSO_QUINTO.id);
+    const pack = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: CURSO_QUINTO.id, daysAgo });
+    for (const c of ['activities', 'units', 'assignments']) for (const r of pack[c]) if (!cache[c].some(x => x.id === r.id)) cache[c].push(r);
+    cache.quintoPruebasV1 = true; fixed = true;
   }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();

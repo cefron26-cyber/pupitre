@@ -5,6 +5,7 @@ import { activities, units, courses } from '../storage.js';
 import { gradeLabel } from '../logic.js';
 import { esc, $, $$, toast, confirmDialog, icons } from '../ui.js';
 import { templates } from '../templates/index.js';
+import { UNIT_THEME } from '../temas.js';
 import { templateArt } from '../iconos.js';
 import { estadoIA, generar, TIPOS_IA, asegurarClave } from '../ia.js';
 
@@ -325,7 +326,7 @@ export async function unitWizard(root, { user }) {
       for (const x of listos) {
         const tpl = templates[x.tipo];
         const a = await activities.save({ type: x.tipo, title: (x.res.titulo || `${tpl.label} · ${s.tema}`).slice(0, 80), content: x.res.contenido,
-          instruction: x.res.instruccion || '', ownerId: user.id, grade: s.grado });
+          instruction: x.res.instruccion || '', ownerId: user.id, grade: s.grado, theme: UNIT_THEME });
         ids.push(a.id);
       }
       const desc = [s.gramatica, s.vocabulario && `Vocabulario: ${s.vocabulario}`].filter(Boolean).join(' · ').slice(0, 140);

@@ -6,7 +6,7 @@ import { templates } from '../templates/index.js';
 import { mountPlayer } from '../player.js';
 import { gradeLabel } from '../logic.js';
 import { mundoHTML } from '../mundo.js';
-import { THEMES, themeById, DEFAULT_THEME } from '../temas.js';
+import { THEMES, themeById, DEFAULT_THEME, UNIT_THEME } from '../temas.js';
 
 // Preferencias del docente en este navegador (solo comodidad).
 const pref = (k, d) => { try { return localStorage.getItem('plat.present.' + k) ?? d; } catch { return d; } };
@@ -65,7 +65,7 @@ export async function present(root, { params, query }) {
   let clockSecs = Number(pref('secs', '30')) || 30; // cuenta regresiva por pregunta
   // "Sencillo" se presenta con el estilo institucional; los demás, sobre el fondo del portal de juegos.
   const applyStyle = act => {
-    const style = themeById(tema === 'auto' ? act.theme || DEFAULT_THEME : tema).id === 'sencillo' ? 'serio' : 'juego';
+    const style = themeById(tema === 'auto' ? (unit ? UNIT_THEME : act.theme || DEFAULT_THEME) : tema).id === 'sencillo' ? 'serio' : 'juego';
     if (html.dataset.modo === style && (style === 'serio' || document.querySelector('.mundo'))) return;
     html.dataset.modo = style;
     document.querySelectorAll('.mundo, .suelo').forEach(x => x.remove());
@@ -122,7 +122,7 @@ export async function present(root, { params, query }) {
                 <input id="psecs" type="number" min="5" max="600" step="5" value="${clockSecs}"></label>
               <label>Estilo visual
                 <select id="ptema">
-                  <option value="auto" ${tema === 'auto' ? 'selected' : ''}>El de la actividad</option>
+                  <option value="auto" ${tema === 'auto' ? 'selected' : ''}>${unit ? 'Básico (el de la unidad)' : 'El de la actividad'}</option>
                   ${THEMES.map(t => `<option value="${t.id}" ${tema === t.id ? 'selected' : ''}>${t.name}</option>`).join('')}</select></label>
               <button class="btn ghost sm" type="button" id="restart">Reiniciar esta pregunta</button>
             </div></details>
@@ -143,7 +143,7 @@ export async function present(root, { params, query }) {
     applyStyle(act);
     player = mountPlayer($('#pstage', root), {
       activity: { ...act, content: sl.content },
-      theme: tema === 'auto' ? null : tema,
+      theme: tema === 'auto' ? (unit ? UNIT_THEME : null) : tema,
       ceremonia: false, colores: true, // en clase se va pregunta por pregunta: sin portada ni cierre en cada una
       clock: { mode: 'none' }, // en clase manda el reloj grande del docente
       onFinish: () => {
