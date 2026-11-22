@@ -57,7 +57,9 @@ export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galax
 // Gorros, gafas y estilos: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen
 // vidrio semitransparente para que se vean los ojos debajo.
 const ROPA_PNG = new Set(ROPA.filter(p => ['sombrero', 'cara', 'rostro'].includes(p.slot)).map(p => p.id));
-export const archivoRopa = id => `${id}.${ROPA_PNG.has(id) ? 'png' : 'webp'}`;
+// Dibujadas en SVG (vectoriales): el parche pirata.
+const ROPA_SVG = new Set(['parche']);
+export const archivoRopa = id => `${id}.${ROPA_SVG.has(id) ? 'svg' : ROPA_PNG.has(id) ? 'png' : 'webp'}`;
 export const urlRopa = id => `img/cebollo/ropa/${archivoRopa(id)}`;
 export const urlIconoRopa = id => `img/cebollo/ropa/icono/${archivoRopa(id)}`;
 

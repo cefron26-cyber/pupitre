@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="920" viewBox="-60 -120 560 920">
+  <!-- Parche pirata de Cebollo: calcado del dibujo del docente. Coordenadas del lienzo de 440x800 (capa con 60 px a los lados y 120 arriba). -->
+  <path d="M22 213C140 226 285 256 420 321L424 330C423 337 418 342 412 341L404 337C396 350 375 362 350 362C322 362 300 340 292 314C230 285 140 245 24 225C18 222 18 215 22 213Z" fill="#17141c" stroke="#000" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M52 221C150 233 240 255 300 280" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="3" stroke-linecap="round"/>
+  <path d="M310 328C317 343 331 351 346 352" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="4" stroke-linecap="round"/>
+</svg>
