@@ -29,6 +29,9 @@ export const ROPA = [
   { id: 'gorra_roja',        name: 'Gorra roja',          slot: 'sombrero', rarity: 'common' },
   { id: 'gorro_lana',        name: 'Gorro de lana',       slot: 'sombrero', rarity: 'rare' },
   { id: 'sombrero_paja',     name: 'Sombrero de paja',    slot: 'sombrero', rarity: 'epic' },
+  // 2026-11-22: dibujos del docente (capa ancha, ver ROPA_ANCHA).
+  { id: 'bandana_roja',      name: 'Bandana roja',        slot: 'sombrero', rarity: 'rare' },
+  { id: 'sombrero_vaca',     name: 'Sombrero de vaca',    slot: 'sombrero', rarity: 'epic' },
   { id: 'gafas_redondas',    name: 'Gafas redondas',      slot: 'cara',     rarity: 'common' },
   { id: 'gafas_sol',         name: 'Gafas de sol',        slot: 'cara',     rarity: 'rare' },
   { id: 'gafas_estrella',    name: 'Gafas de estrella',   slot: 'cara',     rarity: 'legendary' },
@@ -60,6 +63,9 @@ export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galax
 const ROPA_PNG = new Set(ROPA.filter(p => ['sombrero', 'cara', 'rostro'].includes(p.slot)).map(p => p.id));
 // Dibujadas en SVG (vectoriales): el parche pirata.
 const ROPA_SVG = new Set(['parche']);
+// Capa ancha de 680x920 (120 px a cada lado en vez de 60): la cola de la bandana y el sombrero de vaca salen más allá
+// del borde de la capa normal.
+export const ROPA_ANCHA = new Set(['bandana_roja', 'sombrero_vaca']);
 export const archivoRopa = id => `${id}.${ROPA_SVG.has(id) ? 'svg' : ROPA_PNG.has(id) ? 'png' : 'webp'}`;
 export const urlRopa = id => `img/cebollo/ropa/${archivoRopa(id)}`;
 export const urlIconoRopa = id => `img/cebollo/ropa/icono/${archivoRopa(id)}`;

@@ -9,7 +9,7 @@
 // Ropa: capas en img/cebollo/ropa/ (herramientas/arte/recortar_ropa.py) sobre el mismo lienzo que el cuerpo, con
 // margen (MARGEN) para que quepan gorras y sombreros. Las del cuerpo respiran con él; las de la cabeza cabecean con ella.
 
-import { archivoRopa, puestas } from "./rewards.js";
+import { archivoRopa, puestas, ROPA_ANCHA } from "./rewards.js";
 
 const RUTA = new URL("../img/cebollo/anim/", import.meta.url).href;
 const RUTA_ROPA = new URL("../img/cebollo/ropa/", import.meta.url).href;
@@ -17,7 +17,7 @@ const RUTA_ROPA = new URL("../img/cebollo/ropa/", import.meta.url).href;
 // gafas (y parche) y sombrero sobre la cabeza.
 const CAPAS_TRONCO = ["piernas", "pies", "torso"], CAPAS_CABEZA = ["rostro", "cara", "sombrero"];
 const capas = (ropa = {}, ranuras) => ranuras.flatMap(r => puestas(ropa, r)
-  .map(id => `<img class="cebollo-ropa" data-ranura="${r}" src="${RUTA_ROPA}${archivoRopa(id)}" alt="" draggable="false">`)).join("");
+  .map(id => `<img class="cebollo-ropa${ROPA_ANCHA.has(id) ? " ancha" : ""}" data-ranura="${r}" src="${RUTA_ROPA}${archivoRopa(id)}" alt="" draggable="false">`)).join("");
 const vestido = ropa => Object.values(ropa || {}).flat().some(Boolean);
 const CARAS = ["normal", "parpadeo", "sorpresa", "risa"];
 const DURACION = { feliz: 1100, sorpresa: 900, festejo: 1700 };
@@ -98,7 +98,9 @@ export function cebolloMini(ropa = {}, size = 48, { vivo = false, triste = false
   const cabeza = vivo ? CARAS_MINI.map(c => img(c === "normal" ? "cabeza" : "cabeza_" + c, "ceb-cara" + (c === inicial ? " on" : ""))
     .replace("<img", `<img data-cara="${c}"`)).join("") : img("cabeza");
   if (vivo) animarMinis();
-  const fig = `<span class="ceb-mini-fig">${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${cabeza}${capas(ropa, CAPAS_CABEZA)}</span>`;
+  // Sombrero alto (el de vaca): la figura baja un poco para que no se corte arriba.
+  const alto = puestas(ropa, "sombrero").includes("sombrero_vaca") ? " alto" : "";
+  const fig = `<span class="ceb-mini-fig${alto}">${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${cabeza}${capas(ropa, CAPAS_CABEZA)}</span>`;
   // Vivo: la figura va en su propia caja recortada, para que el signo de pregunta (confundido) pueda salir por fuera.
   return vivo
     ? `<span class="ceb-mini vivo" style="--s:${size}px" aria-hidden="true" data-vivo="${triste ? "triste" : "si"}" data-cara="${inicial}"><span class="ceb-mini-caja">${fig}</span>${DUDA}</span>`
