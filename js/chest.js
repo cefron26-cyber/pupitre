@@ -2,7 +2,7 @@
 // mostrada; el fondo cambia de color con ella y el teléfono vibra), estalla y muestra la carta del premio.
 // Modo serio (o "reducir movimiento" del sistema): un toque, la tapa se abre y el premio aparece con un fundido.
 import { el, esc } from './ui.js';
-import { RARITY, rewardPreview } from './rewards.js';
+import { RARITY, rewardPreview, moneda } from './rewards.js';
 import { sfx } from './sfx.js';
 
 // Arte de Nano Banana 2.1 recortado (herramientas/arte). Si falta, se usa el cofre dibujado con CSS.
@@ -44,13 +44,13 @@ function chestHTML(art) {
 }
 
 /**
- * Abre el cofre. `result` = { reward, duplicate, xp } ya sorteado y guardado.
+ * Abre el cofre. `result` = { reward, duplicate, monedas } ya sorteado y guardado.
  * Devuelve una promesa que se resuelve con 'equip' o 'close'.
  */
 export async function openChest({ modo, result }) {
   const serious = modo === 'serio' || reduced();
   const art = await checkArt();
-  const { reward, duplicate, xp } = result;
+  const { reward, duplicate, monedas } = result;
   const R = RARITY[reward.rarity];
   const start = serious ? reward.rarity : 'common';
   const d = el(`<dialog class="chest-dialog ${serious ? 'serio' : 'juego'} r-${reward.rarity}" aria-label="Cofre del día" data-cur="${start}" style="--rc:${RARITY[start].color}">
@@ -72,7 +72,7 @@ export async function openChest({ modo, result }) {
           <div class="ch-prev">${rewardPreview(reward, 88)}</div>
           <b class="ch-name">${esc(reward.name)}</b>
           <span class="ch-kind">${reward.kind === 'ropa' ? 'Ropa para Cebollo' : 'Fondo'}</span>
-          ${duplicate ? `<span class="ch-dup">Ya lo tenías: +${xp} XP</span>` : ''}
+          ${duplicate ? `<span class="ch-dup">Ya lo tenías: +${monedas}${moneda(18)}</span>` : ''}
         </div>
       </div>
       <div class="ch-flash" aria-hidden="true"></div>

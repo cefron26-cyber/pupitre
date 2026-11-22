@@ -1,9 +1,9 @@
 // Vistas del estudiante: Misiones, ruta de la unidad, hacer actividad, resultado.
-import { assignments, activities, units, attempts, xp, events, users, chests, userRewards } from '../storage.js';
-import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId } from '../rewards.js';
+import { assignments, activities, units, attempts, xp, events, users, chests, userRewards, compras } from '../storage.js';
+import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId, comprable, precioDe, moneda } from '../rewards.js';
 import { cebolloMini } from '../cebollo.js';
 import { openChest } from '../chest.js';
-import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast } from '../ui.js';
+import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast, confirmDialog } from '../ui.js';
 import { templates } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
 import { mountPlayer } from '../player.js';
@@ -69,9 +69,9 @@ export async function openDailyChest(user) {
   const owned = (await userRewards.list(user.id)).map(r => r.rewardId);
   const result = rollReward(owned);
   // Se guarda ANTES de animar: si cierran la pestaña a mitad, el premio no se pierde ni se repite el sorteo.
-  await chests.open(user.id, { rewardId: result.reward.id, duplicate: result.duplicate, xp: result.xp });
-  if (result.duplicate) await xp.add(user.id, result.xp, `chest:${result.reward.id}`);
-  else await userRewards.add(user.id, result.reward.id);
+  // Repetido: las monedas quedan guardadas en el cofre (compras.saldo las suma); ya no da XP.
+  await chests.open(user.id, { rewardId: result.reward.id, duplicate: result.duplicate, monedas: result.monedas });
+  if (!result.duplicate) await userRewards.add(user.id, result.reward.id);
   events.log(user.id, 'open_chest', { rewardId: result.reward.id, duplicate: result.duplicate });
   const choice = await openChest({ modo: modoOf(), result });
   if (choice === 'equip') await equipar(await users.get(user.id), result.reward);
@@ -93,7 +93,7 @@ async function drawHero(box, user) {
   const chestText = {
     locked: ['Cofre del día', 'Completa una misión o un repaso hoy para ganarlo.'],
     ready: ['¡Tu cofre está listo!', 'Ábrelo para ganar ropa para Cebollo o un fondo.'],
-    opened: ['Cofre abierto', `${reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. ` : ''}Nuevo cofre en <b>${faltaManana()}</b>.`],
+    opened: ['Cofre abierto', `${reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? (opened.monedas ? ` (+${opened.monedas} monedas)` : ` (+${opened.xp} XP)`) : ''}. ` : ''}Nuevo cofre en <b>${faltaManana()}</b>.`],
   }[state];
   box.innerHTML = `<div class="hero-me">
       <a class="hero-avatar" href="#/s/cuarto" aria-label="Visitar a Cebollo">${cebolloMini(prefs.ropa, 72, { vivo: true, triste: !racha.hoy })}</a>
@@ -121,6 +121,7 @@ export async function collection(root, { user }) {
   const owned = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
   const prefs = prefsOf(user);
   const { state } = await chestState(user.id);
+  const saldo = await compras.saldo(user.id);
   const tile = (r, kind) => {
     const has = owned.has(r.id), using = kind === 'ropa' ? llevaPuesta(prefs.ropa, r.slot, r.id) : prefs[kind] === r.id;
     return `<li class="reward-tile ${has ? 'has' : 'locked'} rr-${r.rarity}" style="--rc:${RARITY[r.rarity].color}">
@@ -128,14 +129,16 @@ export async function collection(root, { user }) {
       <b class="rt-name">${esc(r.name)}</b>
       <span class="rt-rarity">${RARITY[r.rarity].label}</span>
       ${has ? (using ? '<span class="rt-using">En uso</span>' : `<button class="btn sm ghost" data-kind="${kind}" data-id="${r.id}">Usar</button>`)
+        : comprable(r) ? `<button class="btn sm rt-comprar ${saldo < precioDe(r) ? 'caro' : ''}" data-comprar="${r.id}" aria-label="Comprar ${esc(r.name)} por ${precioDe(r)} monedas">${moneda(18)}${precioDe(r)}</button>`
         : `<span class="small muted">${r.free ? '' : r.source === 'reto' ? `Supera el reto ${esc(RETOS.find(x => x.reward === r.id)?.name || '')}` : 'Sale del cofre'}</span>`}
     </li>`;
   };
   const count = list => list.filter(r => owned.has(r.id)).length;
   const tot = ROPA.length + BACKGROUNDS.length, mine = count(ROPA) + count(BACKGROUNDS);
   root.innerHTML = `<div class="page-head"><div><h1>Mi colección</h1>
-      <div class="coll-prog"><div class="progress"><i style="width:${Math.round(mine / tot * 100)}%"></i></div><b>${mine}/${tot}</b></div></div>
-      <details class="info-tip dark"><summary aria-label="Qué puede salir del cofre">i</summary><p>Premios del cofre diario: ${odds()}. Si te sale uno repetido, ganas XP. Algunos solo se ganan en los <a href="#/s/retos">Retos</a>.</p></details>
+      <div class="coll-prog"><div class="progress"><i style="width:${Math.round(mine / tot * 100)}%"></i></div><b>${mine}/${tot}</b></div>
+      <div class="coll-monedas" role="status" aria-label="${saldo} monedas" title="Monedas">${moneda(24)}<b>${saldo}</b></div></div>
+      <details class="info-tip dark"><summary aria-label="Qué puede salir del cofre">i</summary><p>Premios del cofre diario: ${odds()}. Si te sale uno repetido, ganas monedas. Con monedas puedes comprar los premios raros, épicos y legendarios que te falten. Algunos solo se ganan en los <a href="#/s/retos">Retos</a>.</p></details>
       ${state === 'ready' ? '<button class="btn chest-open" id="open-chest">Abrir cofre</button>' : ''}</div>
     <div class="card"><h2>Ropa de Cebollo <span class="small muted">${count(ROPA)}/${ROPA.length}</span></h2>
       <p class="small muted" style="margin-top:-6px">Vístelo en el armario de <a href="#/s/cuarto">su cuarto</a>.</p>
@@ -145,6 +148,19 @@ export async function collection(root, { user }) {
       <ul class="reward-grid">${BACKGROUNDS.map(r => tile(r, 'fondo')).join('')}</ul></div>`;
   root.querySelectorAll('[data-kind]').forEach(b => {
     b.onclick = async () => { await equipar(user, { ...byId(b.dataset.id), kind: b.dataset.kind }); dispatchEvent(new Event('plat-refresh')); };
+  });
+  root.querySelectorAll('[data-comprar]').forEach(b => {
+    b.onclick = async () => {
+      const r = byId(b.dataset.comprar), precio = precioDe(r), tengo = await compras.saldo(user.id);
+      if (!comprable(r)) return;
+      if (tengo < precio) { toast(`Te faltan ${precio - tengo} monedas para ${r.name}.`); return; }
+      if (!await confirmDialog(`¿Comprar ${r.name} por ${precio} monedas? Te quedan ${tengo - precio}.`, 'Comprar')) return;
+      await compras.add(user.id, r.id, precio);
+      await userRewards.add(user.id, r.id);
+      events.log(user.id, 'compra_premio', { rewardId: r.id, precio });
+      toast(`¡${r.name} es tuyo!`);
+      dispatchEvent(new Event('plat-refresh'));
+    };
   });
   const o = $('#open-chest', root);
   if (o) o.onclick = () => { o.disabled = true; openDailyChest(user); };

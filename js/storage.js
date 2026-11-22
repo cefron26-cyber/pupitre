@@ -521,8 +521,9 @@ export const chests = {
     return all('attempts').some(t => t.userId === userId && t.state === 'done' && t.finishedAt && dayOf(new Date(t.finishedAt)) === d);
   },
   async openedToday(userId) { const d = today(); return clone(all('chests').find(c => c.userId === userId && c.date === d) || null); },
-  async open(userId, { rewardId, duplicate, xp: bonus = 0 }) {
-    return insert('chests', { userId, date: today(), openedAt: now(), rewardId, duplicate, xp: bonus, trigger: 'activity' });
+  // Repetido: da monedas (2026-11-22). Los cofres de antes guardaban xp (ya sumada a la XP).
+  async open(userId, { rewardId, duplicate, monedas = 0 }) {
+    return insert('chests', { userId, date: today(), openedAt: now(), rewardId, duplicate, monedas, trigger: 'activity' });
   },
 };
 
@@ -532,10 +533,16 @@ export const userRewards = {
   async add(userId, rewardId) { return insert('userRewards', { userId, rewardId, at: now() }); },
 };
 
-// Cuarto de Cebollo: decoración comprada con monedas. Monedas = XP ganado (1 a 1) − lo gastado; el nivel no baja.
+// Compras con monedas: decoración del cuarto y premios del cofre de rara para arriba (colección).
+// Monedas = XP ganado (1 a 1) + monedas de los cofres repetidos − lo gastado; el nivel no baja.
 export const compras = {
   async list(userId) { return clone(all('compras').filter(r => r.userId === userId)); },
   async gastado(userId) { return all('compras').filter(r => r.userId === userId).reduce((s, r) => s + r.precio, 0); },
+  async saldo(userId) {
+    const ganado = all('xpLedger').filter(x => x.userId === userId).reduce((s, x) => s + x.amount, 0)
+      + all('chests').filter(c => c.userId === userId).reduce((s, c) => s + (c.monedas || 0), 0);
+    return ganado - await this.gastado(userId);
+  },
   async add(userId, itemId, precio) { return insert('compras', { userId, itemId, precio, at: now() }); },
 };
 

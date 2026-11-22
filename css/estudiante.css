@@ -72,6 +72,11 @@
 .rt-rarity{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:color-mix(in srgb,var(--rc),#000 40%)}
 .rt-using{font-size:13px; font-weight:700; color:var(--success); min-height:32px; display:grid; place-items:center}
 .reward-tile .btn.sm{min-height:32px}
+/* Comprar con monedas (colección): precio con la moneda; gris si no alcanza. */
+.rt-comprar{display:inline-flex; align-items:center; gap:4px; font-weight:800}
+.rt-comprar .moneda{flex:none}
+.rt-comprar.caro{opacity:.55}
+.coll-monedas{display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:4px 12px 4px 6px; border-radius:999px; background:var(--card); color:#1f6b4c; font-weight:800; font-size:17px; box-shadow:var(--shadow)}
 .bg-swatch{display:block; width:100%; height:100%; border-radius:16px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
 
 /* ---------- Diálogo del cofre ---------- */
@@ -103,7 +108,7 @@
 .ch-prev .bg-swatch{width:96px; height:96px}
 .ch-name{font-size:20px}
 .ch-kind{font-size:13px; color:#5b4b9a}
-.ch-dup{font-size:13px; font-weight:700; color:#8a5a00; background:#fff4dc; padding:3px 10px; border-radius:999px}
+.ch-dup{display:inline-flex; align-items:center; gap:4px; white-space:nowrap; font-size:13px; font-weight:700; color:#8a5a00; background:#fff4dc; padding:3px 10px; border-radius:999px}
 .ch-flash{position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:6}
 .ch-beam,.ch-rays{position:absolute; left:50%; top:50%; pointer-events:none; opacity:0}
 .ch-beam{width:min(40vw,180px); height:120vh; margin-left:calc(min(40vw,180px) / -2); transform-origin:50% 0; top:-70vh;
