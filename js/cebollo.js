@@ -9,7 +9,7 @@
 // Ropa: capas en img/cebollo/ropa/ (herramientas/arte/recortar_ropa.py) sobre el mismo lienzo que el cuerpo, con
 // margen (MARGEN) para que quepan gorras y sombreros. Las del cuerpo respiran con él; las de la cabeza cabecean con ella.
 
-import { archivoRopa, puestas, ROPA_ANCHA } from "./rewards.js";
+import { archivoRopa, puestas, ROPA_ANCHA, ROPA_ALTA } from "./rewards.js";
 
 const RUTA = new URL("../img/cebollo/anim/", import.meta.url).href;
 const RUTA_ROPA = new URL("../img/cebollo/ropa/", import.meta.url).href;
@@ -98,8 +98,8 @@ export function cebolloMini(ropa = {}, size = 48, { vivo = false, triste = false
   const cabeza = vivo ? CARAS_MINI.map(c => img(c === "normal" ? "cabeza" : "cabeza_" + c, "ceb-cara" + (c === inicial ? " on" : ""))
     .replace("<img", `<img data-cara="${c}"`)).join("") : img("cabeza");
   if (vivo) animarMinis();
-  // Sombrero alto (el de vaca): la figura baja un poco para que no se corte arriba.
-  const alto = puestas(ropa, "sombrero").includes("sombrero_vaca") ? " alto" : "";
+  // Sombrero alto (vaca, paja): la figura baja un poco para que no se corte arriba.
+  const alto = puestas(ropa, "sombrero").some(id => ROPA_ALTA.has(id)) ? " alto" : "";
   const fig = `<span class="ceb-mini-fig${alto}">${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${cabeza}${capas(ropa, CAPAS_CABEZA)}</span>`;
   // Vivo: la figura va en su propia caja recortada, para que el signo de pregunta (confundido) pueda salir por fuera.
   return vivo

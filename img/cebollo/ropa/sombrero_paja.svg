@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="920" viewBox="-120 -120 680 920">
+  <!-- Sombrero de paja de Cebollo (SVG, a partir del dibujo del docente y una foto). Coordenadas del lienzo de 440x800; capa ancha (120 px a los lados y arriba). -->
+  <defs>
+    <linearGradient id="paja" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3d27a"/><stop offset="1" stop-color="#dcae55"/>
+    </linearGradient>
+    <linearGradient id="ala" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0cc72"/><stop offset="1" stop-color="#d9a84e"/>
+    </linearGradient>
+    <linearGradient id="cinta" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ec3a34"/><stop offset="1" stop-color="#c41f22"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-5 220 160)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Ala (vista un poco desde arriba): elipse ancha con las puntas algo caídas -->
+    <path d="M-58 178C-70 140 20 96 220 96C420 96 510 140 498 178C490 214 380 246 220 246C60 246 -50 214 -58 178Z"
+      fill="url(#ala)" stroke="#1b1412" stroke-width="6"/>
+    <g fill="none" stroke="#a97a30" stroke-width="2.2" opacity=".5"><path d="M-33 184l6 -8 M-13 196l-6 -8 M-28 191l6 -8 M-8 202l-6 -8 M-18 198l6 -8 M0 208l-6 -8 M-6 204l6 -8 M12 213l-6 -8 M10 210l6 -8 M27 218l-6 -8 M29 215l6 -8 M44 223l-6 -8 M51 220l6 -8 M64 227l-6 -8 M87 231l-6 -8 M111 234l-6 -8 M137 237l-6 -8 M164 239l-6 -8 M192 240l-6 -8 M220 240l-6 -8 M248 240l-6 -8 M276 239l-6 -8 M303 237l-6 -8 M329 234l-6 -8 M353 231l-6 -8 M389 220l6 -8 M376 227l-6 -8 M411 215l6 -8 M396 223l-6 -8 M430 210l6 -8 M413 218l-6 -8 M446 204l6 -8 M428 213l-6 -8 M458 198l6 -8 M440 208l-6 -8 M468 191l6 -8 M448 202l-6 -8 M473 184l6 -8 M453 196l-6 -8"/></g>
+    <!-- Sombra del ala debajo de la copa -->
+    <path d="M40 160C80 196 360 196 400 160C360 182 80 182 40 160Z" fill="#b98a3c" opacity=".45"/>
+    <!-- Tejido del ala: anillos finos siguiendo la forma -->
+    <g fill="none" stroke="#b8893a" stroke-width="2.5" opacity=".7">
+      <path d="M-30 182C-10 214 90 232 220 232C350 232 450 214 470 182"/>
+      <path d="M-2 190C30 212 110 222 220 222C330 222 410 212 442 190"/>
+      <path d="M-38 160C-20 132 60 110 120 106"/>
+      <path d="M478 160C460 132 380 110 320 106"/>
+    </g>
+    <!-- Copa: cúpula redonda -->
+    <path d="M58 168C44 70 112 -16 220 -16C328 -16 396 70 382 168C330 196 110 196 58 168Z"
+      fill="url(#paja)" stroke="#1b1412" stroke-width="6"/>
+    <!-- Tejido de la copa -->
+    <g fill="none" stroke="#b8893a" stroke-width="2.5" opacity=".7">
+      <path d="M120 16C170 2 270 2 320 16"/>
+      <path d="M90 48C150 30 290 30 350 48"/>
+      <path d="M74 82C140 62 300 62 366 82"/>
+    </g>
+    <g fill="none" stroke="#a97a30" stroke-width="2.2" opacity=".55"><path d="M110 38l8 -10 M132 38l8 -10 M154 38l8 -10 M176 38l8 -10 M198 38l8 -10 M220 38l8 -10 M242 38l8 -10 M264 38l8 -10 M286 38l8 -10 M308 38l8 -10 M84 70l-8 -10 M106 70l-8 -10 M128 70l-8 -10 M150 70l-8 -10 M172 70l-8 -10 M194 70l-8 -10 M216 70l-8 -10 M238 70l-8 -10 M260 70l-8 -10 M282 70l-8 -10 M304 70l-8 -10 M326 70l-8 -10 M348 70l-8 -10 M70 104l8 -10 M92 104l8 -10 M114 104l8 -10 M136 104l8 -10 M158 104l8 -10 M180 104l8 -10 M202 104l8 -10 M224 104l8 -10 M246 104l8 -10 M268 104l8 -10 M290 104l8 -10 M312 104l8 -10 M334 104l8 -10 M356 104l8 -10"/></g>
+    <!-- Brillo de la copa -->
+    <path d="M106 40C122 18 148 2 176 -6" fill="none" stroke="#fff6d8" stroke-width="7" opacity=".8"/>
+    <!-- Cinta roja -->
+    <path d="M66 118C130 140 310 140 374 118L381 158C320 186 120 186 59 158Z"
+      fill="url(#cinta)" stroke="#1b1412" stroke-width="5.5"/>
+    <path d="M82 128C150 146 290 146 358 128" fill="none" stroke="#ff8a7a" stroke-width="3.5" opacity=".7"/>
+    <!-- Borde delantero del ala (grosor) -->
+    <path d="M-50 196C-20 228 80 252 220 252C360 252 460 228 490 196" fill="none" stroke="#1b1412" stroke-width="3" opacity=".35"/>
+  </g>
+</svg>

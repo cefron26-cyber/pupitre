@@ -61,11 +61,13 @@ export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galax
 // Gorros, gafas y accesorios: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen
 // vidrio semitransparente para que se vean los ojos debajo.
 const ROPA_PNG = new Set(ROPA.filter(p => ['sombrero', 'cara', 'rostro'].includes(p.slot)).map(p => p.id));
-// Dibujadas en SVG (vectoriales): el parche pirata.
-const ROPA_SVG = new Set(['parche']);
-// Capa ancha de 680x920 (120 px a cada lado en vez de 60): la cola de la bandana y el sombrero de vaca salen más allá
+// Dibujadas en SVG (vectoriales): el parche pirata y el sombrero de paja (2026-11-22).
+const ROPA_SVG = new Set(['parche', 'sombrero_paja']);
+// Capa ancha de 680x920 (120 px a cada lado en vez de 60): la cola de la bandana y el ala de los sombreros salen más allá
 // del borde de la capa normal.
-export const ROPA_ANCHA = new Set(['bandana_roja', 'sombrero_vaca']);
+export const ROPA_ANCHA = new Set(['bandana_roja', 'sombrero_vaca', 'sombrero_paja']);
+// Sombreros altos: en el busto chico la figura baja un poco para que no se corten arriba.
+export const ROPA_ALTA = new Set(['sombrero_vaca', 'sombrero_paja']);
 export const archivoRopa = id => `${id}.${ROPA_SVG.has(id) ? 'svg' : ROPA_PNG.has(id) ? 'png' : 'webp'}`;
 export const urlRopa = id => `img/cebollo/ropa/${archivoRopa(id)}`;
 export const urlIconoRopa = id => `img/cebollo/ropa/icono/${archivoRopa(id)}`;
