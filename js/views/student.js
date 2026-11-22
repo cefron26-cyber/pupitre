@@ -8,6 +8,7 @@ import { templates } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
 import { mountPlayer } from '../player.js';
 import { UNIT_THEME } from '../temas.js';
+import { tieneExplicacion, montarExplicacion, videoHTML, youtube } from '../explicacion.js';
 import { progressOf, activityIdsOf, xpFor, STATUS, UNIT_BONUS_XP, statusLabel, UNIT_MAX_TRIES, points, starsOf, contentHash, reviewQuestions, REVIEW_XP, RETOS, faseDe, rangoDe, siguienteRango } from '../logic.js';
 
 // Estrellas 0-3 según el puntaje 0-100 (solo motivación).
@@ -204,7 +205,7 @@ export async function tasks(root, { user }) {
         <h2>${esc(unit ? unit.title : act.title)}</h2>
         <div class="small">${unit ? `Actividad ${k + 1} de ${acts.length}: ${esc(act.title)} · ` : `${templates[act.type].label} · `}<span class="${due.cls}">${due.text}</span></div>
         ${unit ? segmentos(p) : ''}</div>
-      <a class="btn" href="${unit ? `#/s/play/${a.id}/${act.id}` : `#/s/play/${a.id}`}">${busy || (unit && p.done) ? 'Continuar' : 'Empezar'}</a></div>`));
+      <a class="btn" href="${unit && empiezaConExplicacion(unit, p) ? `#/s/leccion/${a.id}` : unit ? `#/s/play/${a.id}/${act.id}` : `#/s/play/${a.id}`}">${busy || (unit && p.done) ? 'Continuar' : 'Empezar'}</a></div>`));
   }
 
   const doneBox = $('#done', root);
@@ -286,12 +287,21 @@ export async function unit(root, { user, params }) {
     ${p.status === 'done' ? `<div class="unit-done">¡Unidad completada${p.lateDone ? ' (entregada tarde)' : ''}! Nota <b>${(p.unitPoints / 10).toFixed(1)}</b> · ${p.unitPoints}/100</div>`
       : p.status === 'late' ? '<div class="unit-late">Está atrasada: puedes hacerla, pero quedará como entregada tarde.</div>' : ''}
     ${resumen}
-    ${cur >= 0 ? `<a class="btn unit-go" href="#/s/play/${a.id}/${acts[cur].id}">${p.done || p.items[cur].status === 'doing' ? 'Continuar' : 'Empezar'}: ${esc(acts[cur].title)}</a>` : ''}
+    ${cur >= 0 ? (empiezaConExplicacion(u, p) ? `<a class="btn unit-go" href="#/s/leccion/${a.id}">Empezar: ver la explicación</a>`
+      : `<a class="btn unit-go" href="#/s/play/${a.id}/${acts[cur].id}">${p.done || p.items[cur].status === 'doing' ? 'Continuar' : 'Empezar'}: ${esc(acts[cur].title)}</a>`) : ''}
     <ol class="path2" id="path"></ol></div>`;
   const oc = $('#open-chest', root);
   if (oc) oc.onclick = () => { oc.disabled = true; openDailyChest(user); };
   if (fin?.gained) { const chip = document.getElementById('xp-chip'); chip?.classList.remove('bump'); void chip?.offsetWidth; chip?.classList.add('bump'); }
   const path = $('#path', root);
+  // La explicación (si el docente la puso) va primero en el camino; se puede volver a ver cuando quiera.
+  if (tieneExplicacion(u)) {
+    const conVideo = !!youtube(u.explicacion.video), conTexto = !!u.explicacion.texto?.trim();
+    const nombre = conTexto && conVideo ? 'Explicación y video' : conTexto ? 'Explicación' : 'Video';
+    path.append(el(`<li class="node leccion-node ${empiezaConExplicacion(u, p) ? 'next' : 'done'}" style="--off:0">
+      <a class="node-btn" href="#/s/leccion/${a.id}" aria-label="${nombre} de la unidad"><span class="node-ico">${conTexto ? '📖' : '▶'}</span></a>
+      <div class="node-txt"><b>${nombre}</b><span>${empiezaConExplicacion(u, p) ? 'Empieza por aquí' : 'Vuelve a verla cuando quieras'}</span></div></li>`));
+  }
   let fasePrev = null;
   acts.forEach((act, i) => {
     const it = p.items[i], tpl = templates[act.type];
@@ -300,7 +310,7 @@ export async function unit(root, { user, params }) {
     if (fase !== fasePrev) path.append(el(`<li class="path-fase"><span>${esc(fase)}</span></li>`));
     fasePrev = fase;
     const href = it.best ? `#/s/result/${it.best.id}` : `#/s/play/${a.id}/${act.id}`;
-    const estado = it.best ? 'done' : i === cur ? 'next' : 'todo';
+    const estado = it.best ? 'done' : i === cur && !empiezaConExplicacion(u, p) ? 'next' : 'todo';
     path.append(el(`<li class="node ${estado}" style="--off:${[0, 1, 0, -1][i % 4]}">
       <a class="node-btn" href="${href}" aria-label="${i + 1}. ${esc(act.title)} · ${tpl.label}${it.best ? ` · ${it.points} de 100` : ''}">
         <span class="node-ico">${it.best ? '✓' : templateArt(tpl.type)}</span></a>
@@ -308,6 +318,56 @@ export async function unit(root, { user, params }) {
         ${it.best ? starsHTML(it.points) : ''}</div>
     </li>`));
   });
+}
+
+// Explicación de la unidad (opcional, la pone el docente): pantalla completa. Primero la explicación sola; con Siguiente,
+// el video de YouTube solo. Al final, a la primera actividad pendiente. Se puede volver a ver desde el camino de la unidad.
+// Una unidad empieza por aquí mientras el estudiante no haya empezado ninguna actividad.
+export const empiezaConExplicacion = (unit, p) => tieneExplicacion(unit) && !p.done && p.items.every(i => i.status !== 'doing');
+
+export async function leccion(root, { user, params, query }) {
+  const a = await assignments.get(params.id);
+  const r = a && a.unitId && user.courseIds.includes(a.courseId) ? await load(a, user.id) : null;
+  if (!r) { location.hash = '#/s/tasks'; return; }
+  const back = `#/s/unit/${a.id}`;
+  if (!tieneExplicacion(r.unit)) { location.hash = back; return; }
+  const ex = r.unit.explicacion;
+  const pantallas = [ex.texto?.trim() ? 'texto' : null, youtube(ex.video) ? 'video' : null].filter(Boolean);
+  const k = r.p.items.findIndex(i => !i.best);
+  const despues = k >= 0 ? `#/s/play/${a.id}/${r.acts[k].id}` : back;
+  const fin = k < 0 ? 'Volver a la unidad' : r.p.done ? 'Seguir con las actividades' : 'Empezar las actividades';
+  let i = Math.max(0, Math.min(pantallas.length - 1, Number(query.p) || 0));
+  events.log(user.id, 'open_lesson', { assignmentId: a.id });
+
+  root.innerHTML = `<div class="leccion">
+    <div class="leccion-top">
+      <a class="icon-btn leccion-salir" href="${back}" aria-label="Volver a la unidad">✕</a>
+      <h1 class="grow"><small>${esc(r.unit.title)}</small><span id="lecT"></span></h1>
+      ${pantallas.length > 1 ? `<span class="leccion-puntos" aria-hidden="true">${pantallas.map(() => '<i></i>').join('')}</span>` : ''}
+    </div>
+    <div class="leccion-cuerpo" id="lecC"></div>
+    <div class="leccion-pie">
+      <button type="button" class="btn ghost" id="lecAtras">← Atrás</button>
+      <button type="button" class="btn" id="lecSig"></button>
+    </div></div>`;
+  const cuerpo = $('#lecC', root), atras = $('#lecAtras', root), sig = $('#lecSig', root);
+  let cortar = null;
+  const pintar = () => {
+    cortar?.(); cortar = null;
+    const p = pantallas[i];
+    $('#lecT', root).textContent = p === 'texto' ? 'Explicación' : 'Mira el video';
+    if (p === 'texto') cortar = montarExplicacion(cuerpo, ex.texto);
+    else cuerpo.innerHTML = videoHTML(ex.video, `Video: ${r.unit.title}`);
+    root.querySelectorAll('.leccion-puntos i').forEach((x, j) => x.classList.toggle('on', j === i));
+    atras.hidden = i === 0;
+    sig.textContent = i < pantallas.length - 1 ? 'Siguiente →' : `${fin} →`;
+    window.scrollTo(0, 0);
+    sig.focus({ preventScroll: true });
+  };
+  atras.onclick = () => { i--; pintar(); };
+  sig.onclick = () => { if (i < pantallas.length - 1) { i++; pintar(); } else location.hash = despues; };
+  pintar();
+  return () => cortar?.();
 }
 
 export async function play(root, { user, params, query }) {

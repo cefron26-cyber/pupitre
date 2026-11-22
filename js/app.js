@@ -61,6 +61,7 @@ const routes = [
   ['/t/results', 'teacher', 'results', results],
   ['/s/tasks', 'student', 'tasks', student.tasks],
   ['/s/unit/:id', 'student', 'tasks', student.unit],
+  ['/s/leccion/:id', 'student', 'tasks', student.leccion],
   ['/s/play/:id', 'student', 'tasks', student.play],
   ['/s/play/:id/:act', 'student', 'tasks', student.play],
   ['/s/result/:id', 'student', 'tasks', student.result],
@@ -136,7 +137,7 @@ async function router() {
   }
   applySkin(info);
   // Jugar (tarea, repaso o reto) es a pantalla completa: sin encabezado ni pestañas de la plataforma.
-  const inmersivo = isStudent && /^\/s\/(play|practice|reto|juego)\//.test(path + '/');
+  const inmersivo = isStudent && /^\/s\/(play|practice|reto|juego|leccion)\//.test(path + '/');
   document.body.classList.toggle('inmersivo', inmersivo);
   if (inmersivo) app.innerHTML = '<main class="main juego-main" id="main"></main>';
   else app.innerHTML = headerHTML({

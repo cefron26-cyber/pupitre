@@ -6,6 +6,8 @@ import { esc, el, $, toast, confirmDialog, icons } from '../ui.js';
 import { templates, templateList } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
 import { MCER } from './cursos-admin.js';
+import { AYUDA, LIMITE_TEXTO, montarExplicacion, youtube, videoHTML, tieneExplicacion } from '../explicacion.js';
+import { generar, asegurarClave } from '../ia.js';
 
 export async function unitsList(root, { user }) {
   const list = await units.list(user.id);
@@ -87,6 +89,20 @@ export async function unitEditor(root, { user, params }) {
         </div>
         <div class="field"><label for="desc">Descripción <span class="muted">(opcional)</span></label>
           <input id="desc" placeholder="Ej. Vocabulario de comida, countable/uncountable, some/any" value="${esc(unit.description)}" maxlength="140"></div>
+        <details class="ex-editor" id="exEd" ${tieneExplicacion(unit) ? 'open' : ''}>
+          <summary>Explicación y video <span class="muted small">(opcional)</span></summary>
+          <div class="ex-editor-in">
+            <p class="small muted" style="margin:0">Si la agregas, el estudiante la ve antes de las actividades: primero la explicación y, al tocar Siguiente, el video. Si la dejas vacía, la unidad empieza directo.</p>
+            <div class="ex-ia"><button class="btn ghost sm" type="button" id="exGen">✨ Generar explicación con IA</button><span class="small muted" id="exEstado" role="status"></span></div>
+            <div class="field" style="margin:0"><label for="exTexto">Explicación</label>
+              <textarea id="exTexto" maxlength="${LIMITE_TEXTO}" spellcheck="false" placeholder="# How many or how much?&#10;We use **how many** with things we can count.&#10;= How many + plural noun + are there?&#10;ej: How many apples are there? (¿Cuántas manzanas hay?)&#10;! Con cosas que no se cuentan usamos how much.">${esc(unit.explicacion?.texto || '')}</textarea></div>
+            <details><summary class="small" style="cursor:pointer">¿Cómo se escribe? (se pone bonito solo)</summary>
+              <dl class="ex-ayuda" style="margin-top:8px">${AYUDA.map(([c, d]) => `<dt><code>${esc(c)}</code></dt><dd style="margin:0">${esc(d)}</dd>`).join('')}</dl></details>
+            <div class="field" style="margin:0"><label for="exVideo">Video de YouTube</label>
+              <input id="exVideo" inputmode="url" placeholder="Pega el link, por ejemplo https://www.youtube.com/watch?v=…" value="${esc(unit.explicacion?.video || '')}">
+              <span class="small" id="exVideoMsg"></span></div>
+            <div class="ex-vista" id="exVista" hidden><p class="ex-vista-t">Así lo verá el estudiante</p><div id="exVistaTexto"></div><div id="exVistaVideo" style="margin-top:12px"></div></div>
+          </div></details>
         <div class="row between"><h2 style="margin:8px 0">Actividades <span class="muted small" id="count"></span></h2>
           <details class="info-tip dark"><summary aria-label="Cómo funciona la unidad">i</summary><p>Recomendado: unas 10 mini actividades que mezclen vocabulario, gramática y habilidades, y una evaluación al final. Cada actividad vale de 0 a 100, el estudiante tiene ${UNIT_MAX_TRIES} intentos y cuenta el mejor. La nota de la unidad es el promedio. Arrastra para cambiar el orden.</p></details></div>
         <ol class="unit-steps" id="chosen"></ol>
@@ -106,6 +122,42 @@ export async function unitEditor(root, { user, params }) {
   ugrade.onchange = () => { unit.grade = Number(ugrade.value) || null; ugrade.classList.remove('invalid'); drawChosen(); drawPool(); };
   const marcar = () => { $('#estado', root).textContent = 'Cambios sin guardar'; };
   [title, desc].forEach(x => x.addEventListener('input', marcar));
+
+  // ---------- Explicación y video (opcional) ----------
+  const exTexto = $('#exTexto', root), exVideo = $('#exVideo', root), exMsg = $('#exVideoMsg', root);
+  const vista = $('#exVista', root), vistaVideo = $('#exVistaVideo', root);
+  let cortarVoz = null, videoPintado = null, pintarT = null;
+  const pintarVista = () => {
+    unit.explicacion = { texto: exTexto.value, video: exVideo.value.trim() };
+    cortarVoz?.();
+    cortarVoz = montarExplicacion($('#exVistaTexto', root), exTexto.value);
+    const v = youtube(exVideo.value);
+    exMsg.textContent = exVideo.value.trim() && !v ? 'Ese link no es de un video de YouTube.' : '';
+    exMsg.style.color = 'var(--danger)';
+    exVideo.classList.toggle('invalid', !!exMsg.textContent);
+    const clave = v ? `${v.id}:${v.inicio}` : null;
+    if (clave !== videoPintado) { vistaVideo.innerHTML = v ? videoHTML(exVideo.value) : ''; videoPintado = clave; } // no recargar el video por cada tecla
+    vista.hidden = !exTexto.value.trim() && !v;
+  };
+  [exTexto, exVideo].forEach(x => x.addEventListener('input', () => { marcar(); clearTimeout(pintarT); pintarT = setTimeout(pintarVista, 250); }));
+  pintarVista();
+  $('#exGen', root).onclick = async e => {
+    const b = e.currentTarget, estado = $('#exEstado', root);
+    const tema = [title.value.trim(), desc.value.trim()].filter(Boolean).join(' · ');
+    if (tema.length < 3) { toast('Primero escribe el nombre o la descripción de la unidad: la IA explica ese tema.'); title.focus(); return; }
+    if (exTexto.value.trim() && !(await confirmDialog('Ya hay una explicación escrita. ¿Reemplazarla por una nueva generada con IA?', 'Reemplazar'))) return;
+    if (!(await asegurarClave())) return;
+    b.disabled = true; estado.textContent = 'Generando…';
+    try {
+      const r = await generar({ tipo: 'explicacion', tema, grado: unit.grade || 6, gramatica: desc.value.trim() });
+      exTexto.value = r.contenido.texto;
+      marcar(); pintarVista();
+      estado.textContent = 'Listo. Revísala y cámbiala si quieres.';
+    } catch (err) {
+      estado.textContent = '';
+      toast(err.message || 'No se pudo generar. Intenta de nuevo.', 'err');
+    } finally { b.disabled = false; }
+  };
 
   let arrastrado = null;
   const drawChosen = () => {
@@ -172,7 +224,8 @@ export async function unitEditor(root, { user, params }) {
   const validate = () => {
     const mismatch = unit.activityIds.filter(id => byId[id].grade && byId[id].grade !== unit.grade).length;
     const list = [...(title.value.trim() ? [] : ['Escribe el nombre de la unidad.']), ...(unit.grade ? [] : ['Elige el grado.']),
-      ...(unit.activityIds.length ? [] : ['Agrega al menos una actividad.']), ...(mismatch ? [`Hay ${mismatch} actividad(es) de otro grado: quítalas o cambia su grado.`] : [])];
+      ...(unit.activityIds.length ? [] : ['Agrega al menos una actividad.']),
+      ...(exVideo.value.trim() && !youtube(exVideo.value) ? ['El link del video no es de YouTube: corrígelo o bórralo.'] : []), ...(mismatch ? [`Hay ${mismatch} actividad(es) de otro grado: quítalas o cambia su grado.`] : [])];
     ugrade.classList.toggle('invalid', !unit.grade);
     errs.hidden = !list.length; errs.innerHTML = list.map(e => `<li>${esc(e)}</li>`).join('');
     title.classList.toggle('invalid', !title.value.trim());
@@ -203,4 +256,5 @@ export async function unitEditor(root, { user, params }) {
   };
 
   drawChosen(); drawPool();
+  return () => cortarVoz?.();
 }

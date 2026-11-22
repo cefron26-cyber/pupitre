@@ -373,14 +373,85 @@ const conInstruccion = r => ({
     required: ['instruction', ...r.esquema.required],
   },
 });
-export const REGLAS = Object.fromEntries(Object.entries({ quiz, matching, fill, listening, reorder, classify, reading, dictation, wordsearch, hangman, crossword })
-  .map(([k, r]) => [k, conInstruccion(r)]));
+// ---------- Explicación de una unidad (2026-11-22) ----------
+// No es una actividad: es la explicación opcional que el estudiante ve antes de las actividades de la unidad.
+// El modelo devuelve secciones; aquí se convierten al texto sencillo de js/explicacion.js (el mismo que escribe el docente),
+// así el docente lo puede corregir a mano. Área de inglés (pedido del docente, 2026-11-22): la explicación va en inglés
+// sencillo; los "Recuerda" y las traducciones de los ejemplos, en español. (Para otras asignaturas: todo en español.)
+const limpio = s => txt(s).replace(/[|#]/g, '/');
+const explicacion = {
+  esquema: {
+    type: 'object',
+    properties: {
+      title: { type: 'string' },
+      sections: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            heading: { type: 'string' },
+            text: { type: 'string' },
+            points: { type: 'array', items: { type: 'string' } },
+            formula: { type: 'array', items: { type: 'string' } },
+            remember: { type: 'string' },
+            examples: { type: 'array', items: { type: 'object', properties: { english: { type: 'string' }, spanish: { type: 'string' } }, required: ['english'] } },
+            table: { type: 'object', properties: { header: { type: 'array', items: { type: 'string' } }, rows: { type: 'array', items: { type: 'array', items: { type: 'string' } } } } },
+          },
+          required: ['heading'],
+        },
+      },
+    },
+    required: ['title', 'sections'],
+  },
+  pedido: p => `Write a short, friendly explanation of the topic for the students, as a teacher would explain it in class.
+Language: the explanation is in very simple ENGLISH, at the students' level (short sentences, easy words). ONLY "remember" and the "spanish" translation of each example are in SPANISH (Colombian students' language).
+Return 2 to 4 sections, each about ONE idea (e.g. what it is / how to form it / when to use it / common mistakes). In each section use only what helps:
+- "heading": short title in English (e.g. "When do we use how many?").
+- "text": 1-2 short sentences in English. Put key words between **double asterisks**.
+- "points": up to 4 short bullet points in English.
+- "formula": when there is a structure, its parts as separate strings, e.g. ["He / She / It", "verb + s", "complement"] (2-5 parts).
+- "table": when comparing forms (e.g. I/you/he with the verb). Max 4 columns and 8 rows, short cells, in English.
+- "examples": 1-3 example sentences in English, each with its "spanish" translation.
+- "remember": in SPANISH, one key tip or a typical mistake of Spanish speakers.
+Total under 220 words. Never invent grammar rules; everything must be correct.`,
+  convertir: o => {
+    const ls = [];
+    for (const s of (o.sections || []).slice(0, 6)) {
+      if (ls.length) ls.push('');
+      ls.push(`# ${limpio(s.heading)}`);
+      if (txt(s.text)) ls.push(txt(s.text));
+      for (const x of (s.points || []).map(txt).filter(Boolean).slice(0, 6)) ls.push(`- ${x}`);
+      const f = (s.formula || []).map(x => limpio(x).replace(/\s*\+\s*/g, '+')).filter(Boolean);
+      if (f.length >= 2) ls.push(`= ${f.join(' + ')}`);
+      const filas = [s.table?.header || [], ...(s.table?.rows || [])].map(r => (r || []).map(limpio).slice(0, 4)).filter(r => r.some(Boolean)).slice(0, 9);
+      if (filas.length >= 2) ls.push(...filas.map(r => r.join(' | ')));
+      for (const e of (s.examples || []).slice(0, 4)) if (txt(e.english)) ls.push(`ej: ${txt(e.english).replace(/[()]/g, '')}${txt(e.spanish) ? ` (${txt(e.spanish).replace(/[()]/g, '')})` : ''}`);
+      if (txt(s.remember)) ls.push(`! ${txt(s.remember)}`);
+    }
+    return { texto: ls.join('\n').slice(0, 4000) };
+  },
+  validar(c) {
+    const t = String(c.texto || '');
+    const e = [];
+    if (!/^# /m.test(t)) e.push('La explicación no tiene secciones.');
+    if (t.replace(/\s+/g, ' ').length < 60) e.push('La explicación es demasiado corta.');
+    return e;
+  },
+};
+// Lo que se genera con IA y no es una actividad (no aparece en los menús de actividades).
+export const TIPOS_EXTRA = ['explicacion'];
+
+export const REGLAS = {
+  ...Object.fromEntries(Object.entries({ quiz, matching, fill, listening, reorder, classify, reading, dictation, wordsearch, hangman, crossword })
+    .map(([k, r]) => [k, conInstruccion(r)])),
+  explicacion,
+};
 export const limpiarInstruccion = s => txt(s).replace(/^instructions?:\s*/i, '').slice(0, 120);
 
 // Pedido del docente → parámetros limpios (o lanza Error con mensaje para mostrar).
 export function limpiarPedido(b = {}) {
   const tipo = String(b.tipo || '');
-  if (!TIPOS_IA.includes(tipo)) throw new Error('Ese tipo de actividad todavía no se puede generar con IA.');
+  if (!TIPOS_IA.includes(tipo) && !TIPOS_EXTRA.includes(tipo)) throw new Error('Ese tipo de actividad todavía no se puede generar con IA.');
   const tema = txt(b.tema).slice(0, 600);
   if (tema.length < 3) throw new Error('Escribe el tema o lo que quieres practicar.');
   const cantidad = Math.max(CANTIDAD.min, Math.min(CANTIDAD.max, Math.round(Number(b.cantidad) || 8)));

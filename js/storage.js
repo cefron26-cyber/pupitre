@@ -1,6 +1,7 @@
 // Capa de datos aislada. Hoy: localStorage. Mañana: Supabase con la misma API (todo es async).
 // Ninguna vista debe tocar localStorage directamente.
 import { quintoPack, CURSO_QUINTO, DANIELA } from './demo-quinto.js';
+import { limpiarExplicacion } from './explicacion.js';
 
 const DB_KEY = 'plat.db.v1';
 const SESSION_KEY = 'plat.session.v1';
@@ -130,6 +131,21 @@ function load() {
       }
     }
     cache.estudianteQuintoV1 = true; fixed = true;
+  }
+  // Explicación y video de la unidad 7 (2026-11-22, pedido del docente): se agregan a la unidad ya guardada si no tiene
+  // explicación (no se pisa lo que haya escrito el docente). Una sola vez.
+  if (!cache.explicacionU7V1) {
+    const u = cache.units.find(x => x.id === 'unit-q5-u7');
+    if (u && !u.explicacion) u.explicacion = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: CURSO_QUINTO.id, daysAgo }).units[0].explicacion;
+    cache.explicacionU7V1 = true; fixed = true;
+  }
+  // V2: en el área de inglés la explicación va en inglés (los "Recuerda" en español). Solo se cambia la versión en español
+  // de la V1 si el docente no la editó.
+  if (!cache.explicacionU7V2) {
+    const u = cache.units.find(x => x.id === 'unit-q5-u7');
+    if (u?.explicacion?.texto?.startsWith('# ¿How many o how much?'))
+      u.explicacion = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: CURSO_QUINTO.id, daysAgo }).units[0].explicacion;
+    cache.explicacionU7V2 = true; fixed = true;
   }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
@@ -391,7 +407,9 @@ export const units = {
   async save(unit) {
     // fases: sección de cada actividad (Vocabulario, Gramática…), opcional.
     const fases = Object.fromEntries(Object.entries(unit.fases || {}).filter(([id]) => unit.activityIds.includes(id)));
-    const data = { title: unit.title, description: unit.description || '', grade: unit.grade || null, activityIds: [...unit.activityIds], fases, cefr: unit.cefr || '' };
+    // explicacion: { texto, video } opcional (explicación y video de YouTube que el estudiante ve antes de las actividades).
+    const data = { title: unit.title, description: unit.description || '', grade: unit.grade || null, activityIds: [...unit.activityIds], fases, cefr: unit.cefr || '',
+      explicacion: limpiarExplicacion(unit.explicacion) };
     if (unit.id && get('units', unit.id)) return update('units', unit.id, data);
     return insert('units', { schoolId: SCHOOL_ID, ownerId: unit.ownerId, createdAt: now(), ...data });
   },

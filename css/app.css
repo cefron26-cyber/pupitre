@@ -1473,3 +1473,61 @@ h2{font-weight:600}
 .mt-cartas{display:flex; align-items:center; gap:10px}
 .mt-cartas i{width:52px; height:36px; border-radius:5px; background:#1f3a68; box-shadow:-3px 3px 0 #7a4fd1}
 .mt-cartas b{max-width:110px; padding:6px 8px; border:3px solid #0f8b8d; border-radius:5px; background:#fff; font:600 11px/1.2 var(--font)}
+
+/* ---------- Explicación de la unidad (js/explicacion.js): texto sencillo → tarjetas de colores ---------- */
+.explicacion{display:flex; flex-direction:column; gap:var(--sp-4); font-size:17px; line-height:1.55; color:var(--ink)}
+.ex-sec{--c:#2f5aa8; --c-suave:#eaf0fa; background:var(--card); border:1px solid var(--line); border-top:6px solid var(--c);
+  border-radius:14px; padding:var(--sp-4) var(--sp-5); display:flex; flex-direction:column; gap:12px}
+.ex-sec.c1{--c:#e2553a; --c-suave:#fff0eb}
+.ex-sec.c2{--c:#1f8a4c; --c-suave:#e6f4ea}
+.ex-sec.c3{--c:#7a4cc2; --c-suave:#f2ecfb}
+.ex-sec.c4{--c:#c27c00; --c-suave:#fff4dc}
+.ex-t{margin:0; font-size:22px; line-height:1.25; color:var(--c)}
+.ex-p{margin:0}
+.explicacion mark{background:var(--c-suave); color:var(--c); font-weight:700; padding:0 4px; border-radius:4px}
+.ex-lista{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px}
+.ex-lista li{position:relative; padding-left:26px}
+.ex-lista li::before{content:""; position:absolute; left:6px; top:.62em; width:9px; height:9px; border-radius:50%; background:var(--c)}
+.ex-formula{display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px; background:var(--bg-soft); border-radius:12px}
+.ex-ficha{padding:8px 14px; border-radius:10px; font-weight:700; color:#fff; background:#2f5aa8; box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.ex-ficha.f1{background:#e2553a} .ex-ficha.f2{background:#1f8a4c} .ex-ficha.f3{background:#7a4cc2}
+.ex-ficha mark{background:rgba(255,255,255,.25); color:inherit}
+.ex-mas{font-weight:800; font-size:20px; color:var(--muted)}
+.ex-recuerda{display:flex; flex-direction:column; gap:2px; padding:12px 16px; border-radius:12px; background:#fff7d6; border:2px dashed #e0a800}
+.ex-recuerda b{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:#8a5a00}
+.ex-recuerda b::before{content:"💡 "}
+.ex-ejemplo{display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; background:var(--c-suave)}
+.ex-ejemplo > span{display:flex; flex-direction:column}
+.ex-ejemplo small{font-size:14px; color:var(--muted)}
+.ex-oir{flex:none; width:44px; height:44px; border-radius:50%; border:0; display:grid; place-items:center; cursor:pointer; background:var(--c); color:#fff}
+.ex-oir svg{width:22px; height:22px}
+.ex-oir:focus-visible{outline:var(--focus-ring); outline-offset:2px}
+.ex-oir.sonando{animation:ex-latido .8s ease-in-out infinite}
+@keyframes ex-latido{50%{transform:scale(1.1)}}
+.ex-tabla-caja{overflow-x:auto; border-radius:12px; border:1px solid var(--line)}
+.ex-tabla{width:100%; border-collapse:collapse; font-size:16px}
+.ex-tabla th,.ex-tabla td{white-space:normal; overflow-wrap:break-word; vertical-align:top} /* en celular las celdas bajan de línea */
+.ex-tabla th{background:var(--c); color:#fff; text-align:left; padding:10px 14px; font-weight:700}
+.ex-tabla td{padding:9px 14px; border-top:1px solid var(--line)}
+.ex-tabla tbody tr:nth-child(even) td{background:var(--c-suave)}
+.ex-tabla th mark{background:rgba(255,255,255,.25); color:inherit}
+.ex-video{position:relative; width:100%; aspect-ratio:16/9; border-radius:14px; overflow:hidden; background:#000}
+.ex-video iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+.ex-video-link{display:inline-block; margin-top:8px; font-size:14px; color:var(--muted)}
+@media (max-width:560px){ .explicacion{font-size:16px} .ex-sec{padding:var(--sp-4) 12px} .ex-t{font-size:19px}
+  .ex-tabla{font-size:14px} .ex-tabla th,.ex-tabla td{padding:8px} }
+@media (prefers-reduced-motion: reduce){ .ex-oir.sonando{animation:none} }
+
+/* Editor de la unidad: explicación y video (opcional) */
+.ex-editor{margin:4px 0 16px; border:1px solid var(--line); border-radius:var(--radius-card); background:var(--bg-soft)}
+.ex-editor > summary{cursor:pointer; padding:12px 16px; font-weight:600; list-style:none; display:flex; align-items:center; gap:8px}
+.ex-editor > summary::-webkit-details-marker{display:none}
+.ex-editor > summary::before{content:"▸"; color:var(--muted); transition:transform var(--dur-fast)}
+.ex-editor[open] > summary::before{transform:rotate(90deg)}
+.ex-editor-in{padding:0 16px 16px; display:flex; flex-direction:column; gap:12px}
+.ex-editor textarea{min-height:220px; font-family:ui-monospace,Consolas,monospace; font-size:14px; line-height:1.5}
+.ex-ayuda{display:grid; grid-template-columns:auto 1fr; gap:4px 14px; margin:0; font-size:13px}
+.ex-ayuda code{white-space:pre; background:var(--card); border:1px solid var(--line); border-radius:4px; padding:1px 6px}
+.ex-vista{background:var(--bg); border-radius:var(--radius-card); padding:12px}
+.ex-vista-t{font-size:13px; color:var(--muted); margin:0 0 8px}
+.ex-ia{display:flex; flex-wrap:wrap; gap:8px; align-items:center}

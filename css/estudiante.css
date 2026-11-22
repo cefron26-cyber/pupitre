@@ -722,3 +722,21 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 .cu-gasto{position:absolute; left:100%; top:50%; margin-left:6px; font-weight:800; font-size:22px; color:#d6336c; text-shadow:0 2px 0 #fff;
   pointer-events:none; animation:cu-gasto 1.3s ease-out forwards}
 @keyframes cu-gasto{0%{opacity:0; transform:translateY(-30%)} 15%{opacity:1} 100%{opacity:0; transform:translateY(-160%)}}
+
+/* ---------- Explicación de la unidad a pantalla completa (#/s/leccion/:id): explicación sola, luego el video solo ---------- */
+.leccion{max-width:920px; min-height:100dvh; margin:0 auto; padding:16px 16px 0; display:flex; flex-direction:column}
+.leccion-top{display:flex; align-items:center; gap:12px}
+.leccion-salir{flex:none; width:44px; height:44px; display:grid; place-items:center; font-size:20px; text-decoration:none; color:var(--ink)}
+.leccion-top h1{margin:0; display:flex; flex-direction:column; font-size:22px; line-height:1.2; min-width:0}
+.leccion-top h1 small{font-size:13px; font-weight:600; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.leccion-puntos{display:flex; gap:6px}
+.leccion-puntos i{width:10px; height:10px; border-radius:50%; background:var(--line); transition:background var(--dur-fast), transform var(--dur-fast)}
+.leccion-puntos i.on{background:var(--accent); transform:scale(1.25)}
+.leccion-cuerpo{flex:1; padding:16px 0 24px}
+.leccion-cuerpo .ex-video{box-shadow:0 8px 24px rgba(22,33,61,.18)}
+.leccion-pie{position:sticky; bottom:0; display:flex; justify-content:space-between; gap:12px; padding:12px 0 16px; background:linear-gradient(transparent, #fff 35%)}
+.leccion-pie .btn{min-height:52px; font-size:17px; padding-inline:22px}
+.leccion-pie #lecSig{margin-left:auto}
+.leccion-node .node-ico{font-size:34px}
+.leccion-node.done .node-btn{background:#2f5aa8; border-color:#2f5aa8; box-shadow:0 7px 0 #1f3a68}
+@media (max-width:560px){ .leccion-top h1{font-size:19px} .leccion-pie .btn{flex:1; padding-inline:12px} }
