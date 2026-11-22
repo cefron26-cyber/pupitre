@@ -1,6 +1,6 @@
 // Vistas del estudiante: Misiones, ruta de la unidad, hacer actividad, resultado.
 import { assignments, activities, units, attempts, xp, events, users, chests, userRewards } from '../storage.js';
-import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId } from '../rewards.js';
+import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId } from '../rewards.js';
 import { cebolloMini } from '../cebollo.js';
 import { openChest } from '../chest.js';
 import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast } from '../ui.js';
@@ -33,9 +33,9 @@ export function levelOf(total) {
   return { level, inLevel: rest, need: levelCost(level) };
 }
 export const prefsOf = user => ({ ...DEFAULT_PREFS, ...(user.prefs || {}) });
-// Guardar lo elegido: la ropa va en su ranura; un fondo, directo.
+// Guardar lo elegido: la ropa va en su ranura (los accesorios se suman a los que lleva); un fondo, directo.
 export const equipar = (user, r) => users.setPrefs(user.id, r.kind === 'ropa'
-  ? { ropa: { ...prefsOf(user).ropa, [r.slot]: r.id } } : { [r.kind]: r.id });
+  ? { ropa: ponerPrenda(prefsOf(user).ropa, r.slot, r.id) } : { [r.kind]: r.id });
 
 // Racha diaria (como Duolingo): días seguidos con al menos una actividad terminada. Si hoy aún no jugó,
 // la racha de ayer sigue viva (se pierde solo si pasa un día entero sin jugar). Meta diaria: 1 actividad.
@@ -120,7 +120,7 @@ export async function collection(root, { user }) {
   const prefs = prefsOf(user);
   const { state } = await chestState(user.id);
   const tile = (r, kind) => {
-    const has = owned.has(r.id), using = kind === 'ropa' ? prefs.ropa?.[r.slot] === r.id : prefs[kind] === r.id;
+    const has = owned.has(r.id), using = kind === 'ropa' ? llevaPuesta(prefs.ropa, r.slot, r.id) : prefs[kind] === r.id;
     return `<li class="reward-tile ${has ? 'has' : 'locked'} rr-${r.rarity}" style="--rc:${RARITY[r.rarity].color}">
       <div class="rt-prev">${kind === 'ropa' ? rewardPreview({ ...r, kind }, 64) : backgroundSwatch(r.id)}${has ? '' : `<span class="rt-lock">${icons.lock}</span>`}</div>
       <b class="rt-name">${esc(r.name)}</b>

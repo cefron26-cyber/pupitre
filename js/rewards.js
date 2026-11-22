@@ -24,7 +24,7 @@ export const BACKGROUNDS = [
 
 // Ropa de Cebollo (2026-11-20, reemplaza a los cubos): cada prenda va en una ranura y se viste por capas.
 // Arte en img/cebollo/ropa/<id>.webp (capa del tamaño de la figura) e icono/<id>.webp (herramientas/arte/recortar_ropa.py).
-export const SLOTS = { sombrero: 'Gorras', cara: 'Gafas', rostro: 'Estilos', torso: 'Camisetas y hoodies', piernas: 'Pantalones', pies: 'Zapatos' };
+export const SLOTS = { sombrero: 'Gorras', cara: 'Gafas', rostro: 'Accesorios', torso: 'Camisetas y hoodies', piernas: 'Pantalones', pies: 'Zapatos' };
 export const ROPA = [
   { id: 'gorra_roja',        name: 'Gorra roja',          slot: 'sombrero', rarity: 'common' },
   { id: 'gorro_lana',        name: 'Gorro de lana',       slot: 'sombrero', rarity: 'rare' },
@@ -33,7 +33,8 @@ export const ROPA = [
   { id: 'gafas_sol',         name: 'Gafas de sol',        slot: 'cara',     rarity: 'rare' },
   { id: 'gafas_estrella',    name: 'Gafas de estrella',   slot: 'cara',     rarity: 'legendary' },
   { id: 'parche',            name: 'Parche pirata',       slot: 'cara',     rarity: 'epic' },
-  // Estilos (2026-11-21): dibujos del docente sobre la cara; van debajo de las gafas para poder combinarlos.
+  // Accesorios (2026-11-21): dibujos del docente sobre la cara; van debajo de las gafas. Se pueden llevar varios a
+  // la vez mientras no se tapen entre sí (ver VARIOS y TAPAN).
   { id: 'bigote',            name: 'Bigote',              slot: 'rostro',   rarity: 'common' },
   { id: 'cicatrices',        name: 'Cicatrices',          slot: 'rostro',   rarity: 'rare' },
   { id: 'camiseta_roja',     name: 'Camiseta roja',       slot: 'torso',    rarity: 'common', free: true },
@@ -54,7 +55,7 @@ export const ROPA = [
 ];
 // Premios viejos (cubos) → prenda que los reemplaza, para quien ya los había ganado.
 export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galaxia': 'f-noche' };
-// Gorros, gafas y estilos: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen
+// Gorros, gafas y accesorios: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen
 // vidrio semitransparente para que se vean los ojos debajo.
 const ROPA_PNG = new Set(ROPA.filter(p => ['sombrero', 'cara', 'rostro'].includes(p.slot)).map(p => p.id));
 // Dibujadas en SVG (vectoriales): el parche pirata.
@@ -62,6 +63,31 @@ const ROPA_SVG = new Set(['parche']);
 export const archivoRopa = id => `${id}.${ROPA_SVG.has(id) ? 'svg' : ROPA_PNG.has(id) ? 'png' : 'webp'}`;
 export const urlRopa = id => `img/cebollo/ropa/${archivoRopa(id)}`;
 export const urlIconoRopa = id => `img/cebollo/ropa/icono/${archivoRopa(id)}`;
+
+// Ranuras donde se puede llevar más de una prenda: guardan una lista de ids (las demás, un id). Solo los accesorios.
+export const VARIOS = new Set(['rostro']);
+// Accesorios que se tapan entre sí y no pueden ir juntos (pares de ids). Se mide el dibujo de uno encima del otro en
+// las capas de 560x920: bigote y cicatrices casi no se tocan (24 px de borde), así que pueden ir juntos.
+const TAPAN = [];
+export const seTapan = (a, b) => TAPAN.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+const orden = id => ROPA.findIndex(r => r.id === id);
+// Lo que lleva puesto en una ranura, siempre como lista (vale con un id suelto o con la lista).
+export const puestas = (ropa, slot) => [...new Set([ropa?.[slot]].flat().filter(Boolean))].sort((a, b) => orden(a) - orden(b));
+export const llevaPuesta = (ropa, slot, id) => puestas(ropa, slot).includes(id);
+// Ponerse una prenda (id = null deja la ranura vacía). En VARIOS se suma a lo que lleva y quita lo que la tape.
+export function ponerPrenda(ropa = {}, slot, id) {
+  const r = { ...ropa };
+  const l = !id ? [] : VARIOS.has(slot) ? [...puestas(ropa, slot).filter(x => x !== id && !seTapan(x, id)), id] : [id];
+  if (!l.length) delete r[slot];
+  else r[slot] = VARIOS.has(slot) ? l.sort((a, b) => orden(a) - orden(b)) : id;
+  return r;
+}
+// Quitarse una sola prenda de la ranura.
+export function quitarPrenda(ropa = {}, slot, id) {
+  const r = { ...ropa }, l = puestas(ropa, slot).filter(x => x !== id);
+  if (!l.length) delete r[slot]; else r[slot] = VARIOS.has(slot) ? l : l[0];
+  return r;
+}
 
 // Decoración del cuarto de Cebollo: se compra con monedas (1 moneda por cada XP ganado) y va en un lugar fijo.
 export const LUGARES = { ventana: 'Ventanas', cuadro: 'Cuadros', estante: 'Estantes', planta: 'Plantas', mesa: 'Mesas',

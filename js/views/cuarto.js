@@ -2,7 +2,7 @@
 // (tienda) y cambiarle la ropa (armario). Cada lugar del cuarto lleva un objeto a la vez (prefs.cuarto[lugar]).
 // Monedas = XP ganado − lo gastado (storage.compras). La ropa sale del cofre y de los retos (colección).
 import { xp, users, userRewards, compras, events } from '../storage.js';
-import { ROPA, SLOTS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO } from '../rewards.js';
+import { ROPA, SLOTS, VARIOS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO, puestas, ponerPrenda, quitarPrenda } from '../rewards.js';
 import { crearCebollo, cebolloMini } from '../cebollo.js';
 import { prefsOf } from './student.js';
 import { esc, $, toast } from '../ui.js';
@@ -383,9 +383,10 @@ export async function cuarto(root, { user }) {
     if (panel === 'armario') {
       const mias = ROPA.filter(r => r.slot === pestana && ropaMia.has(r.id));
       const faltan = ROPA.filter(r => r.slot === pestana && !ropaMia.has(r.id));
-      lista = `<li><button type="button" class="cu-tile ${ropa[pestana] ? '' : 'on'}" data-quitar="${pestana}" aria-label="Nada" aria-pressed="${!ropa[pestana]}">
+      const lleva = puestas(ropa, pestana);
+      lista = `<li><button type="button" class="cu-tile ${lleva.length ? '' : 'on'}" data-quitar="${pestana}" aria-label="Nada" aria-pressed="${!lleva.length}">
           <span class="cu-tile-img cu-nada" aria-hidden="true">✕</span></button></li>`
-        + mias.map(r => `<li><button type="button" class="cu-tile ${ropa[pestana] === r.id ? 'on' : ''}" data-ropa="${r.id}" style="--rc:${RARITY[r.rarity].color}" aria-label="${esc(r.name)}" title="${esc(r.name)}" aria-pressed="${ropa[pestana] === r.id}">
+        + mias.map(r => `<li><button type="button" class="cu-tile ${lleva.includes(r.id) ? 'on' : ''}" data-ropa="${r.id}" style="--rc:${RARITY[r.rarity].color}" aria-label="${esc(r.name)}" title="${esc(r.name)}" aria-pressed="${lleva.includes(r.id)}">
           <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""></button></li>`).join('');
       // La que falta se ve en gris con candado y un icono de dónde se gana (meta visible, sin texto).
       lista += faltan.map(r => {
@@ -414,12 +415,13 @@ export async function cuarto(root, { user }) {
     cajaPanel.querySelectorAll('[data-deco]').forEach(b => b.onclick = () => tocarDeco(b.dataset.deco));
   }
 
+  // Accesorios (VARIOS): tocar uno puesto lo quita y tocar otro lo suma (quitando el que lo tape).
   async function ponerRopa(slot, id) {
-    if ((ropa[slot] || null) === id) return;
-    ropa = { ...ropa, [slot]: id };
-    if (!id) delete ropa[slot];
+    const lleva = puestas(ropa, slot), quita = id && VARIOS.has(slot) && lleva.includes(id);
+    if (!id ? !lleva.length : !quita && lleva.length === 1 && lleva[0] === id) return;
+    ropa = quita ? quitarPrenda(ropa, slot, id) : ponerPrenda(ropa, slot, id);
     await users.setPrefs(user.id, { ropa });
-    ceb.vestir(ropa); ceb.reaccion('feliz'); decir(id ? azar(FRASES_ROPA) : '¡Así estoy cómodo!');
+    ceb.vestir(ropa); ceb.reaccion('feliz'); decir(id && !quita ? azar(FRASES_ROPA) : '¡Así estoy cómodo!');
     pintarPanel(); refrescarEncabezado();
   }
 

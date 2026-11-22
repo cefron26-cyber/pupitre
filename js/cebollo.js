@@ -9,15 +9,16 @@
 // Ropa: capas en img/cebollo/ropa/ (herramientas/arte/recortar_ropa.py) sobre el mismo lienzo que el cuerpo, con
 // margen (MARGEN) para que quepan gorras y sombreros. Las del cuerpo respiran con él; las de la cabeza cabecean con ella.
 
-import { archivoRopa } from "./rewards.js";
+import { archivoRopa, puestas } from "./rewards.js";
 
 const RUTA = new URL("../img/cebollo/anim/", import.meta.url).href;
 const RUTA_ROPA = new URL("../img/cebollo/ropa/", import.meta.url).href;
-// Orden de las capas: piernas, pies y torso sobre el cuerpo; estilos (bigote, cicatrices), gafas (y parche) y sombrero sobre la cabeza.
+// Orden de las capas: piernas, pies y torso sobre el cuerpo; accesorios (bigote, cicatrices; pueden ser varios),
+// gafas (y parche) y sombrero sobre la cabeza.
 const CAPAS_TRONCO = ["piernas", "pies", "torso"], CAPAS_CABEZA = ["rostro", "cara", "sombrero"];
-const capas = (ropa = {}, ranuras) => ranuras.filter(r => ropa[r])
-  .map(r => `<img class="cebollo-ropa" data-ranura="${r}" src="${RUTA_ROPA}${archivoRopa(ropa[r])}" alt="" draggable="false">`).join("");
-const vestido = ropa => Object.values(ropa || {}).some(Boolean);
+const capas = (ropa = {}, ranuras) => ranuras.flatMap(r => puestas(ropa, r)
+  .map(id => `<img class="cebollo-ropa" data-ranura="${r}" src="${RUTA_ROPA}${archivoRopa(id)}" alt="" draggable="false">`)).join("");
+const vestido = ropa => Object.values(ropa || {}).flat().some(Boolean);
 const CARAS = ["normal", "parpadeo", "sorpresa", "risa"];
 const DURACION = { feliz: 1100, sorpresa: 900, festejo: 1700 };
 
