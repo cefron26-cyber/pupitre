@@ -186,6 +186,11 @@ const RUTA_EMOTES = new URL("../img/cebollo/emotes/", import.meta.url).href;
 export const urlEmote = nombre => `${RUTA_EMOTES}${nombre}.webp`;
 
 // ---- Emotes vestidos (2026-11-23): la ropa de la cabeza (gorras, gafas, accesorios) va encima de cada emote ----
+// APAGADO a pedido del docente (2026-11-23): varios quedaron bien y otros no tanto; se guarda para retomarlo más
+// adelante. Con EMOTES_VESTIDOS = false los emotes se ven como antes (solo la imagen). Para volver a probarlo: true.
+// Lo que faltaba afinar: el brote asoma por encima de gorras y gorros, el bigote cae sobre la boca (en los emotes la
+// boca está más cerca de los ojos) y en algunos el giro de la cabeza no coincide del todo con el dibujo.
+export const EMOTES_VESTIDOS = false;
 // Los emotes son bustos: se ve la cabeza y las manos, así que solo se visten las ranuras de la cabeza. Para cada emote se
 // midió una vez dónde queda la cabeza del lienzo de 440x800 (ajustando el contorno de cabeza.webp sobre el emote):
 // [escala, giro en grados, x, y] en px del emote. "cabeza" sigue el contorno (gorras y sombreros); "cara" usa la escala
@@ -213,6 +218,7 @@ export function emoteFig(nombre, ropa = ropaEmotes, clase = "") {
   const p = POSE[nombre];
   const base = `<img class="emote-base" src="${urlEmote(nombre)}" alt="" draggable="false">`;
   if (!p) return `<span class="emote-fig ${clase}" data-emote="${nombre}">${base}</span>`;
+  if (!EMOTES_VESTIDOS) return `<span class="emote-fig ${clase}" data-emote="${nombre}" style="aspect-ratio:${p.w}/${p.h};--ar:${(p.w / p.h).toFixed(4)}">${base}</span>`;
   return `<span class="emote-fig ${clase}" data-emote="${nombre}" style="aspect-ratio:${p.w}/${p.h};--ar:${(p.w / p.h).toFixed(4)}">${base}`
     + capaEmote(p, p.cara, ["rostro", "cara"], ropa) + capaEmote(p, p.cabeza, ["sombrero"], ropa)
     + (p.frente && puestas(ropa, "sombrero").length + puestas(ropa, "cara").length
