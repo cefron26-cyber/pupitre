@@ -1,7 +1,7 @@
 // Vistas del estudiante: Misiones, ruta de la unidad, hacer actividad, resultado.
 import { assignments, activities, units, attempts, xp, events, users, chests, userRewards, compras } from '../storage.js';
 import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId, comprable, precioDe, moneda } from '../rewards.js';
-import { cebolloMini } from '../cebollo.js';
+import { cebolloMini, emoteFig } from '../cebollo.js';
 import { openChest } from '../chest.js';
 import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast, confirmDialog } from '../ui.js';
 import { templates } from '../templates/index.js';
@@ -216,7 +216,7 @@ export async function tasks(root, { user }) {
     const due = fmtDue(a.dueAt);
     const busy = unit ? p.items[k]?.status === 'doing' : p.status === 'doing';
     $('#next', root).append(el(`<div class="next-card">
-      <div class="next-masc" aria-hidden="true"><img class="next-emote" src="img/cebollo/emotes/pulgar.webp" alt=""></div>
+      <div class="next-masc" aria-hidden="true">${emoteFig('pulgar', prefsOf(user).ropa, 'next-emote')}</div>
       <div class="grow"><p class="kicker">Próxima misión ${premio(acts, unit)}</p>
         <h2>${esc(unit ? unit.title : act.title)}</h2>
         <div class="small">${unit ? `Actividad ${k + 1} de ${acts.length}: ${esc(act.title)} · ` : `${templates[act.type].label} · `}<span class="${due.cls}">${due.text}</span></div>

@@ -5,7 +5,7 @@
 import { el, esc, fmtDuration, evalMode, confirmDialog } from './ui.js';
 import { templates } from './templates/index.js';
 import { themeById, themeSound, DEFAULT_THEME, temaPara } from './temas.js';
-import { mostrarEmote, urlEmote, emoteAcierto } from './cebollo.js';
+import { mostrarEmote, urlEmote, emoteAcierto, emoteFig, cambiarEmote } from './cebollo.js';
 
 const IDLE_MS = 60_000; // sin interacción por más de 1 min → no cuenta tiempo
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -114,7 +114,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   // Aparece en la esquina al responder (Comprobar, elegir opción, hacer una pareja…) y se va a los 2 s; en todas las plantillas (antes solo salía en la franja de respuesta, que Emparejar, Memoria,
   // Clasificar, Sopa o Crucigrama no tienen). Reacciona a los mismos aciertos/errores que suenan (queue); en evaluación
   // (respuestas ocultas) se queda quieto para no delatar nada.
-  const compa = inmersivo && decorado ? el(`<div class="esc-compa" aria-hidden="true"><img src="${urlEmote('sonrisa')}" alt="" draggable="false"></div>`) : null;
+  const compa = inmersivo && decorado ? el(`<div class="esc-compa emote-caja" aria-hidden="true">${emoteFig('sonrisa')}</div>`) : null;
   if (compa) shell.append(compa);
   let rachaCompa = 0, compaT = null, compaFb = null;
   // fb: mensaje con botón (Siguiente/Continuar). Entonces Cebollo se queda hasta que ese mensaje se va (al avanzar);
@@ -122,8 +122,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const reaccionar = (ok, fb = null) => {
     if (!compa) return;
     rachaCompa = ok ? rachaCompa + 1 : 0;
-    const img = compa.querySelector('img');
-    img.src = urlEmote(ok ? (rachaCompa >= 3 ? 'copa' : emoteAcierto()) : 'triste');
+    cambiarEmote(compa.querySelector('.emote-fig'), ok ? (rachaCompa >= 3 ? 'copa' : emoteAcierto()) : 'triste');
     compa.classList.remove('feliz', 'triste'); void compa.offsetWidth; compa.classList.add(ok ? 'feliz' : 'triste');
     compa.classList.add('ve');
     clearTimeout(compaT);
