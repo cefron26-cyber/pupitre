@@ -12,7 +12,9 @@
 /* Cebollo mini: busto quieto y vestido (cebolloMini en js/cebollo.js). Se ve del brote al pecho. */
 .ceb-mini{--s:48px; position:relative; display:inline-block; flex:none; width:var(--s); height:var(--s); overflow:hidden; vertical-align:middle}
 .ceb-mini-fig{position:absolute; left:50%; top:calc(var(--s) * .02); height:calc(var(--s) * 800 / 560); aspect-ratio:440/800; transform:translateX(-50%)}
-.ceb-mini-fig.alto{top:calc(var(--s) * .14)}
+/* Sombrero alto (vaca, paja): la figura se aleja un poco (lienzo de 700 px en vez de 560) para que se vea el sombrero
+   entero y algo del cuerpo. */
+.ceb-mini-fig.alto{top:calc(var(--s) * .12); height:calc(var(--s) * 800 / 700)}
 .ceb-mini img{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
 /* Busto vivo: la figura se recorta en su caja y el signo de pregunta (confundido) sale por fuera, arriba a la derecha. */
 .ceb-mini.vivo{overflow:visible}
