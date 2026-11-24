@@ -355,6 +355,78 @@ export function quintoPack({ schoolId, ownerId, courseId, daysAgo }) {
     { text: 'What do you need to make a sandwich?' },
   ] });
 
+
+  // ================= Gramática extra (2026-11-24, pedido del docente): passive voice y adverbs of manner =================
+  // Tres actividades de cada tema, sueltas, con estilos variados. Passive voice: is/are + participio (presente) y
+  // was/were + participio (pasado). Adverbs of manner: adjetivo + -ly, y los irregulares (well, fast, hard).
+  act('act-q5-pv-quiz', 'quiz', 'Passive voice · Quiz: is, are, was, were', 'concurso', 'Choose the correct passive sentence.', { questions: [
+    mc('English ___ in many countries.', ['speaks', 'is spoken', 'are spoken', 'was speaking'], 1),
+    mc('The cookies ___ by my grandma yesterday.', ['were baked', 'was baked', 'are baked', 'baked'], 0),
+    mc('This school ___ in 1995.', ['is built', 'was built', 'were built', 'built'], 1),
+    mc('Pizza ___ with cheese and tomato sauce.', ['is made', 'are made', 'was making', 'makes'], 0),
+    mc('The window ___ by the ball.', ['broke', 'was broken', 'were broken', 'is breaking'], 1),
+    mc('Which sentence is passive?', ['Tom cleaned the room.', 'The room was cleaned by Tom.', 'Tom is cleaning the room.'], 1),
+    mc('These letters ___ every morning.', ['is delivered', 'are delivered', 'was delivered', 'delivers'], 1),
+    tf('"The cake was eaten by the children." is passive.', true),
+    tf('"Spanish is speak in Colombia." is correct.', false),
+    mc('The photos ___ by my dad last week.', ['are taken', 'was taken', 'were taken', 'take'], 2),
+  ] });
+
+  act('act-q5-pv-fill', 'fill', 'Passive voice · Completar: make it passive', 'cuaderno', 'Write the verb in the passive. Use the clue in parentheses.', { items: [
+    { text: 'The homework {{is done|is finished}} (do) every day.', bank: [] },
+    { text: 'The pizza {{was eaten}} (eat) by the kids.', bank: [] },
+    { text: 'Rice {{is grown}} (grow) in warm places.', bank: [] },
+    { text: 'The thief {{was caught}} (catch) by the police.', bank: [] },
+    { text: 'These cars {{are made}} (make) in Japan.', bank: [] },
+    { text: 'The song {{was written}} (write) by a famous singer.', bank: [] },
+    { text: 'The windows {{were cleaned}} (clean) yesterday.', bank: [] },
+    { text: 'Spanish {{is spoken}} (speak) in Colombia.', bank: [] },
+  ] });
+
+  act('act-q5-pv-reorder', 'reorder', 'Passive voice · Ordenar: passive sentences', 'corcho', 'Put the words in the correct order.', { items: [
+    { sentence: 'The cake was made by my mom.' },
+    { sentence: 'English is spoken in many countries.' },
+    { sentence: 'The letters were written by Anna.' },
+    { sentence: 'Our classroom is cleaned every day.' },
+    { sentence: 'The window was broken by a ball.' },
+    { sentence: 'Coffee is grown in Colombia.' },
+  ] });
+
+  act('act-q5-adv-matching', 'matching', 'Adverbs of manner · Emparejar: adjective and adverb', 'oceano', 'Match each adjective with its adverb.', { pairs: [
+    { left: 'quick', right: 'quickly' },
+    { left: 'slow', right: 'slowly' },
+    { left: 'careful', right: 'carefully' },
+    { left: 'loud', right: 'loudly' },
+    { left: 'happy', right: 'happily' },
+    { left: 'easy', right: 'easily' },
+    { left: 'good', right: 'well' },
+    { left: 'fast', right: 'fast' },
+    { left: 'hard', right: 'hard' },
+    { left: 'quiet', right: 'quietly' },
+  ] });
+
+  act('act-q5-adv-fill', 'fill', 'Adverbs of manner · Completar: how do they do it?', 'pizarra', 'Write the adverb. Use the adjective in parentheses.', { items: [
+    { text: 'The turtle walks {{slowly}} (slow).', bank: [] },
+    { text: 'Please speak {{quietly}} (quiet) in the library.', bank: [] },
+    { text: 'She sings {{beautifully}} (beautiful).', bank: [] },
+    { text: 'He carried the eggs {{carefully}} (careful).', bank: [] },
+    { text: 'The children played {{happily}} (happy) in the park.', bank: [] },
+    { text: 'My brother runs very {{fast}} (fast).', bank: [] },
+    { text: 'Anna plays the piano {{well}} (good).', bank: [] },
+    { text: 'Peter worked {{hard}} (hard) on his project.', bank: [] },
+  ] });
+
+  act('act-q5-adv-hangman', 'hangman', 'Adverbs of manner · Ahorcado: how?', 'pixel', 'Read the clue and guess the adverb.', { lives: 6, items: [
+    { word: 'quickly', hint: 'How a fast runner moves. Not slowly.' },
+    { word: 'carefully', hint: 'How you carry a full glass of water. You do not want to spill it.' },
+    { word: 'loudly', hint: 'How a baby cries. Not quietly.' },
+    { word: 'happily', hint: 'How children play when they are very glad.' },
+    { word: 'angrily', hint: 'How you shout when you are very mad.' },
+    { word: 'politely', hint: 'How you ask for something: "Please" and "thank you".' },
+    { word: 'badly', hint: 'The opposite of well.' },
+    { word: 'patiently', hint: 'How you wait in a long line without complaining.' },
+  ] });
+
   const asg = (id, extra) => ({ id, schoolId, ownerId, activityId: null, unitId: null, courseId, dueAt: null, forceSerious: false, timer: null,
     maxTries: null, showAnswers: true, createdAt: daysAgo(0, 1), ...extra });
   const assignments = [asg('asg-q5-unit', { unitId: unit.id, dueAt: daysAgo(-7) })];
