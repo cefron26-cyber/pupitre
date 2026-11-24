@@ -147,6 +147,21 @@ function load() {
       u.explicacion = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: CURSO_QUINTO.id, daysAgo }).units[0].explicacion;
     cache.explicacionU7V2 = true; fixed = true;
   }
+  // Passive voice y adverbs of manner (2026-11-24, pedido del docente): 3 actividades de cada tema para Quinto Pruebas
+  // (Daniela) y para Quinto A (cuenta de demostración). Se agregan a datos ya guardados, una sola vez.
+  if (!cache.gramaticaExtraV1) {
+    const nuevas = a => /^act-q5-(pv|adv)-/.test(a.id);
+    const cursos = [[CURSO_QUINTO.id, 'asg-q5-'], ['crs-5a', 'asg-q5a-']].filter(([id]) => cache.courses.some(c => c.id === id));
+    for (const [cid, pref] of cursos) {
+      const pack = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: cid, daysAgo });
+      for (const a of pack.activities.filter(nuevas)) if (!cache.activities.some(x => x.id === a.id)) cache.activities.push(a);
+      for (const a of pack.assignments.filter(a => /^asg-q5-(pv|adv)-/.test(a.id))) {
+        const id = a.id.replace('asg-q5-', pref);
+        if (!cache.assignments.some(x => x.id === id)) cache.assignments.push({ ...a, id });
+      }
+    }
+    cache.gramaticaExtraV1 = true; fixed = true;
+  }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
   return cache;
