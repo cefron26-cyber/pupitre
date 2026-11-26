@@ -1,7 +1,7 @@
 // Docente: Unidades = varias actividades de distintos tipos, en orden, que se asignan juntas.
-import { activities, units, assignments, courses } from '../storage.js';
+import { activities, units, assignments, courses, periodos } from '../storage.js';
 import { gradeLabel, UNIT_MAX_TRIES, FASES, faseDe } from '../logic.js';
-import { gradeBadge, gradeDialog, refocusGrade } from './teacher.js';
+import { gradeBadge, gradeDialog, refocusGrade, periodoBadge, periodoDialog, periodoFiltro, periodoSegHTML } from './teacher.js';
 import { esc, el, $, toast, confirmDialog, icons } from '../ui.js';
 import { templates, templateList } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
@@ -9,13 +9,23 @@ import { MCER } from './cursos-admin.js';
 import { AYUDA, LIMITE_TEXTO, montarExplicacion, youtube, videoHTML, tieneExplicacion } from '../explicacion.js';
 import { generar, asegurarClave } from '../ia.js';
 
-export async function unitsList(root, { user }) {
-  const list = await units.list(user.id);
+export async function unitsList(root, { user, query = {} }) {
+  const { periodo: pa } = await periodos.actual();
+  const per = periodoFiltro(query, pa);
+  const todas = await units.list(user.id);
+  const list = per.pf ? todas.filter(u => per.de(u) === per.pf) : todas;
   const grades = await courses.grades();
+  const href = n => { const q = new URLSearchParams(per.param(n)).toString(); return '#/t/units' + (q ? '?' + q : ''); };
+  const redraw = () => unitsList(root, { user, query: per.param(per.pf) });
   root.innerHTML = `<div class="page-head"><div><h1>Unidades</h1></div>
     <a class="btn" href="#/t/units/new">${icons.plus} Crear unidad</a></div>
+    ${todas.length ? `<div class="lib-bar">${periodoSegHTML(per.pf, pa, href, n => n ? todas.filter(u => per.de(u) === n).length : todas.length)}</div>` : ''}
     <div class="list" id="list"></div>`;
   const box = $('#list', root);
+  if (!list.length && todas.length) {
+    box.innerHTML = `<div class="card empty">No hay unidades en el periodo ${per.pf}. <a href="${href(null)}">Ver todos los periodos</a></div>`;
+    return;
+  }
   if (!list.length) {
     box.innerHTML = `<div class="card empty">${icons.unit}<p style="margin:8px 0 16px">Aún no tienes unidades. Una unidad junta, por ejemplo,
       una lectura, un quiz, un emparejar y un dictado del mismo tema.</p><a class="btn" href="#/t/units/new">${icons.plus} Crear la primera unidad</a></div>`;
@@ -26,7 +36,7 @@ export async function unitsList(root, { user }) {
     const asg = await assignments.listForUnit(u.id);
     const row = el(`<div class="item">
       <div class="type-icon unit">${icons.unit}</div>
-      <div class="info"><p class="title">${esc(u.title)} ${gradeBadge(u.grade, u.title, u.id)}</p>
+      <div class="info"><p class="title">${esc(u.title)} ${gradeBadge(u.grade, u.title, u.id)}${periodoBadge(per.de(u), u.title, u.id)}</p>
         <div class="meta">${acts.length} actividad${acts.length === 1 ? '' : 'es'} · ${asg.length ? `Asignada ${asg.length} ${asg.length === 1 ? 'vez' : 'veces'}` : 'Sin asignar'}${u.description ? ' · ' + esc(u.description) : ''}</div>
         <div class="unit-types">${acts.map(a => `<span class="mini-type art" title="${esc(a.title)} (${templates[a.type].label})">${templateArt(a.type)}</span>`).join('')}</div>
       </div>
@@ -35,6 +45,7 @@ export async function unitsList(root, { user }) {
         <details class="more"><summary class="icon-btn" aria-label="Más acciones para ${esc(u.title)}">⋮</summary>
           <div class="more-menu"><a href="#/t/units/edit/${u.id}">Editar</a>
             ${acts.length ? `<a href="#/t/present/1?unit=${u.id}">Presentar en clase</a>` : ''}
+            <button type="button" data-per>Cambiar periodo…</button>
             <button type="button" data-del class="danger-txt">Eliminar</button></div></details>
       </div></div>`);
     row.querySelector('.grade-badge').onclick = async () => {
@@ -42,13 +53,23 @@ export async function unitsList(root, { user }) {
       if (g === undefined || g === u.grade) return;
       await units.setGrade(u.id, g);
       toast(`Ahora es de ${gradeLabel(g)}`);
-      await unitsList(root, { user });
+      await redraw();
       refocusGrade(root, u.id);
     };
+    const changePer = async () => {
+      row.querySelector('details.more')?.removeAttribute('open');
+      const n = await periodoDialog(u.title, per.de(u));
+      if (n === undefined || n === per.de(u)) return;
+      await units.setPeriodo(u.id, n);
+      toast(`Ahora es del periodo ${n}`);
+      await redraw();
+    };
+    row.querySelector('.periodo-badge').onclick = changePer;
+    row.querySelector('[data-per]').onclick = changePer;
     row.querySelector('[data-del]').onclick = async () => {
       const extra = asg.length ? ' También se quitarán sus asignaciones y resultados.' : '';
       if (!(await confirmDialog(`¿Eliminar la unidad "${u.title}"? Las actividades no se borran.${extra}`, 'Eliminar', true))) return;
-      await units.remove(u.id); toast('Unidad eliminada'); unitsList(root, { user });
+      await units.remove(u.id); toast('Unidad eliminada'); redraw();
     };
     box.append(row);
   }

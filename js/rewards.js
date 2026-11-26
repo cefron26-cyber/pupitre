@@ -53,6 +53,21 @@ export const ROPA = [
   { id: 'tenis_rayo',        name: 'Tenis veloces',       slot: 'pies',     rarity: 'epic', source: 'reto' },
   { id: 'corona',            name: 'Corona dorada',       slot: 'sombrero', rarity: 'epic', source: 'reto' },
 ];
+// Ropa de la racha (2026-11-26): en cada periodo, 4 prendas que se ganan con 5, 10, 15 y 20 días seguidos de racha
+// (contados desde que empezó el periodo). Mientras son premio de racha no salen del cofre; al cambiar de periodo vuelven
+// al cofre y entran las del periodo nuevo. Lo ganado se queda para siempre.
+export const RACHA_DIAS = [5, 10, 15, 20];
+export const RACHA_ROPA = {
+  1: ['gorra_roja', 'camiseta_estrella', 'sombrero_paja', 'gafas_estrella'],
+  2: ['short_rojo', 'gafas_sol', 'parche', 'hoodie_gris'],
+  3: ['bigote', 'botas_amarillas', 'camiseta_futbol', 'hoodie_azul'],
+  4: ['tenis_rojos', 'cicatrices', 'pantalon_cargo', 'gorro_lana'],
+};
+// Premios de racha del periodo: [{ dias, id }].
+export const rachaDelPeriodo = periodo => (RACHA_ROPA[periodo] || []).map((id, i) => ({ dias: RACHA_DIAS[i], id }));
+// Días de racha que pide esa prenda en ese periodo (o null si no es premio de racha ahora).
+export const diasRacha = (id, periodo) => rachaDelPeriodo(periodo).find(x => x.id === id)?.dias || null;
+
 // Premios viejos (cubos) → prenda que los reemplaza, para quien ya los había ganado.
 export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galaxia': 'f-noche' };
 // Gorros, gafas y accesorios: PNG con fondo transparente (herramientas/arte/recortar_accesorios.py); las gafas traen
@@ -132,12 +147,14 @@ const ganados = rewardIds => new Set([...rewardIds.map(id => ALIAS[id] || id), .
 export const ownedSet = rewardIds => DESBLOQUEADO ? new Set(ALL.map(r => r.id)) : ganados(rewardIds);
 
 // Sorteo: primero la rareza (por peso), luego un premio que aún no tenga. Si ya tiene todos los de esa rareza: repetido → XP.
-export function rollReward(ownedIds, rnd = Math.random) {
+// periodo: las prendas de la racha de ese periodo no salen del cofre.
+export function rollReward(ownedIds, rnd = Math.random, periodo = null) {
   const owned = ganados(ownedIds);
   const total = Object.values(RARITY).reduce((s, r) => s + r.weight, 0);
   let x = rnd() * total, rarity = 'common';
   for (const [k, r] of Object.entries(RARITY)) { if ((x -= r.weight) < 0) { rarity = k; break; } }
-  const pool = ALL.filter(r => r.rarity === rarity && !r.free && !r.source);
+  const racha = new Set(RACHA_ROPA[periodo] || []);
+  const pool = ALL.filter(r => r.rarity === rarity && !r.free && !r.source && !racha.has(r.id));
   const fresh = pool.filter(r => !owned.has(r.id));
   const pick = (fresh.length ? fresh : pool)[Math.floor(rnd() * (fresh.length || pool.length))];
   const duplicate = !fresh.length;

@@ -1,6 +1,6 @@
 // Vistas del estudiante: Misiones, ruta de la unidad, hacer actividad, resultado.
-import { assignments, activities, units, attempts, xp, events, users, chests, userRewards } from '../storage.js';
-import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId } from '../rewards.js';
+import { assignments, activities, units, attempts, xp, events, users, chests, userRewards, periodos, CHESTS_PER_DAY } from '../storage.js';
+import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId, rachaDelPeriodo, diasRacha, urlIconoRopa } from '../rewards.js';
 import { cebolloMini } from '../cebollo.js';
 import { openChest } from '../chest.js';
 import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast } from '../ui.js';
@@ -55,19 +55,21 @@ export const streakHTML = ({ dias, hoy }) => `<span class="streak-chip ${hoy ? '
   <span aria-hidden="true">🔥</span><b>${dias}</b> ${dias === 1 ? 'día' : 'días'}<span class="streak-meta">${hoy ? '· meta de hoy ✓' : '· juega hoy'}</span></span>`;
 const modoOf = () => document.documentElement.dataset.modo || 'serio';
 
-// Estado del cofre de hoy: 'locked' (aún no termina una actividad), 'ready' o 'opened'.
+// Estado de los cofres de hoy (hasta 3, uno por actividad terminada): 'ready' (hay alguno por abrir), 'locked' (le
+// falta terminar otra actividad) u 'opened' (ya abrió los 3). opened = el último que abrió.
 export async function chestState(userId) {
-  const opened = await chests.openedToday(userId);
-  if (opened) return { state: 'opened', opened };
-  return { state: (await chests.earnedToday(userId)) ? 'ready' : 'locked' };
+  const abiertos = await chests.openedToday(userId);
+  const ganados = await chests.earnedToday(userId);
+  const state = abiertos.length < ganados ? 'ready' : abiertos.length >= CHESTS_PER_DAY ? 'opened' : 'locked';
+  return { state, opened: abiertos.at(-1) || null, abiertos: abiertos.length, ganados };
 }
 
-// Sortea, guarda y anima el cofre. Devuelve true si se abrió.
+// Sortea, guarda y anima un cofre. Devuelve true si se abrió.
 export async function openDailyChest(user) {
   const { state } = await chestState(user.id);
   if (state !== 'ready') return false;
   const owned = (await userRewards.list(user.id)).map(r => r.rewardId);
-  const result = rollReward(owned);
+  const result = rollReward(owned, Math.random, (await periodos.actual()).periodo);
   // Se guarda ANTES de animar: si cierran la pestaña a mitad, el premio no se pierde ni se repite el sorteo.
   await chests.open(user.id, { rewardId: result.reward.id, duplicate: result.duplicate, xp: result.xp });
   if (result.duplicate) await xp.add(user.id, result.xp, `chest:${result.reward.id}`);
@@ -78,22 +80,105 @@ export async function openDailyChest(user) {
   dispatchEvent(new Event('plat-refresh'));
   return true;
 }
+// Puntos de los 3 cofres del día: abierto, listo o por ganar.
+const chestDots = ({ abiertos, ganados }) => `<span class="chest-dots" role="img" aria-label="${abiertos} de ${CHESTS_PER_DAY} cofres abiertos hoy">${
+  Array.from({ length: CHESTS_PER_DAY }, (_, i) => `<i class="${i < abiertos ? 'abierto' : i < ganados ? 'listo' : ''}"></i>`).join('')}</span>`;
+// Aviso de cofre ganado en las pantallas de resultado (repaso, retos, actividad, unidad).
+export const chestWonHTML = () => `<div class="chest-card ready result-chest"><div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt=""></div>
+  <div class="chest-txt"><b>¡Ganaste un cofre!</b><span class="small">Ábrelo para ver tu premio. Cada actividad que terminas hoy te da uno (hasta ${CHESTS_PER_DAY}).</span></div>
+  <button class="btn chest-open" id="open-chest">Abrir cofre</button></div>`;
+
+// ---------- Ropa de la racha (por periodo) ----------
+const sigDia = d => { const x = new Date(d + 'T12:00'); x.setDate(x.getDate() + 1); return dayKey(x); };
+// Racha dentro del periodo actual: la mejor (para los premios) y la de ahora (para mostrar cuánto falta).
+export async function rachaPeriodo(userId) {
+  const { periodo, desde } = await periodos.actual();
+  const days = (await attempts.activeDays(userId)).filter(d => d >= desde);
+  let mejor = 0, run = 0, prev = null;
+  for (const d of days) { run = prev && sigDia(prev) === d ? run + 1 : 1; mejor = Math.max(mejor, run); prev = d; }
+  const set = new Set(days), d = new Date();
+  if (!set.has(dayKey(d))) d.setDate(d.getDate() - 1);
+  let ahora = 0;
+  while (set.has(dayKey(d))) { ahora++; d.setDate(d.getDate() - 1); }
+  return { periodo, desde, mejor, ahora, premios: rachaDelPeriodo(periodo) };
+}
+// Entrega las prendas de racha que ya alcanzó en este periodo (una vez cada una; si ya la tenía, da su XP de repetido).
+// El hito (inicio del periodo + días) evita entregarla dos veces.
+async function revisarPremiosRacha(user) {
+  const { desde, mejor, premios } = await rachaPeriodo(user.id);
+  const mias = await userRewards.list(user.id);
+  const hitos = new Set(mias.map(r => r.hito).filter(Boolean)), tiene = new Set(mias.map(r => r.rewardId));
+  const nuevos = [];
+  for (const p of premios) {
+    const hito = `${desde}:${p.dias}`;
+    if (p.dias > mejor || hitos.has(hito)) continue;
+    const r = byId(p.id), bono = tiene.has(p.id) ? RARITY[r.rarity].dupXp : 0;
+    await userRewards.add(user.id, p.id, 'racha', hito);
+    if (bono) await xp.add(user.id, bono, `racha:${p.id}`);
+    events.log(user.id, 'streak_reward', { rewardId: p.id, dias: p.dias });
+    nuevos.push({ ...p, r, bono });
+  }
+  return nuevos;
+}
+// Celebración de una prenda de racha recién ganada.
+function premioRachaDialog(user, { dias, r, bono }) {
+  return new Promise(resolve => {
+    const d = el(`<dialog class="racha-dialog" aria-label="Premio de racha">
+      <p class="kicker">🔥 ¡${dias} días de racha!</p>
+      <img class="ropa-icono" src="${urlIconoRopa(r.id)}" alt="" width="120" height="120">
+      <h2>${esc(r.name)}</h2>
+      <p class="small muted">${bono ? `Ya la tenías: ganas +${bono} XP.` : 'Nueva ropa para Cebollo.'}</p>
+      <div class="row">${bono ? '<button class="btn" type="button" value="ok">¡Genial!</button>'
+        : '<button class="btn ghost" type="button" value="ok">Luego</button><button class="btn" type="button" value="equip">Ponérsela</button>'}</div></dialog>`);
+    document.body.append(d);
+    let out = 'ok';
+    d.addEventListener('click', e => { const v = e.target.closest('button')?.value; if (v) { out = v; d.close(); } });
+    d.addEventListener('close', async () => {
+      d.remove();
+      if (out === 'equip') await equipar(await users.get(user.id), { ...r, kind: 'ropa' });
+      resolve(out);
+    }, { once: true });
+    d.showModal();
+    d.querySelector('.btn:last-child')?.focus();
+  });
+}
+// Tarjeta de la portada: las 4 prendas de la racha del periodo y cuánto falta para la siguiente.
+function rachaCardHTML({ periodo, desde, ahora, premios }, hitos) {
+  const sig = premios.find(p => !hitos.has(`${desde}:${p.dias}`));
+  const falta = sig ? sig.dias - ahora : 0;
+  return `<div class="racha-card">
+    <div class="rc-head"><b>Ropa de la racha · Periodo ${periodo}</b>
+      <span class="small">${sig ? `Llevas <b>${ahora}</b> ${ahora === 1 ? 'día seguido' : 'días seguidos'} este periodo: faltan <b>${falta}</b> para la siguiente.`
+        : '¡Ganaste toda la ropa de la racha de este periodo!'}</span></div>
+    <ol class="rc-list">${premios.map(p => {
+      const r = byId(p.id), ok = hitos.has(`${desde}:${p.dias}`);
+      return `<li class="${ok ? 'ok' : ''}" title="${esc(r.name)} · ${p.dias} días de racha" style="--rc:${RARITY[r.rarity].color}">
+        <span class="rc-img"><img src="${urlIconoRopa(r.id)}" alt="" draggable="false">${ok ? '<span class="rc-check" aria-hidden="true">✓</span>' : '<span class="rc-lock" aria-hidden="true">🔒</span>'}</span>
+        <span class="rc-dias">🔥 ${p.dias}</span><span class="sr-only">${esc(r.name)}${ok ? ', ganada' : ''}</span></li>`;
+    }).join('')}</ol></div>`;
+}
 
 async function drawHero(box, user) {
   const total = await xp.total(user.id);
   const { level, inLevel, need } = levelOf(total);
-  const { state, opened } = await chestState(user.id);
+  const nuevos = await revisarPremiosRacha(user);
+  const cs = await chestState(user.id), { state, opened, abiertos, ganados } = cs;
   const racha = await streakOf(user.id);
+  const rp = await rachaPeriodo(user.id);
+  const hitos = new Set((await userRewards.list(user.id)).map(r => r.hito).filter(Boolean));
   const prefs = prefsOf(user);
   const first = esc(user.name.split(' ')[0]);
   const reward = opened && byId(opened.rewardId);
   const rango = rangoDe(level), sig = siguienteRango(level);
   // Falta poco para subir de nivel (un cuarto del nivel o menos): la barra brilla y lo dice.
   const cerca = inLevel > 0 && need - inLevel <= Math.max(20, need / 4);
+  const salio = reward ? `Te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. ` : '';
+  const listos = ganados - abiertos;
   const chestText = {
-    locked: ['Cofre del día', 'Completa una misión o un repaso hoy para ganarlo.'],
-    ready: ['¡Tu cofre está listo!', 'Ábrelo para ganar ropa para Cebollo o un fondo.'],
-    opened: ['Cofre abierto', `${reward ? `Hoy te salió: <b>${esc(reward.name)}</b>${opened.duplicate ? ` (+${opened.xp} XP)` : ''}. ` : ''}Nuevo cofre en <b>${faltaManana()}</b>.`],
+    locked: abiertos ? [`Cofre ${abiertos + 1} de ${CHESTS_PER_DAY}`, `${salio}Termina otra actividad hoy para ganar el siguiente.`]
+      : ['Cofres del día', `Cada actividad que termines hoy te da un cofre (hasta ${CHESTS_PER_DAY}).`],
+    ready: [listos === 1 ? '¡Tienes un cofre listo!' : `¡Tienes ${listos} cofres listos!`, `${listos === 1 ? 'Ábrelo' : 'Ábrelos'} para ganar ropa para Cebollo o un fondo.`],
+    opened: [`Abriste los ${CHESTS_PER_DAY} cofres de hoy`, `${salio}Nuevos cofres en <b>${faltaManana()}</b>.`],
   }[state];
   box.innerHTML = `<div class="hero-me">
       <a class="hero-avatar" href="#/s/cuarto" aria-label="Visitar a Cebollo">${cebolloMini(prefs.ropa, 72, { vivo: true, triste: !racha.hoy })}</a>
@@ -109,18 +194,22 @@ async function drawHero(box, user) {
     </div>
     <div class="chest-card ${state}">
       <div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'chest-ico',innerHTML:this.dataset.ico}))" data-ico='${icons.chest}'></div>
-      <div class="chest-txt"><b>${chestText[0]}</b><span class="small">${chestText[1]}</span></div>
+      <div class="chest-txt"><b>${chestText[0]}</b><span class="small">${chestText[1]}</span>${chestDots(cs)}</div>
       ${state === 'ready' ? '<button class="btn chest-open" id="open-chest">Abrir cofre</button>'
-        : `<a class="btn ghost sm" href="#/s/collection">${state === 'opened' ? 'Mi colección' : 'Qué puede salir'}</a>`}
-    </div>`;
+        : `<a class="btn ghost sm" href="#/s/collection">${abiertos ? 'Mi colección' : 'Qué puede salir'}</a>`}
+    </div>
+    ${rachaCardHTML(rp, hitos)}`;
   const b = $('#open-chest', box);
   if (b) b.onclick = () => { b.disabled = true; openDailyChest(user); };
+  // Prenda de racha recién ganada: se celebra encima de la portada ya pintada.
+  if (nuevos.length) (async () => { for (const n of nuevos) await premioRachaDialog(user, n); dispatchEvent(new Event('plat-refresh')); })();
 }
 
 export async function collection(root, { user }) {
   const owned = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
   const prefs = prefsOf(user);
   const { state } = await chestState(user.id);
+  const { periodo } = await periodos.actual();
   const tile = (r, kind) => {
     const has = owned.has(r.id), using = kind === 'ropa' ? llevaPuesta(prefs.ropa, r.slot, r.id) : prefs[kind] === r.id;
     return `<li class="reward-tile ${has ? 'has' : 'locked'} rr-${r.rarity}" style="--rc:${RARITY[r.rarity].color}">
@@ -128,14 +217,14 @@ export async function collection(root, { user }) {
       <b class="rt-name">${esc(r.name)}</b>
       <span class="rt-rarity">${RARITY[r.rarity].label}</span>
       ${has ? (using ? '<span class="rt-using">En uso</span>' : `<button class="btn sm ghost" data-kind="${kind}" data-id="${r.id}">Usar</button>`)
-        : `<span class="small muted">${r.free ? '' : r.source === 'reto' ? `Supera el reto ${esc(RETOS.find(x => x.reward === r.id)?.name || '')}` : 'Sale del cofre'}</span>`}
+        : `<span class="small muted">${r.free ? '' : r.source === 'reto' ? `Supera el reto ${esc(RETOS.find(x => x.reward === r.id)?.name || '')}` : diasRacha(r.id, periodo) ? `🔥 Racha de ${diasRacha(r.id, periodo)} días` : 'Sale del cofre'}</span>`}
     </li>`;
   };
   const count = list => list.filter(r => owned.has(r.id)).length;
   const tot = ROPA.length + BACKGROUNDS.length, mine = count(ROPA) + count(BACKGROUNDS);
   root.innerHTML = `<div class="page-head"><div><h1>Mi colección</h1>
       <div class="coll-prog"><div class="progress"><i style="width:${Math.round(mine / tot * 100)}%"></i></div><b>${mine}/${tot}</b></div></div>
-      <details class="info-tip dark"><summary aria-label="Qué puede salir del cofre">i</summary><p>Premios del cofre diario: ${odds()}. Si te sale uno repetido, ganas XP. Algunos solo se ganan en los <a href="#/s/retos">Retos</a>.</p></details>
+      <details class="info-tip dark"><summary aria-label="Qué puede salir del cofre">i</summary><p>Cada actividad que terminas te da un cofre (hasta ${CHESTS_PER_DAY} al día). Premios del cofre: ${odds()}. Si te sale uno repetido, ganas XP. Algunos solo se ganan en los <a href="#/s/retos">Retos</a>, y en cada periodo hay ropa que se gana con 5, 10, 15 y 20 días de racha.</p></details>
       ${state === 'ready' ? '<button class="btn chest-open" id="open-chest">Abrir cofre</button>' : ''}</div>
     <div class="card"><h2>Ropa de Cebollo <span class="small muted">${count(ROPA)}/${ROPA.length}</span></h2>
       <p class="small muted" style="margin-top:-6px">Vístelo en el armario de <a href="#/s/cuarto">su cuarto</a>.</p>
@@ -162,14 +251,20 @@ async function load(a, userId) {
 }
 
 export async function tasks(root, { user }) {
-  const rows = [];
+  const todas = [];
   for (const a of await assignments.listForCourses(user.courseIds)) {
     const r = await load(a, user.id);
-    if (r) rows.push(r);
+    if (r) todas.push(r);
   }
+  // Periodos (2026-11-26): arriba las misiones del periodo actual; las de otros periodos, plegadas al final.
+  const { periodo } = await periodos.actual();
+  const perDe = r => (r.unit || r.acts[0]).periodo || periodo;
+  const rows = todas.filter(r => perDe(r) === periodo);
+  const otros = [...new Set(todas.map(perDe))].filter(n => n !== periodo).sort((a, b) => b - a);
   // Primero las atrasadas (para que no se queden olvidadas), luego en curso, pendientes y al final las terminadas.
   const order = { late: 0, doing: 1, todo: 2, done: 3 };
-  rows.sort((x, y) => order[x.p.status] - order[y.p.status] || (x.a.dueAt || '9').localeCompare(y.a.dueAt || '9'));
+  const cmp = (x, y) => order[x.p.status] - order[y.p.status] || (x.a.dueAt || '9').localeCompare(y.a.dueAt || '9');
+  todas.sort(cmp); rows.sort(cmp);
   const open = rows.filter(r => r.p.status !== 'done'), closed = rows.filter(r => r.p.status === 'done');
   const review = reviewQuestions(await attempts.doneByUser(user.id));
 
@@ -182,15 +277,19 @@ export async function tasks(root, { user }) {
   const premio = (acts, unit) => `<span class="mision-xp" title="XP máxima que puedes ganar">+${acts.length * 30 + (unit ? UNIT_BONUS_XP : 0)} XP</span>`;
   root.innerHTML = `<section class="hero" id="hero"></section>
     <div class="page-head"><div><h1>Misiones</h1>
-    <p class="muted">${open.length ? `${open.length} ${open.length === 1 ? 'misión activa' : 'misiones activas'}` : rows.length ? '¡Completaste todas tus misiones!' : ''}</p></div></div>
+    <p class="muted">Periodo ${periodo} · ${open.length ? `${open.length} ${open.length === 1 ? 'misión activa' : 'misiones activas'}` : rows.length ? '¡Completaste todas tus misiones!' : 'Sin misiones todavía'}</p></div></div>
     <div id="next"></div>
     ${review.length ? `<a class="practice-card" href="#/s/practice"><div class="type-icon">${icons.quiz}</div>
       <div class="grow"><b>Misión extra: repasa lo que fallaste</b><div class="small muted">No cuenta como nota · +${REVIEW_XP} XP por acierto</div></div>
       <span class="practice-n" aria-label="${review.length} preguntas">${review.length}</span></a>` : ''}
     ${GRUPOS.map(([k, t]) => rest.some(r => grupo(r) === k) ? `<h2 class="task-group ${k}">${t} <span>${rest.filter(r => grupo(r) === k).length}</span></h2><div class="list" id="g-${k}"></div>` : '').join('')}
-    ${closed.length ? `<details class="done-group"><summary>Misiones completadas · ${closed.length}</summary><div class="list" id="done"></div></details>` : ''}`;
+    ${closed.length ? `<details class="done-group"><summary>Misiones completadas · ${closed.length}</summary><div class="list" id="done"></div></details>` : ''}
+    ${otros.map(n => { const k = todas.filter(r => perDe(r) === n).length; return `<details class="done-group periodo-group"><summary>Periodo ${n} · ${k} ${k === 1 ? 'misión' : 'misiones'}</summary><div class="list" id="p-${n}"></div></details>`; }).join('')}`;
   await drawHero($('#hero', root), user);
-  if (!rows.length) { $('#next', root).innerHTML = `<div class="card empty">Aún no tienes misiones.${review.length ? ' Mientras tanto, puedes repasar.' : ''} <a href="#/s/collection">Mira tu colección</a></div>`; return; }
+  if (!rows.length) {
+    $('#next', root).innerHTML = `<div class="card empty">Aún no tienes misiones${todas.length ? ` del periodo ${periodo}` : ''}.${review.length ? ' Mientras tanto, puedes repasar.' : ''} <a href="#/s/collection">Mira tu colección</a></div>`;
+    if (!todas.length) return;
+  }
 
   // Tarjeta "Próxima misión": la más urgente, a un toque.
   if (open.length) {
@@ -209,12 +308,12 @@ export async function tasks(root, { user }) {
   }
 
   const doneBox = $('#done', root);
-  for (const row of rows) {
+  for (const row of todas) {
     // La misión de "Próxima misión" no se repite en la lista.
     if (row === open[0]) continue;
     const { a, unit, acts, p } = row;
     const s = statusLabel(p);
-    const box = p.status === 'done' ? doneBox : $(`#g-${grupo(row)}`, root);
+    const box = perDe(row) !== periodo ? $(`#p-${perDe(row)}`, root) : p.status === 'done' ? doneBox : $(`#g-${grupo(row)}`, root);
     const dd = fmtDue(a.dueAt);
     const due = p.status === 'done' ? (a.dueAt ? `Entrega: ${fmtDate(a.dueAt, false)}` : 'Sin fecha límite') : `<span class="${dd.cls}">${dd.text}</span>`;
     if (unit) {
@@ -271,9 +370,7 @@ export async function unit(root, { user, params }) {
       ${fin.gained ? `<p><span class="xp-gain">${icons.star} +${fin.gained} XP</span>${fin.unitDone ? ` <span class="small muted">(incluye +${UNIT_BONUS_XP} de bono)</span>` : ''}</p>` : ''}
       ${subio ? `<div class="level-up">¡Subiste al nivel ${subio}!${rangoDe(subio).desde === subio ? ` <b>¡Nuevo rango: ${rangoDe(subio).icon} ${rangoDe(subio).name}!</b>` : ''}${RETOS.some(x => x.level === subio) ? ` Se abrió el reto <a href="#/s/retos">${esc(RETOS.find(x => x.level === subio).name)}</a>.` : ''}</div>` : ''}
       <p class="small muted">Toca cada actividad del camino para ver tu puntaje y revisar tus respuestas.</p>
-      ${cofre ? `<div class="chest-card ready result-chest"><div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt=""></div>
-        <div class="chest-txt"><b>¡Ganaste el cofre de hoy!</b><span class="small">Ábrelo para ver tu premio.</span></div>
-        <button class="btn chest-open" id="open-chest">Abrir cofre</button></div>` : ''}
+      ${cofre ? `${chestWonHTML()}` : ''}
     </div>`;
   root.innerHTML = `<div class="unit-page">
     <a href="#/s/tasks" class="back-link">← Misiones</a>
@@ -532,9 +629,7 @@ export async function result(root, { user, params }) {
     </div>
     <p class="small muted result-note">${r.unit ? (it.points === 100 ? 'Tienes el máximo en esta actividad.' : `Cuenta tu mejor puntaje (${it.points}/100) · intento ${it.tries} de ${UNIT_MAX_TRIES}.`)
       : maxT ? `Intento ${it.tries} de ${maxT}${it.tries > 1 ? ` · cuenta el mejor (${grade(it.best.score, it.best.maxScore)})` : ''}.` : it.tries > 1 ? `Cuenta tu mejor nota: ${grade(it.best.score, it.best.maxScore)}.` : ''}</p>
-    ${chestReady ? `<div class="chest-card ready result-chest"><div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt=""></div>
-      <div class="chest-txt"><b>¡Ganaste el cofre de hoy!</b><span class="small">Ábrelo para ver tu premio.</span></div>
-      <button class="btn chest-open" id="open-chest">Abrir cofre</button></div>` : ''}
+    ${chestReady ? `${chestWonHTML()}` : ''}
   </div></div>`;
   // XP que sube contando (sin animación si se pidió reducir movimiento).
   const xc = $('#xp-count', root);
@@ -586,9 +681,7 @@ export async function practice(root, { user }) {
           <p>${res.score}/${res.maxScore} aciertos${left ? ` · te quedan ${left} por repasar` : ' · ya no te queda nada por repasar'}</p>
           ${gained ? `<p><span class="xp-gain">${icons.star} +${gained} XP</span></p>` : ''}
           ${up ? `<div class="level-up" role="status">¡Subiste al nivel ${up}!${rangoDe(up).desde === up ? ` <b>¡Nuevo rango: ${rangoDe(up).icon} ${rangoDe(up).name}!</b>` : ''}${RETOS.some(x => x.level === up) ? ` Se abrió el reto <a href="#/s/retos">${esc(RETOS.find(x => x.level === up).name)}</a>.` : ''}</div>` : ''}
-          ${chestReady ? `<div class="chest-card ready result-chest"><div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt=""></div>
-            <div class="chest-txt"><b>¡Ganaste el cofre de hoy!</b><span class="small">Ábrelo para ver tu premio.</span></div>
-            <button class="btn chest-open" id="open-chest">Abrir cofre</button></div>` : ''}
+          ${chestReady ? `${chestWonHTML()}` : ''}
           <div class="row" style="justify-content:center;margin-top:20px">
             ${left ? '<button class="btn ghost" type="button" id="again">Repasar otra vez</button>' : ''}
             <a class="btn" href="#/s/tasks">Volver a misiones</a></div></div></div>`);

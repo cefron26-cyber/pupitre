@@ -1,8 +1,8 @@
 // Estudiante: el cuarto de Cebollo. Se puede tocar a Cebollo y a algunos objetos, comprar decoración con monedas
 // (tienda) y cambiarle la ropa (armario). Cada lugar del cuarto lleva un objeto a la vez (prefs.cuarto[lugar]).
 // Monedas = XP ganado − lo gastado (storage.compras). La ropa sale del cofre y de los retos (colección).
-import { xp, users, userRewards, compras, events } from '../storage.js';
-import { ROPA, SLOTS, VARIOS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO, puestas, ponerPrenda, quitarPrenda } from '../rewards.js';
+import { xp, users, userRewards, compras, events, periodos } from '../storage.js';
+import { ROPA, SLOTS, VARIOS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO, puestas, ponerPrenda, quitarPrenda, diasRacha } from '../rewards.js';
 import { crearCebollo } from '../cebollo.js';
 import { prefsOf } from './student.js';
 import { esc, $, toast } from '../ui.js';
@@ -102,6 +102,7 @@ export async function cuarto(root, { user }) {
     return bx >= mx + mw * a && bx <= mx + mw * b && by >= my + mh * c - 2 && by <= my + mh * d ? m : null;
   };
   const nombre = esc(user.name.split(' ')[0]);
+  const { periodo } = await periodos.actual();
   const ropaMia = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
   const decoMia = new Set([...DECO.filter(d => d.free || DESBLOQUEADO).map(d => d.id), ...(await compras.list(user.id)).map(c => c.itemId)]);
   let monedas = (await xp.total(user.id)) - (await compras.gastado(user.id));
@@ -390,9 +391,10 @@ export async function cuarto(root, { user }) {
           <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""></button></li>`).join('');
       // La que falta se ve en gris con candado y un icono de dónde se gana (meta visible, sin texto).
       lista += faltan.map(r => {
-        const reto = r.source === 'reto', donde = reto ? 'Se gana en un reto' : 'Sale del cofre';
+        const reto = r.source === 'reto', dr = diasRacha(r.id, periodo);
+        const donde = reto ? 'Se gana en un reto' : dr ? `Racha de ${dr} días` : 'Sale del cofre';
         return `<li><a class="cu-tile cu-bloq" href="${reto ? '#/s/retos' : '#/s/collection'}" aria-label="${esc(r.name)}: ${donde}" title="${esc(r.name)} · ${donde}">
-          <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""><span class="cu-candado" aria-hidden="true">🔒</span><span class="cu-donde" aria-hidden="true">${reto ? '🏆' : '🎁'}</span></a></li>`;
+          <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""><span class="cu-candado" aria-hidden="true">🔒</span><span class="cu-donde" aria-hidden="true">${reto ? '🏆' : dr ? '🔥' : '🎁'}</span></a></li>`;
       }).join('');
     } else {
       lista = DECO.filter(d => d.lugar === pestana).map(d => {

@@ -1,6 +1,6 @@
 // Arranque, sesión, enrutador por hash y seguimiento de conexión.
 import { juegosList, juegoPlay } from './views/juegos.js';
-import { session, users, schools, events, assignments, resetDemo } from './storage.js';
+import { session, users, schools, events, assignments, resetDemo, periodos } from './storage.js';
 import { headerHTML, toast, confirmDialog, icons, FEATURES, $ } from './ui.js';
 import { coursesView } from './views/courses.js';
 import { retosList, retoPlay } from './views/retos.js';
@@ -167,6 +167,17 @@ async function router() {
     ik.closest('details').open = false;
     const antes = claveIA(), ahora = await configurarClave();
     if (ahora !== antes) toast(ahora ? 'Clave guardada en este navegador.' : 'Clave quitada.');
+  };
+  // Periodo actual del colegio (2026-11-26): lo que se crea queda en ese periodo, las misiones de los estudiantes se
+  // separan por periodo y la ropa de la racha cambia (la racha de esos premios cuenta desde el día del cambio).
+  const pa = $('#periodo-actual');
+  if (pa) pa.onclick = async () => {
+    pa.closest('details').open = false;
+    const { periodo } = await periodos.actual();
+    const n = await teacher.periodoDialog('', periodo, { titulo: 'Periodo actual',
+      nota: 'Lo que crees queda en este periodo. Los estudiantes ven primero sus misiones de este periodo y ganan la ropa de la racha del periodo (la racha para esos premios cuenta desde hoy).' });
+    if (n === undefined || n === periodo) return;
+    await periodos.setActual(n); toast(`Periodo actual: ${n}`); router();
   };
   const rd = $('#reset-demo');
   if (rd) rd.onclick = async () => {

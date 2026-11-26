@@ -173,6 +173,7 @@ export function headerHTML({ school = {}, user, nav = [], active = '', xp = null
         <details class="more user-menu"><summary class="user-sum" aria-label="Menú de ${esc(user.name)}">${icons.user}<span class="user-name"><b>${esc(user.name)}</b>Docente</span><span aria-hidden="true">▾</span></summary>
           <div class="more-menu">
             ${FEATURES.codeLogin ? '<a href="#/t/courses">Mis cursos y accesos</a>' : ''}
+            <button type="button" id="periodo-actual">Periodo actual…</button>
             <button type="button" id="ia-clave">Clave de IA (Gemini)</button>
             <button type="button" id="reset-demo" class="danger-txt">Reiniciar demo</button>
             <button type="button" id="logout">Salir</button>

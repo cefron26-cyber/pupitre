@@ -740,3 +740,27 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 .leccion-node .node-ico{font-size:34px}
 .leccion-node.done .node-btn{background:#2f5aa8; border-color:#2f5aa8; box-shadow:0 7px 0 #1f3a68}
 @media (max-width:560px){ .leccion-top h1{font-size:19px} .leccion-pie .btn{flex:1; padding-inline:12px} }
+
+/* ---------- Tres cofres al día y ropa de la racha por periodo (2026-11-26) ---------- */
+.chest-dots{display:flex; gap:6px; margin-top:6px}
+.chest-dots i{width:12px; height:12px; border-radius:50%; background:var(--line); box-shadow:inset 0 -2px 0 rgba(0,0,0,.08)}
+.chest-dots i.listo{background:#ffc21a; box-shadow:0 0 0 3px rgba(255,194,26,.3)}
+.chest-dots i.abierto{background:#2fd39a}
+.racha-card{grid-column:1 / -1; background:var(--card); border-radius:var(--radius-card); box-shadow:var(--shadow); padding:var(--sp-3) var(--sp-5);
+  display:flex; align-items:center; gap:var(--sp-4); flex-wrap:wrap}
+.rc-head{flex:1 1 220px; display:flex; flex-direction:column; gap:2px; min-width:0}
+.rc-list{list-style:none; margin:0; padding:0; display:flex; gap:10px; flex-wrap:wrap}
+.rc-list li{display:flex; flex-direction:column; align-items:center; gap:3px}
+.rc-img{position:relative; width:58px; height:58px; border-radius:14px; display:grid; place-items:center; background:#f3f1fb; box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc),#fff 55%)}
+.rc-img img{width:46px; height:46px; object-fit:contain}
+.rc-list li:not(.ok) .rc-img img{filter:grayscale(1) opacity(.45)}
+.rc-list li.ok .rc-img{background:color-mix(in srgb,var(--rc),#fff 82%); box-shadow:inset 0 0 0 2px var(--rc)}
+.rc-lock,.rc-check{position:absolute; right:-5px; bottom:-5px; font-size:13px; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.rc-check{background:#1f9a62; color:#fff; font-weight:800}
+.rc-dias{font-size:12.5px; font-weight:700; color:#7a4b00}
+.racha-dialog{text-align:center; max-width:340px}
+.racha-dialog .kicker{font-weight:800; color:#e8590c; margin:0 0 8px}
+.racha-dialog h2{margin:8px 0 4px}
+.racha-dialog .row{justify-content:center; margin-top:14px}
+@media (max-width:420px){ .racha-card{padding:var(--sp-3) var(--sp-4)} .rc-list{width:100%; justify-content:space-between} }
+[data-modo="juego"] .racha-card{box-shadow:inset 0 -5px 0 #ebe4ff, 0 9px 0 #b3a3ee, 0 18px 26px var(--sombra-j)}

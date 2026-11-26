@@ -1,5 +1,5 @@
 // Vistas del docente: Inicio, Crear/Editar, Vista previa, Mis actividades, Asignar, Resultados.
-import { activities, units, assignments, attempts, courses, users, resetDemo } from '../storage.js';
+import { activities, units, assignments, attempts, courses, users, resetDemo, periodos, PERIODOS } from '../storage.js';
 import { esc, el, $, toast, confirmDialog, fmtDate, fmtAgo, fmtDuration, grade, icons } from '../ui.js';
 import { templates, templateList } from '../templates/index.js';
 import { armarCrucigrama } from '../templates/crossword.js';
@@ -60,6 +60,41 @@ export function gradeDialog(title, value, grades) {
     (d.querySelector('.grade-badge.current') || d.querySelector('.grade-badge'))?.focus();
   });
 }
+
+// ---------- Periodos (2026-11-26): cada unidad y actividad es de un periodo (1-4) ----------
+export function periodoBadge(value, label, id = '') {
+  return `<button type="button" class="periodo-badge" data-id="${esc(id)}" aria-label="Periodo ${value}. Cambiar el periodo de ${esc(label)}" title="Cambiar periodo">P${value}</button>`;
+}
+// Diálogo con un botón por periodo. Devuelve el elegido o undefined (cancelar).
+export function periodoDialog(title, value, { titulo = 'Cambiar periodo', nota = '' } = {}) {
+  return new Promise(resolve => {
+    const d = el(`<dialog aria-label="${esc(titulo)}">
+      <h2 style="margin-top:0">${esc(titulo)}</h2>
+      ${title ? `<p class="small muted" style="margin-top:-6px">${esc(title)}</p>` : ''}
+      <div class="grade-choices">${PERIODOS.map(n => `<button type="button" class="periodo-badge big ${n === value ? 'current' : ''}" value="${n}"
+        ${n === value ? 'aria-current="true"' : ''}>Periodo ${n}</button>`).join('')}</div>
+      ${nota ? `<p class="small muted">${nota}</p>` : ''}
+      <div class="row end"><button class="btn ghost" value="cancel" type="button">Cancelar</button></div></dialog>`);
+    document.body.append(d);
+    let out;
+    d.addEventListener('click', e => {
+      const v = e.target.closest('button')?.value; if (!v) return;
+      out = v === 'cancel' ? undefined : Number(v);
+      d.close();
+    });
+    d.addEventListener('close', () => { d.remove(); resolve(out); }, { once: true });
+    d.showModal();
+    (d.querySelector('.periodo-badge.current') || d.querySelector('.periodo-badge'))?.focus();
+  });
+}
+// Filtro por periodo de la Biblioteca y de Unidades: ?per=N (por defecto el actual) o ?per=all.
+export function periodoFiltro(query, actual) {
+  const pf = query.per === 'all' ? null : PERIODOS.includes(Number(query.per)) ? Number(query.per) : actual;
+  const param = n => n === actual ? {} : { per: n ?? 'all' };
+  return { pf, param, de: x => x.periodo || actual };
+}
+export const periodoSegHTML = (pf, actual, href, contar) => `<nav class="grade-seg periodo-seg" aria-label="Periodo">${[...PERIODOS, null].map(n =>
+  `<a class="${n === pf ? 'active' : ''}" href="${href(n)}" ${n === pf ? 'aria-current="true"' : ''} ${n === actual ? 'title="Periodo actual"' : ''}>${n ? `P${n}` : 'Todos'}${n === actual ? '<span class="per-actual" aria-label="(actual)">●</span>' : ''} <span class="n">${contar(n)}</span></a>`).join('')}</nav>`;
 
 // Qué es una asignación (actividad suelta o unidad), para mostrarla igual en todas partes.
 export async function describe(a) {
@@ -605,26 +640,30 @@ export function actThumb(a) {
   return `<div class="act-thumb mini" data-tipo="${a.type}" aria-hidden="true"><span class="at-k">${e(templates[a.type]?.label || '')}</span>${body}</div>`;
 }
 export async function activitiesList(root, { user, query }) {
-  const everything = await activities.list(user.id);
+  const { periodo: pa } = await periodos.actual();
+  const per = periodoFiltro(query, pa);
+  const todo = await activities.list(user.id);
+  const everything = per.pf ? todo.filter(a => per.de(a) === per.pf) : todo;
   const grades = await courses.grades();
   const anyNone = everything.some(a => !a.grade);
   const gf = query.grade === 'none' ? (anyNone ? 'none' : null) : query.grade ? Number(query.grade) : null;
   const all = gf === 'none' ? everything.filter(a => !a.grade) : gf ? everything.filter(a => a.grade === gf) : everything;
   const noGrade = everything.filter(a => !a.grade).length;
   const orden = query.sort === 'name' ? 'name' : 'recent';
-  const link = (t, g, s = orden) => { const q = new URLSearchParams({ ...(t ? { type: t } : {}), ...(g ? { grade: g } : {}), ...(s !== 'recent' ? { sort: s } : {}) }).toString(); return '#/t/activities' + (q ? '?' + q : ''); };
+  const link = (t, g, s = orden, p = per.pf) => { const q = new URLSearchParams({ ...(t ? { type: t } : {}), ...(g ? { grade: g } : {}), ...(s !== 'recent' ? { sort: s } : {}), ...per.param(p) }).toString(); return '#/t/activities' + (q ? '?' + q : ''); };
   const fromNew = query.new && all.find(a => a.id === query.new)?.type;
   const type = templates[query.type] ? query.type : fromNew || null;
   let acts = type ? all.filter(a => a.type === type) : all;
   if (orden === 'name') acts = [...acts].sort((x, y) => x.title.localeCompare(y.title));
   const usados = templateList.filter(t => all.some(a => a.type === t.type));
-  const unidades = (await units.list(user.id)).filter(u => !gf || u.grade === gf).slice(0, 4);
+  const unidades = (await units.list(user.id)).filter(u => (!gf || u.grade === gf) && (!per.pf || per.de(u) === per.pf)).slice(0, 4);
   root.innerHTML = `<div class="page-head"><div><h1>Biblioteca</h1></div>
     <a class="btn" href="${type ? `#/t/new/${type}` : '#/t/create'}">${icons.plus} Crear actividad</a></div>
     ${unidades.length ? `<div class="unit-folders">${unidades.map(u => `<a class="unit-folder" href="#/t/units/edit/${u.id}">
       <span class="uf-ico">${icons.unit}</span><span class="grow"><b>${esc(u.title)}</b><span class="small">${u.activityIds.length} actividades${u.grade ? ` · ${gradeLabel(u.grade)}` : ''}</span></span></a>`).join('')}
       <a class="btn link unit-all" href="#/t/units">Ver todas las unidades</a></div>` : ''}
     <div class="lib-bar">
+      ${periodoSegHTML(per.pf, pa, n => link(type, gf, orden, n), n => n ? todo.filter(a => per.de(a) === n).length : todo.length)}
       <nav class="grade-seg" aria-label="Grado">${[{ g: null, l: 'Todos', n: everything.length }, ...grades.map(g => ({ g, l: gradeLabel(g), n: everything.filter(a => a.grade === g).length }))].map(o =>
         `<a class="${o.g ? `g${o.g % 6}` : ''} ${o.g === gf ? 'active' : ''}" href="${link(type, o.g)}" ${o.g === gf ? 'aria-current="true"' : ''}>${o.l} <span class="n">${o.n}</span></a>`).join('')}</nav>
       ${noGrade ? `<a class="grade-warn ${gf === 'none' ? 'active' : ''}" href="${link(type, gf === 'none' ? null : 'none')}" title="Sin grado no se pueden asignar. Toca su insignia para elegirlo.">⚠ ${noGrade} sin grado</a>` : ''}
@@ -637,10 +676,10 @@ export async function activitiesList(root, { user, query }) {
   $('#orden', root).onchange = e => { location.hash = link(type, gf, e.target.value); };
   const box = $('#list', root);
   if (!acts.length) {
-    box.outerHTML = `<div class="card empty">${type ? `Aún no tienes ${templates[type].plural.toLowerCase()}. <a href="#/t/new/${type}">Crear una</a>.` : 'No tienes actividades. <a href="#/t/create">Crea la primera</a>.'}</div>`;
+    box.outerHTML = `<div class="card empty">${per.pf && todo.length ? `No hay actividades en el periodo ${per.pf}. <a href="${link(type, null, orden, null)}">Ver todos los periodos</a>.` : type ? `Aún no tienes ${templates[type].plural.toLowerCase()}. <a href="#/t/new/${type}">Crear una</a>.` : 'No tienes actividades. <a href="#/t/create">Crea la primera</a>.'}</div>`;
     return;
   }
-  const q = { ...(type ? { type } : {}), ...(gf ? { grade: gf } : {}), ...(orden !== 'recent' ? { sort: orden } : {}) };
+  const q = { ...(type ? { type } : {}), ...(gf ? { grade: gf } : {}), ...(orden !== 'recent' ? { sort: orden } : {}), ...per.param(per.pf) };
   for (const a of acts) {
     const tpl = templates[a.type];
     const asg = await assignments.listForActivity(a.id);
@@ -648,7 +687,7 @@ export async function activitiesList(root, { user, query }) {
       <a href="#/t/preview/${a.id}" class="act-open" aria-label="Abrir ${esc(a.title)}">${actThumb(a)}</a>
       <div class="act-body">
         <h3><a href="#/t/preview/${a.id}">${esc(a.title)}</a></h3>
-        <div class="act-meta">${gf && a.grade ? '' : gradeBadge(a.grade, a.title, a.id)}<span>${tpl.label} · ${asg.length ? `asignada ${asg.length}×` : 'sin asignar'}</span>${a.challengeLevel ? `<span class="badge reto-badge">Reto ${a.challengeLevel}</span>` : ''}</div>
+        <div class="act-meta">${gf && a.grade ? '' : gradeBadge(a.grade, a.title, a.id)}${periodoBadge(per.de(a), a.title, a.id)}<span>${tpl.label} · ${asg.length ? `asignada ${asg.length}×` : 'sin asignar'}</span>${a.challengeLevel ? `<span class="badge reto-badge">Reto ${a.challengeLevel}</span>` : ''}</div>
       </div>
       <div class="act-actions">
         <a class="btn ghost sm" href="#/t/assign?activity=${a.id}">Asignar</a>
@@ -657,6 +696,7 @@ export async function activitiesList(root, { user, query }) {
             <a href="#/t/edit/${a.id}">Editar contenido</a>
             <a href="#/t/present/${a.id}">Presentar en clase</a>
             <button type="button" data-grade>Cambiar grado…</button>
+            <button type="button" data-per>Cambiar periodo…</button>
             <button type="button" data-dup>Duplicar</button>
             <button type="button" data-reto>${a.challengeLevel ? `Reto desde nivel ${a.challengeLevel}…` : 'Marcar como reto…'}</button>
             <button type="button" data-del class="danger-txt">Eliminar</button>
@@ -674,6 +714,16 @@ export async function activitiesList(root, { user, query }) {
     };
     const gbd = card.querySelector('.grade-badge'); if (gbd) gbd.onclick = changeGrade;
     card.querySelector('[data-grade]').onclick = changeGrade;
+    const changePer = async () => {
+      card.querySelector('details.more')?.removeAttribute('open');
+      const n = await periodoDialog(a.title, per.de(a));
+      if (n === undefined || n === per.de(a)) return;
+      await activities.setPeriodo(a.id, n);
+      toast(`Ahora es del periodo ${n}`);
+      await activitiesList(root, { user, query: q });
+    };
+    card.querySelector('.periodo-badge').onclick = changePer;
+    card.querySelector('[data-per]').onclick = changePer;
     card.querySelector('[data-reto]').onclick = async () => {
       if (!a.grade) return toast('Primero elige su grado: los retos se muestran a los estudiantes de ese grado.', 'err');
       const lv = await retoDialog(a);

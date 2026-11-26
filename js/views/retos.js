@@ -7,7 +7,7 @@ import { templates } from '../templates/index.js';
 import { mountPlayer } from '../player.js';
 import { RETOS, RETO_XP, retoPassed, itemCount, quizFromAnswers, activityIdsOf, progressOf } from '../logic.js';
 import { byId, rewardPreview, DESBLOQUEADO, ALIAS } from '../rewards.js';
-import { levelOf, levelCost, chestState, openDailyChest, equipar } from './student.js';
+import { levelOf, levelCost, chestState, openDailyChest, equipar, chestWonHTML } from './student.js';
 
 // XP que falta para llegar a un nivel.
 function xpToLevel(total, target) {
@@ -166,9 +166,7 @@ export async function retoPlay(root, { user, params, query }) {
         ${prize ? `<div class="reto-won">${rewardPreview(prize, 72)}<div><b>¡Ganaste ${esc(prize.name)}!</b><span class="small">Premio exclusivo del reto.</span>
           <button class="btn sm" type="button" id="equip">Usar ahora</button></div></div>` : ''}
         ${up ? `<div class="level-up" role="status">¡Subiste al nivel ${up}!${opened.length ? ` Se abrió: ${opened.map(r => r.name).join(', ')}.` : ''}</div>` : ''}
-        ${chestReady ? `<div class="chest-card ready result-chest"><div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt=""></div>
-          <div class="chest-txt"><b>¡Ganaste el cofre de hoy!</b><span class="small">Ábrelo para ver tu premio.</span></div>
-          <button class="btn chest-open" id="open-chest">Abrir cofre</button></div>` : ''}
+        ${chestReady ? `${chestWonHTML()}` : ''}
         <div class="row" style="justify-content:center;margin-top:20px">
           <button class="btn ghost" type="button" id="again">Jugar otra vez</button>
           <a class="btn" href="#/s/retos">Volver a los retos</a></div></div></div>`);

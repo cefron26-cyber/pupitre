@@ -1531,3 +1531,14 @@ h2{font-weight:600}
 .ex-vista{background:var(--bg); border-radius:var(--radius-card); padding:12px}
 .ex-vista-t{font-size:13px; color:var(--muted); margin:0 0 8px}
 .ex-ia{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+
+/* ---------- Periodos (2026-11-26): insignia P1-P4 y filtro de la Biblioteca y Unidades ---------- */
+.periodo-badge{display:inline-flex; align-items:center; vertical-align:2px; margin-left:6px; padding:2px 9px; min-height:24px; border-radius:999px; border:0; cursor:pointer;
+  font:700 12.5px/1 var(--font); background:#eef2f8; color:var(--muted); box-shadow:inset 0 0 0 1.5px var(--border)}
+.periodo-badge:hover{background:var(--ink); color:#fff}
+.periodo-badge.big{font-size:17px; min-height:56px; min-width:120px; justify-content:center; border-radius:14px; margin:0}
+.periodo-badge.big.current{background:var(--primary); color:#fff; box-shadow:none}
+.periodo-seg a.active{background:var(--ink)}
+.per-actual{font-size:9px; color:var(--ok, #1f9a62); margin-left:-2px}
+.periodo-seg a.active .per-actual{color:#9ff0c6}
+.lib-bar .periodo-seg{flex:none}

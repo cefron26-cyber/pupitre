@@ -24,6 +24,12 @@ function uid(prefix) {
   return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 const now = () => new Date().toISOString();
+// Periodos del año escolar (calendario A): 1 feb-mar, 2 abr-jun, 3 jul-sep, 4 oct-dic (solo para el valor inicial;
+// el docente elige el periodo actual).
+export const PERIODOS = [1, 2, 3, 4];
+const periodoPorFecha = (d = new Date()) => d.getMonth() <= 2 ? 1 : d.getMonth() <= 5 ? 2 : d.getMonth() <= 8 ? 3 : 4;
+const inicioPeriodo = n => `${new Date().getFullYear()}-${String([1, 3, 6, 9][n - 1] + 1).padStart(2, '0')}-01`;
+const periodoActual = () => get('schools', SCHOOL_ID)?.periodo || 1;
 const daysAgo = (d, h = 0) => new Date(Date.now() - d * 864e5 - h * 36e5).toISOString();
 
 function seed() {
@@ -147,6 +153,11 @@ function load() {
       u.explicacion = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: CURSO_QUINTO.id, daysAgo }).units[0].explicacion;
     cache.explicacionU7V2 = true; fixed = true;
   }
+  // Periodos (2026-11-26): el colegio tiene un periodo actual (1-4) y cada unidad y actividad pertenece a un periodo.
+  // Lo que ya existía queda en el periodo actual. periodoDesde = día en que empezó (para los premios de racha).
+  const sch = cache.schools.find(x => x.id === SCHOOL_ID);
+  if (sch && !sch.periodo) { sch.periodo = periodoPorFecha(); sch.periodoDesde = inicioPeriodo(sch.periodo); fixed = true; }
+  for (const c of ['units', 'activities']) for (const x of cache[c]) if (!x.periodo) { x.periodo = sch?.periodo || 1; fixed = true; }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
   return cache;
@@ -246,6 +257,15 @@ const publicUser = u => { const { password, ...rest } = u; return clone(rest); }
 // ---------- Dominio ----------
 export const schools = {
   async current() { return clone(get('schools', SCHOOL_ID)); },
+};
+
+// Periodo actual del colegio. Al cambiarlo, la racha de los premios de racha cuenta desde hoy.
+export const periodos = {
+  async actual() { const s = get('schools', SCHOOL_ID); return { periodo: s?.periodo || 1, desde: s?.periodoDesde || today() }; },
+  async setActual(n) {
+    const s = get('schools', SCHOOL_ID);
+    if (s && s.periodo !== n) update('schools', SCHOOL_ID, { periodo: n, periodoDesde: today() });
+  },
 };
 
 export const users = {
@@ -364,9 +384,10 @@ export const activities = {
   async get(id) { const a = get('activities', id); return a ? clone(a) : null; },
   async save(act) {
     if (act.id && get('activities', act.id)) return update('activities', act.id, { title: act.title, content: act.content, grade: act.grade || null, theme: act.theme || null, instruction: act.instruction || '' });
-    return insert('activities', { schoolId: SCHOOL_ID, createdAt: now(), ...act });
+    return insert('activities', { schoolId: SCHOOL_ID, createdAt: now(), periodo: periodoActual(), ...act });
   },
   async setGrade(id, grade) { return update('activities', id, { grade: grade || null }); },
+  async setPeriodo(id, periodo) { return update('activities', id, { periodo }); },
   // Estilo visual (js/temas.js). Solo cambia el aspecto: no reinicia a quien la tenga a medias.
   async setTheme(id, theme) { return update('activities', id, { theme: theme || null }); },
   // Reto del docente: la actividad se abre como reto desde ese nivel (null = no es reto).
@@ -376,7 +397,7 @@ export const activities = {
   // Copia para hacer variantes (otro grado, otra versión). Queda sin asignar.
   async duplicate(id) {
     const a = get('activities', id); if (!a) return null;
-    return insert('activities', { schoolId: a.schoolId, ownerId: a.ownerId, type: a.type, grade: a.grade || null, theme: a.theme || null, instruction: a.instruction || '',
+    return insert('activities', { schoolId: a.schoolId, ownerId: a.ownerId, type: a.type, grade: a.grade || null, theme: a.theme || null, instruction: a.instruction || '', periodo: a.periodo || periodoActual(),
       title: (a.title + ' (copia)').slice(0, 80), content: structuredClone(a.content), createdAt: now() });
   },
   // Unidades que la incluyen y ya están asignadas (para advertir antes de borrar o editar).
@@ -411,9 +432,10 @@ export const units = {
     const data = { title: unit.title, description: unit.description || '', grade: unit.grade || null, activityIds: [...unit.activityIds], fases, cefr: unit.cefr || '',
       explicacion: limpiarExplicacion(unit.explicacion) };
     if (unit.id && get('units', unit.id)) return update('units', unit.id, data);
-    return insert('units', { schoolId: SCHOOL_ID, ownerId: unit.ownerId, createdAt: now(), ...data });
+    return insert('units', { schoolId: SCHOOL_ID, ownerId: unit.ownerId, createdAt: now(), periodo: unit.periodo || periodoActual(), ...data });
   },
   async setGrade(id, grade) { return update('units', id, { grade: grade || null }); },
+  async setPeriodo(id, periodo) { return update('units', id, { periodo }); },
   async addActivity(unitId, activityId) {
     const u = get('units', unitId);
     if (u && !u.activityIds.includes(activityId)) update('units', unitId, { activityIds: [...u.activityIds, activityId] });
@@ -514,13 +536,19 @@ export const xp = {
 const dayOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 export const today = () => dayOf(new Date());
 
-// Cofre diario: se gana al terminar una actividad ese día y se abre una vez.
+// Cofres diarios (2026-11-26): hasta CHESTS_PER_DAY al día, uno por cada actividad distinta terminada ese día
+// (repetir la misma actividad no da otro cofre; cada repaso y cada reto distinto sí cuentan).
+export const CHESTS_PER_DAY = 3;
+const claveIntento = t => t.reto ? `reto:${t.reto}` : t.practice ? `rep:${t.id}` : `${t.assignmentId}|${actOf(t)}`;
 export const chests = {
+  // Cuántos cofres ganó hoy (0-3).
   async earnedToday(userId) {
     const d = today();
-    return all('attempts').some(t => t.userId === userId && t.state === 'done' && t.finishedAt && dayOf(new Date(t.finishedAt)) === d);
+    const hechas = new Set(all('attempts').filter(t => t.userId === userId && t.state === 'done' && t.finishedAt && dayOf(new Date(t.finishedAt)) === d).map(claveIntento));
+    return Math.min(CHESTS_PER_DAY, hechas.size);
   },
-  async openedToday(userId) { const d = today(); return clone(all('chests').find(c => c.userId === userId && c.date === d) || null); },
+  // Cofres que ya abrió hoy (del primero al último).
+  async openedToday(userId) { const d = today(); return clone(all('chests').filter(c => c.userId === userId && c.date === d)); },
   async open(userId, { rewardId, duplicate, xp: bonus = 0 }) {
     return insert('chests', { userId, date: today(), openedAt: now(), rewardId, duplicate, xp: bonus, trigger: 'activity' });
   },
@@ -529,7 +557,7 @@ export const chests = {
 // Colección: premios que el estudiante ya tiene.
 export const userRewards = {
   async list(userId) { return clone(all('userRewards').filter(r => r.userId === userId)); },
-  async add(userId, rewardId) { return insert('userRewards', { userId, rewardId, at: now() }); },
+  async add(userId, rewardId, source = 'chest', hito = null) { return insert('userRewards', { userId, rewardId, at: now(), source, ...(hito ? { hito } : {}) }); },
 };
 
 // Cuarto de Cebollo: decoración comprada con monedas. Monedas = XP ganado (1 a 1) − lo gastado; el nivel no baja.
