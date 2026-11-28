@@ -853,3 +853,9 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 [data-modo="serio"] .racha-card{display:none !important}
 [data-modo="serio"] .hero{grid-template-columns:1fr}
 [data-modo="serio"] .hero-me{padding-left:var(--sp-5)}
+/* Modo serio: camino de la unidad plano, sin relieve ni aro brillante (revisión 2026-11-27) */
+[data-modo="serio"] .node-btn{box-shadow:none; border-width:2px}
+[data-modo="serio"] .node.done .node-btn{background:var(--success); border-color:var(--success); box-shadow:none}
+[data-modo="serio"] .node.next .node-btn{width:92px; height:92px; border-color:var(--primary); box-shadow:none; animation:none}
+[data-modo="serio"] .leccion-node.done .node-btn{background:var(--primary); border-color:var(--primary); box-shadow:none}
+[data-modo="serio"] .node-btn:hover{transform:none}

@@ -57,6 +57,16 @@ const EXACT = {
   'Lee o escucha la descripción y arma la cara, o adivina quién es entre tres.': 'Read or listen to the description and build the face, or guess who it is out of three.',
   'Describir personas en presente': 'Describing people in the present',
   'Habla con los testigos, anota los rasgos del ladrón, arma su retrato y encuéntralo en la rueda.': 'Talk to the witnesses, note the thief’s features, build a sketch and find them in the lineup.',
+  // Premios: fondos, ropa y decoración (rewards.js)
+  'Morado': 'Purple', 'Océano': 'Ocean', 'Bosque': 'Forest', 'Atardecer': 'Sunset', 'Noche estrellada': 'Starry night', 'Prisma': 'Prism',
+  'Aurora': 'Aurora', 'Gorra roja': 'Red cap', 'Gorro de lana': 'Wool hat', 'Sombrero de paja': 'Straw hat', 'Bandana roja': 'Red bandana',
+  'Sombrero de vaca': 'Cow hat', 'Gafas redondas': 'Round glasses', 'Gafas de sol': 'Sunglasses', 'Gafas de estrella': 'Star glasses',
+  'Parche pirata': 'Pirate patch', 'Bigote': 'Mustache', 'Cicatrices': 'Scars', 'Camiseta roja': 'Red T-shirt', 'Camiseta de rayas': 'Striped T-shirt',
+  'Camiseta estrella': 'Star T-shirt', 'Camiseta de fútbol': 'Soccer jersey', 'Hoodie naranja': 'Orange hoodie', 'Hoodie azul': 'Blue hoodie',
+  'Hoodie del rayo': 'Lightning hoodie', 'Jeans': 'Jeans', 'Short rojo': 'Red shorts', 'Pantalón cargo': 'Cargo pants', 'Tenis rojos': 'Red sneakers',
+  'Botas de lluvia': 'Rain boots', 'Camisetas y hoodies': 'T-shirts and hoodies', 'Pantalones': 'Pants', 'Zapatos': 'Shoes',
+  'Vístelo en el armario de': 'Dress him up in the closet in', 'su cuarto': 'his room',
+  'Supera el reto': 'Beat the challenge', 'Nuevos en': 'New ones in', 'Evaluación': 'Test',
   // Tipos de actividad
   'Quiz': 'Quiz', 'Emparejar': 'Matching', 'Completar texto': 'Fill in', 'Reordenar oraciones': 'Word order', 'Clasificar': 'Sort',
   'Memoria': 'Memory', 'Lectura': 'Reading', 'Audio': 'Listening', 'Dictado': 'Dictation', 'Sopa de letras': 'Word search',
@@ -83,7 +93,8 @@ const PATTERNS = [
   [/^Pregunta (\d+) de (\d+)$/, 'Question $1 of $2'],
   [/^La respuesta era: (.+)$/, 'The answer was: $1'], [/^(\d+) juegos de inglés$/, '$1 English games'], [/^Jugar →$/, 'Play →'],
   [/^(\d)° y (\d)°$/, 'Grades $1 & $2'], [/^(\d)°$/, 'Grade $1'],
-  [/^Continuar: (.+)$/, 'Continue: $1'], [/^Revisar respuestas$/, 'Check answers'], [/^(\d+) de (\d+) bien$/, '$1 of $2 right'],
+  [/^Continuar: (.+)$/, 'Continue: $1'], [/^Intento (\d+) de (\d+)$/, 'Try $1 of $2'], [/^(\d+) de (\d+)$/, '$1 of $2'],
+  [/^Nuevos en (.+)$/, 'New ones in $1'], [/^(.+), actividad (d+) de (d+)$/, '$1, activity $2 of $3'], [/^Revisar respuestas$/, 'Check answers'], [/^(\d+) de (\d+) bien$/, '$1 of $2 right'],
   [/^(?:Frase|Oración) (\d+) de (\d+)$/, 'Sentence $1 of $2'], [/^Escribe la palabra que falta$/, 'Write the missing word'],
   [/^Arrastra las palabras hasta ordenar la oración$/, 'Drag the words into the right order'],
   [/^Vence en (\d+) días$/, 'Due in $1 days'],
@@ -101,7 +112,7 @@ function frase(s) {
 }
 function traducir(t) {
   const s = t.trim();
-  if (!s || !/[a-záéíóúñ¡¿]/i.test(s)) return null;
+  if (!s || !/[a-záéíóúñ¡¿°]/i.test(s)) return null;
   let out = frase(s);
   // Textos armados con " · " (p. ej. "Reordenar oraciones · en curso" o "Unidad · "): se traduce cada parte.
   if (out === undefined && s.includes('·')) {
@@ -114,7 +125,7 @@ function traducir(t) {
 }
 
 // Zonas que no se tocan: el contenido de las actividades y el texto de las explicaciones.
-const SALTAR = '.escenario .tpl-body, .ex-body, .ex-ficha, textarea, input, script, style, [data-no-i18n]';
+const SALTAR = '.ex-body, .ex-ficha, textarea, input, script, style, [data-no-i18n]';
 function recorrer(root) {
   if (!document.documentElement.dataset.modo) return; // solo con la vista del estudiante (app.js pone data-modo)
   if (!root || root.nodeType === 3) { if (root) cambiar(root); return; }

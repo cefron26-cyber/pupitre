@@ -1014,7 +1014,7 @@ button.uw-type:focus-visible{outline:none; box-shadow:0 0 0 3px var(--accent)}
 .pool-item{display:flex; align-items:center; gap:10px; padding:6px 8px; border-radius:10px; border:1.5px solid var(--line); background:#fff; text-align:left; font:inherit; cursor:pointer}
 .pool-item:hover{border-color:var(--accent); background:var(--accent-soft)}
 .pool-item .grow{display:flex; flex-direction:column; min-width:0}
-.pool-item b{font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.pool-item b{font-size:14px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere}
 .pool-item .type-icon{width:36px; height:36px}
 .pool-add{font:700 22px/1 var(--font); color:var(--primary)}
 .unit-steps{list-style:none; margin:0; padding:0; display:grid; gap:6px}
@@ -1543,3 +1543,6 @@ h2{font-weight:600}
 .per-actual{font-size:9px; color:var(--ok, #1f9a62); margin-left:-2px}
 .periodo-seg a.active .per-actual{color:#9ff0c6}
 .lib-bar .periodo-seg{flex:none}
+/* Interfaz en inglés (2026-11-27): textos que vienen del CSS */
+:root[lang="en"] .passage summary::after{content:"Hide"}
+:root[lang="en"] .passage:not([open]) summary::after{content:"Show text"}

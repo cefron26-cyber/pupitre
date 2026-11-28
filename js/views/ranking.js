@@ -48,9 +48,9 @@ export async function ranking(root, { user, query }) {
       <div class="grow"><b>${filas.some(f => f !== yo && f.pos === yo.pos) ? `Empatado en el puesto ${yo.pos}` : `Vas de ${yo.pos}.° de ${filas.length}`}</b>
         <div class="small muted">${arriba ? `${arriba.xp - yo.xp + 1} puntos más y pasas a ${esc(arriba.nombre)}` : yo.xp ? 'Sigue así' : 'Haz una actividad y arranca de primero'}</div></div>
       <a class="btn sm" href="#/s/tasks">Practicar</a></div>
-    <ol class="rk-podio" aria-label="Primeros puestos">${orden.map(f => `<li class="rk-i${f.i} ${f.id === user.id ? 'yo' : ''}">
+    ${filas.filter(f => f.xp > 0).length < 3 ? '' : `<ol class="rk-podio" aria-label="Primeros puestos">${orden.map(f => `<li class="rk-i${f.i} ${f.id === user.id ? 'yo' : ''}">
       <span class="rk-ava">${cebolloMini(f.ropa, 64)}</span><b>${esc(f.nombre)}</b>
-      <span class="rk-xp">${f.xp} XP</span><span class="rk-base"><span>${medalla(f.pos)}</span></span></li>`).join('')}</ol>
+      <span class="rk-xp">${f.xp} XP</span><span class="rk-base"><span>${medalla(f.pos)}</span></span></li>`).join('')}</ol>`}
     <ol class="rk-lista card">${filas.map(f => `<li class="${f.id === user.id ? 'yo' : ''}">
       <span class="rk-pos">${f.pos}</span><span class="rk-ava">${cebolloMini(f.ropa, 40)}</span>
       <span class="grow"><b>${esc(f.nombre)}</b><span class="small muted">Nivel ${f.nivel}</span></span>

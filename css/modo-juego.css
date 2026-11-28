@@ -391,3 +391,8 @@
   :root[data-modo="juego"] .chest-card.ready,:root[data-modo="juego"] .chest-card.ready::after,:root[data-modo="juego"] .chest-card.ready::before{animation:none}
   :root[data-modo="juego"] .chest-card.ready::after{display:none}
 }
+
+/* Periodos plegados: barra legible sobre el cielo (revisión 2026-11-27) */
+:root[data-modo="juego"] details.done-group > summary{display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+  background:rgba(26,20,70,.72); color:#fff; border:3px solid #e0a000; clip-path:var(--px-step); text-shadow:none}
+:root[data-modo="juego"] details.done-group > summary:hover{background:rgba(26,20,70,.88)}

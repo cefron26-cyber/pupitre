@@ -202,7 +202,7 @@ async function drawHero(box, user) {
     </div>
     <div class="chest-card ${state}">
       <div class="chest-mini" aria-hidden="true"><img src="img/cofre/cerrado-mini.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'chest-ico',innerHTML:this.dataset.ico}))" data-ico='${icons.chest}'></div>
-      <div class="chest-txt"><b>${chestText}</b>${chestDots(cs)}<span class="chest-timer" title="Los cofres se renuevan a medianoche">${icons.clock}<span>${faltaManana()}</span></span></div>
+      <div class="chest-txt"><b>${chestText}</b>${chestDots(cs)}<span class="chest-timer" title="Los cofres se renuevan a medianoche">${icons.clock}<span>Nuevos en ${faltaManana()}</span></span></div>
       ${state === 'ready' ? '<button class="btn chest-open" id="open-chest">Abrir</button>' : ''}
     </div>
 `;
