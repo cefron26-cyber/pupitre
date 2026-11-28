@@ -83,7 +83,8 @@ export default {
     const total = content.items.length;
     const hide = evalMode.hide; // en evaluación no se marca nada y tampoco se dice al final si estuvo bien
     // Comprobar al final (opción del docente, o evaluación): sin marcas mientras ordena; se revisa con «Comprobar».
-    const alFinal = hide || !!content.alFinal;
+    // El docente puede elegirlo al asignar (evalMode.alFinal); si no, vale lo que dice la actividad.
+    const alFinal = hide || (evalMode.alFinal ?? !!content.alFinal);
     const fresh = i => ({ order: scramble(partir(content.items[i].sentence).w), fijas: [], checked: false });
     // Progreso de la versión anterior (palabras en dos zonas): se empieza la oración de nuevo.
     const st = saved?.order ? saved : { i: saved?.i || 0, answers: saved?.answers || [], ...fresh(saved?.i || 0) };

@@ -551,6 +551,7 @@ export async function play(root, { user, params, query }) {
     durationSec: attempt.durationSec,
     onProgress: (state, sec) => attempts.saveProgress(attempt.id, state, sec),
     hideAnswers: a.showAnswers === false,
+    revisar: a.revisar || null, // Ordenar: verde al ordenar o solo con «Comprobar» (lo elige el docente al asignar)
     theme: r.unit ? UNIT_THEME : null, // dentro de una unidad, un solo estilo
     salir: { href: back },
     unidad: r.unit ? { href: back } : null,

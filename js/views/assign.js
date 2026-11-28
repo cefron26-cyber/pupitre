@@ -29,7 +29,7 @@ export async function assign(root, { user, query }) {
   let courseId = preCourse?.id || null;
   let timerMode = 'none';
   // Lo que el docente ya llenó se conserva al cambiar grado, curso o tipo.
-  let picked = pre?.id || null, dueVal = '', minutes = 5, serious = false, focusSel = null, tries = '', showAns = true;
+  let picked = pre?.id || null, dueVal = '', minutes = 5, serious = false, focusSel = null, tries = '', showAns = true, revisar = null; // null = aún no lo tocó: se propone lo que dice la actividad
   const draw = async () => {
     const asgs = await assignments.listAll(user.id);
     const gCourses = crs.filter(c => c.grade === gradeSel);
@@ -42,6 +42,10 @@ export async function assign(root, { user, query }) {
       ? `<option value="${x.id}" ${picked === x.id ? 'selected' : ''}>${esc(x.title)} · ${x.activityIds.length} actividades</option>`
       : `<option value="${x.id}" ${picked === x.id ? 'selected' : ''}>${esc(x.title)} · ${templates[x.type].label}</option>`);
     const wrongPre = pre && !pre.grade;
+    // ¿Lo elegido tiene Ordenar? Entonces el docente decide cómo se revisa (verde al ordenar o con «Comprobar»).
+    const elegido = fit.find(x => x.id === picked) || fit[0];
+    const conOrdenar = !!elegido && (kind === 'unit' ? elegido.activityIds.some(id => acts.find(x => x.id === id)?.type === 'reorder') : elegido.type === 'reorder');
+    const revisarSel = revisar || (kind === 'activity' && elegido?.content?.alFinal ? 'final' : 'auto');
     root.innerHTML = `<div class="page-head"><div><h1>Asignaciones</h1><p class="muted">Elige el grado y el curso, y envíale una actividad o una unidad de ese grado.</p></div></div>
       <form class="card" id="f" novalidate>
         <div class="row" style="align-items:flex-start">
@@ -76,6 +80,10 @@ export async function assign(root, { user, query }) {
         <div class="field" style="max-width:260px"><label for="tries">Intentos</label>
           <select id="tries">${[['', 'Ilimitados'], ['1', '1 intento'], ['2', '2 intentos'], ['3', '3 intentos']].map(([v, l]) => `<option value="${v}" ${String(tries) === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
           <p class="hint">Cuenta el mejor intento.</p></div>`}
+        ${conOrdenar ? `<div class="field" style="max-width:520px"><label for="revisar">${kind === 'unit' ? 'Ordenar palabras (en esta unidad)' : 'Ordenar palabras'}</label>
+          <select id="revisar">
+            <option value="auto" ${revisarSel === 'auto' ? 'selected' : ''}>Las palabras se ponen verdes al quedar en su lugar</option>
+            <option value="final" ${revisarSel === 'final' ? 'selected' : ''}>Se revisa solo al presionar «Comprobar»</option></select></div>` : ''}
         <label class="check"><input type="checkbox" id="showAns" ${showAns ? 'checked' : ''}> Mostrar si acertó y la respuesta correcta (después de cada pregunta y al terminar)</label>
         <label class="check"><input type="checkbox" id="serious" ${serious ? 'checked' : ''}> Es una evaluación: los estudiantes la hacen en modo serio, sin animaciones</label>
         <div class="row end"><button class="btn" type="submit">Asignar a ${esc(course.name)}</button></div>`
@@ -101,7 +109,8 @@ export async function assign(root, { user, query }) {
       };
       $('#showAns', root).onchange = e => { showAns = e.target.checked; };
       if ($('#tries', root)) $('#tries', root).onchange = e => { tries = e.target.value; };
-      $('#what', root).onchange = e => { picked = e.target.value; };
+      $('#what', root).onchange = e => { picked = e.target.value; revisar = null; focusSel = '#what'; draw(); };
+      if ($('#revisar', root)) $('#revisar', root).onchange = e => { revisar = e.target.value; };
       tmode.onchange = () => { timerMode = tmode.value; $('#tminWrap', root).hidden = timerMode !== 'down'; };
       due.min = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
       $('#f', root).onsubmit = async e => {
@@ -115,10 +124,11 @@ export async function assign(root, { user, query }) {
         if (exists && !(await confirmDialog('Ya está asignada a ese curso. ¿Asignarla otra vez?', 'Asignar'))) return;
         try {
           await assignments.create({ [kind === 'unit' ? 'unitId' : 'activityId']: id, courseId, dueAt, timer, forceSerious: $('#serious', root).checked, ownerId: user.id,
-            maxTries: kind === 'unit' ? null : Number($('#tries', root).value) || null, showAnswers: $('#showAns', root).checked });
+            maxTries: kind === 'unit' ? null : Number($('#tries', root).value) || null, showAnswers: $('#showAns', root).checked,
+            revisar: conOrdenar ? $('#revisar', root).value : null });
         } catch (err) { toast(err.message, 'err'); return; }
         toast(kind === 'unit' ? 'Unidad asignada' : 'Actividad asignada');
-        dueVal = ''; serious = false; tries = ''; showAns = true;
+        dueVal = ''; serious = false; tries = ''; showAns = true; revisar = null;
         draw();
       };
     }
@@ -130,7 +140,7 @@ export async function assign(root, { user, query }) {
       const row = el(`<div class="item" style="box-shadow:none;border:1px solid var(--line)">
         <div class="type-icon ${d.isUnit ? 'unit' : ''}">${d.icon}</div>
         <div class="info"><p class="title">${esc(d.title)}</p>
-          <div class="meta">${esc(d.kind)} · ${esc(c?.name)} · ${a.dueAt ? 'Entrega ' + fmtDate(a.dueAt) : 'Sin fecha límite'}${a.forceSerious ? ' · Modo serio' : ''}${a.maxTries ? ` · ${a.maxTries} intento${a.maxTries === 1 ? '' : 's'}` : ''}${a.showAnswers === false ? ' · Respuestas ocultas' : ''}${a.timer?.mode === 'down' ? ` · Tiempo límite ${a.timer.minutes} min` : a.timer?.mode === 'up' ? ' · Con cronómetro' : ''} · asignada ${fmtDate(a.createdAt, false)}</div></div>
+          <div class="meta">${esc(d.kind)} · ${esc(c?.name)} · ${a.dueAt ? 'Entrega ' + fmtDate(a.dueAt) : 'Sin fecha límite'}${a.forceSerious ? ' · Modo serio' : ''}${a.maxTries ? ` · ${a.maxTries} intento${a.maxTries === 1 ? '' : 's'}` : ''}${a.showAnswers === false ? ' · Respuestas ocultas' : ''}${a.revisar === 'final' ? ' · Ordenar con «Comprobar»' : ''}${a.timer?.mode === 'down' ? ` · Tiempo límite ${a.timer.minutes} min` : a.timer?.mode === 'up' ? ' · Con cronómetro' : ''} · asignada ${fmtDate(a.createdAt, false)}</div></div>
         <div class="row"><a class="btn ghost sm" href="#/t/results?a=${a.id}">Resultados</a>
           <button class="btn danger sm" type="button">Quitar</button></div></div>`);
       row.querySelector('button').onclick = async () => {
