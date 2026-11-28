@@ -13,7 +13,7 @@ const EXACT = {
   // Encabezado y pestañas
   'Misiones': 'Missions', 'Retos': 'Challenges', 'Juegos': 'Games', 'Clasificación': 'Ranking', 'Modo juego': 'Game mode',
   'Modo serio': 'Classic mode', 'Reiniciar': 'Reset', 'Cuarto': 'Room', 'Salir': 'Log out', 'Estudiante': 'Student',
-  'Saltar al contenido': 'Skip to content',
+  'Saltar al contenido': 'Skip to content', 'Idioma': 'Language', 'Reiniciar mi avance': 'Reset my progress',
   // Portada y cofre
   'Hay uno listo': 'One is ready', 'Haz una actividad y gana uno': 'Do an activity to win one',
   'Haz otra actividad y gana el siguiente': 'Do another activity to win the next one', 'Mañana hay más': 'More tomorrow',

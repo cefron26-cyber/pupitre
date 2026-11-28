@@ -362,3 +362,32 @@
 :root[data-modo="juego"] .reto.open .reto-ico{color:var(--ri); background:color-mix(in srgb,var(--ri) 16%,#fff); box-shadow:inset 0 -4px 0 color-mix(in srgb,var(--ri) 30%,#fff)}
 :root[data-modo="juego"] .racha-ver .racha-card{clip-path:none; border:0; box-shadow:none; background:transparent}
 :root[data-modo="juego"] .chest-dots i{border-radius:0}
+
+/* Cofre listo: destello pixel como una barra de oro (2026-11-27). Una franja diagonal en escalones cruza la ventana
+   de izquierda a derecha (steps(), sin suavizado), el marco late entre dos dorados y salen chispas cuadradas. Sin IA:
+   CSS puro, nítido a cualquier tamaño. */
+:root[data-modo="juego"] .chest-card.ready{position:relative; overflow:hidden; animation:oro-marco 1.2s steps(2) infinite}
+:root[data-modo="juego"] .chest-card.ready::after{
+  content:""; position:absolute; top:-20%; bottom:-20%; left:-40%; width:34%; pointer-events:none; z-index:1;
+  background:
+    linear-gradient(90deg, transparent 0 16%, rgba(255,214,64,.45) 16% 30%, rgba(255,255,255,.95) 30% 52%, rgba(255,214,64,.45) 52% 66%, transparent 66%);
+  transform:skewX(-24deg);
+  animation:oro-destello 2.4s steps(16) infinite;
+}
+:root[data-modo="juego"] .chest-card.ready::before{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:
+    linear-gradient(#fff6b0,#fff6b0) 18% 22%/4px 4px no-repeat,
+    linear-gradient(#fff,#fff) 74% 30%/4px 4px no-repeat,
+    linear-gradient(#ffe27a,#ffe27a) 88% 72%/4px 4px no-repeat,
+    linear-gradient(#fff,#fff) 40% 80%/4px 4px no-repeat;
+  animation:oro-chispas 1.2s steps(1) infinite;
+}
+:root[data-modo="juego"] .chest-card.ready > *{position:relative; z-index:2}
+@keyframes oro-destello{0%{left:-40%} 55%,100%{left:120%}}
+@keyframes oro-marco{0%{border-color:#c98a00} 50%{border-color:#ffd23f}}
+@keyframes oro-chispas{0%,100%{opacity:1} 50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  :root[data-modo="juego"] .chest-card.ready,:root[data-modo="juego"] .chest-card.ready::after,:root[data-modo="juego"] .chest-card.ready::before{animation:none}
+  :root[data-modo="juego"] .chest-card.ready::after{display:none}
+}

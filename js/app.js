@@ -161,6 +161,7 @@ async function router() {
   if (sk) sk.onclick = () => { const h = $('#main h1') || $('#main'); h.tabIndex = -1; h.focus(); };
   const rp = $('#reset-progress');
   if (rp) rp.onclick = async () => {
+    rp.closest('details')?.removeAttribute('open');
     if (await confirmDialog('Se borrarán tus resultados, XP, cofres y colección para que puedas hacer todas las actividades otra vez.', 'Reiniciar', true)) {
       await users.resetProgress(currentUser.id); toast('Listo: puedes hacer las actividades de nuevo.'); router();
     }

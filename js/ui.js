@@ -161,6 +161,8 @@ export const icons = {
   chart: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', 20),
   user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', 20),
   lock: svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 16),
+  gear: svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', 22),
+  reset: svg('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>', 18),
   // Reemplazan los emojis de la vista del estudiante (2026-11-27).
   flame: svg('<path d="M12 3c.6 3.6 5.5 5.4 5.5 10.5a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4.3 2.6-5.3.1 1.8 1 3 2.2 3.3-.4-3.2-.3-5.8.7-8.5z"/>', 16),
   check: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>', 16),
@@ -199,7 +201,7 @@ export function headerHTML({ school = {}, user, nav = [], active = '', xp = null
       <div class="brand">${brandHTML(school, 40)}</div>
       <div class="user-box">
         ${modeBtn}
-        ${xp !== null ? `<span class="xp-chip" id="xp-chip" title="Tu experiencia acumulada">${icons.star}<span id="xp-val">${xp}</span> XP</span>` : ''}
+        ${xp !== null && !student ? `<span class="xp-chip" id="xp-chip" title="Tu experiencia acumulada">${icons.star}<span id="xp-val">${xp}</span> XP</span>` : ''}
         ${user.role === 'teacher' ? `
         <details class="more create-menu"><summary class="btn sm">${icons.plus}<span>Crear</span></summary>
           <div class="more-menu"><a href="#/t/create">Actividad</a><a href="#/t/units/new">Unidad</a></div></details>
@@ -211,12 +213,15 @@ export function headerHTML({ school = {}, user, nav = [], active = '', xp = null
             <button type="button" id="reset-demo" class="danger-txt">Reiniciar demo</button>
             <button type="button" id="logout">Salir</button>
           </div></details>` : `
-        ${langToggleHTML()}
         <div class="user-name"><b>${esc(user.name)}</b>Estudiante</div>
-        <button class="btn ghost sm reset-avance" id="reset-progress" type="button" title="Borra tus resultados para hacer las actividades otra vez" aria-label="Reiniciar mi avance"><span aria-hidden="true">↺</span><span class="ra-txt">Reiniciar</span></button>
         <a class="visitar-cebollo ${active === 'cuarto' ? 'active' : ''}" href="#/s/cuarto" title="El cuarto de Cebollo" ${active === 'cuarto' ? 'aria-current="page"' : ''}>
           <span class="vc-ceb" aria-hidden="true"><span class="vc-halo"></span><img src="img/cebollo/emotes/sonrisa.webp" alt=""></span><span class="vc-txt">Cuarto</span></a>
-        <button class="btn ghost sm" id="logout" aria-label="Salir">${icons.logout}<span>Salir</span></button>`}
+        <details class="more ajustes-menu"><summary class="ajustes-btn" aria-label="Configuración" title="Configuración">${icons.gear}</summary>
+          <div class="more-menu">
+            <div class="ajustes-fila"><span>Idioma</span>${langToggleHTML()}</div>
+            <button type="button" id="reset-progress" title="Borra tus resultados para hacer las actividades otra vez">${icons.reset}<span>Reiniciar mi avance</span></button>
+            <button type="button" id="logout">${icons.logout}<span>Salir</span></button>
+          </div></details>`}
       </div>
     </div>
     ${nav.length ? `<nav class="nav ${user.role === 'teacher' ? 'bottom' : ''}" aria-label="Secciones">${nav.map(n =>
