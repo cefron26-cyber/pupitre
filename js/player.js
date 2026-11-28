@@ -61,8 +61,9 @@ const CONSIGNA = {
 // colores: true deja las fichas de colores del estilo (Presentar en clase); si no, fichas neutras y verde/rojo solo al corregir.
 // finalFijo + onReplay: el cierre queda dentro del escenario (puntaje, tiempo, "Volver a empezar"); lo usa la vista previa del docente.
 export function mountPlayer(root, { activity, saved = null, durationSec = 0, onProgress = () => {}, onFinish = () => {}, clock = { mode: 'up' }, hideAnswers = false, theme = null, ceremonia = true,
-  salir = null, unidad = null, tramo = null, portada = true, colores = false, encabezado = null, finalFijo = false, onReplay = null }) {
+  salir = null, unidad = null, tramo = null, portada = true, colores = false, encabezado = null, finalFijo = false, onReplay = null, revisar = null }) {
   evalMode.hide = !!hideAnswers;
+  evalMode.alFinal = revisar === 'final' ? true : revisar === 'auto' ? false : null;
   evalMode.fin = tramo ? 'Continuar' : 'Ver resultado';
   const hide = !!hideAnswers;
   // Modo serio (elegido por el estudiante o forzado en una evaluación): sin decoración ni sonidos.
@@ -357,7 +358,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   }, 1000);
   let inst = null; // lo que devuelve la plantilla (opcional { destroy })
   const stop = () => {
-    evalMode.hide = false; clearTimeout(compaT); watcher?.disconnect(); franjas?.disconnect(); autos?.disconnect(); clearTimeout(autoT); clearInterval(tick); document.removeEventListener('visibilitychange', onVis);
+    evalMode.hide = false; evalMode.alFinal = null; clearTimeout(compaT); watcher?.disconnect(); franjas?.disconnect(); autos?.disconnect(); clearTimeout(autoT); clearInterval(tick); document.removeEventListener('visibilitychange', onVis);
     if (document.fullscreenElement === shell) document.exitFullscreen().catch(() => {});
     try { inst?.destroy?.(); } catch {} inst = null;
   };

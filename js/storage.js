@@ -499,13 +499,13 @@ export const units = {
 
 export const assignments = {
   // Se asigna una actividad (activityId) o una unidad (unitId).
-  async create({ activityId = null, unitId = null, courseId, dueAt, forceSerious = false, timer = null, ownerId = null, maxTries = null, showAnswers = true }) {
+  async create({ activityId = null, unitId = null, courseId, dueAt, forceSerious = false, timer = null, ownerId = null, maxTries = null, showAnswers = true, revisar = null }) {
     // Regla: solo se asigna a un curso lo que es de su grado.
     const item = activityId ? get('activities', activityId) : get('units', unitId);
     const course = get('courses', courseId);
     if (!item || !course || !item.grade || item.grade !== course.grade) throw new Error('Solo puedes asignar actividades del mismo grado del curso.');
     return insert('assignments', { schoolId: SCHOOL_ID, ownerId: ownerId || item.ownerId, activityId, unitId, courseId, dueAt: dueAt || null, forceSerious: !!forceSerious, timer,
-      maxTries: unitId ? null : (maxTries || null), showAnswers: showAnswers !== false, createdAt: now() });
+      maxTries: unitId ? null : (maxTries || null), showAnswers: showAnswers !== false, revisar: revisar || null, createdAt: now() });
   },
   async listForUnit(unitId) { return clone(all('assignments').filter(a => a.unitId === unitId)); },
   async get(id) { return clone(get('assignments', id)); },
