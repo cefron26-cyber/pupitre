@@ -407,3 +407,14 @@
 [data-modo="juego"] .page-head h1,[data-modo="juego"] .hero-hi{
   text-shadow:3px 0 0 var(--t-tsh),-3px 0 0 var(--t-tsh),0 3px 0 var(--t-tsh),0 -3px 0 var(--t-tsh),
     2px 2px 0 var(--t-tsh),-2px 2px 0 var(--t-tsh),2px -2px 0 var(--t-tsh),-2px -2px 0 var(--t-tsh),3px 5px 0 rgba(10,4,40,.22)}
+
+/* ---------- Colección (2026-11-28, pedido del docente) ----------
+   Sin la franja de color debajo de cada objeto: cada uno va sobre un fondo pastel del color de su rareza (azul común,
+   verde rara, morado épica, dorado legendaria). "Usar" sin las esquinas recortadas que lo hacían ver entre corchetes. */
+:root[data-modo="juego"] .reward-tile{border:0; border-radius:16px; box-shadow:none;
+  background:color-mix(in srgb,var(--rc),#fff 80%)}
+:root[data-modo="juego"] .reward-tile.locked{background:color-mix(in srgb,var(--rc),#fff 90%)}
+:root[data-modo="juego"] .reward-tile .rt-rarity{color:color-mix(in srgb,var(--rc),#000 45%)}
+:root[data-modo="juego"] .main .reward-tile .btn{clip-path:none; border-radius:10px; min-width:96px}
+:root[data-modo="juego"] .main .reward-tile .btn.ghost{background:#fff; color:#1f3a68; box-shadow:0 2px 0 rgba(22,33,61,.12)}
+:root[data-modo="juego"] .main .reward-tile .btn.ghost:active{transform:translateY(2px); box-shadow:none}
