@@ -1495,7 +1495,8 @@ h2{font-weight:600}
 .ex-mas{font-weight:800; font-size:20px; color:var(--muted)}
 .ex-recuerda{display:flex; flex-direction:column; gap:2px; padding:12px 16px; border-radius:12px; background:#fff7d6; border:2px dashed #e0a800}
 .ex-recuerda b{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:#8a5a00}
-.ex-recuerda b::before{content:"💡 "}
+.ex-recuerda b{display:inline-flex; align-items:center; gap:6px}
+.ex-recuerda b::before{content:""; width:15px; height:15px; background:currentColor; -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M10 21.5h4M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.6V16h6v-.1c0-.6.3-1.2.8-1.6A6.5 6.5 0 0 0 12 2.5z'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M10 21.5h4M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.6V16h6v-.1c0-.6.3-1.2.8-1.6A6.5 6.5 0 0 0 12 2.5z'/%3E%3C/svg%3E") center/contain no-repeat}
 .ex-ejemplo{display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; background:var(--c-suave)}
 .ex-ejemplo > span{display:flex; flex-direction:column}
 .ex-ejemplo small{font-size:14px; color:var(--muted)}

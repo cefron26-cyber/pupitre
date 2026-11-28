@@ -86,14 +86,14 @@ export const REVIEW_XP = 2; // por cada pregunta del repaso que acierta
 // Retos: se desbloquean por nivel. Sin nota; dan XP (una vez al día cada reto) y un premio exclusivo la primera vez que se superan.
 // Además, el docente puede marcar cualquier actividad como reto (activity.challengeLevel = nivel desde el que se abre).
 export const RETOS = [
-  { id: 'reloj', name: 'Contrarreloj', level: 2, reward: 'tenis_rayo', icon: '⏱️',
-    desc: 'Repite una actividad que ya terminaste, con el tiempo justo.', goal: 'Termínala antes de que se acabe el tiempo, con 60 % o más.' },
-  { id: 'perfecto', name: 'Sin errores', level: 4, reward: 'f-lava', icon: '🎯',
-    desc: 'Preguntas de lo que ya hiciste. Un error y se acaba.', goal: 'Logra 8 aciertos seguidos.' },
-  { id: 'mezcla', name: 'Mezcla', level: 6, reward: 'corona', icon: '🔀',
-    desc: '10 preguntas de varias actividades que ya terminaste.', goal: 'Acierta el 80 % o más.' },
-  { id: 'maraton', name: 'Maratón', level: 8, reward: 'f-aurora', icon: '🏃',
-    desc: 'Todas las preguntas de una unidad que ya terminaste, seguidas.', goal: 'Acierta el 80 % o más.' },
+  { id: 'reloj', name: 'Contrarreloj', level: 2, reward: 'tenis_rayo', icon: 'timer',
+    desc: 'Gánale al reloj con 60 % o más.', goal: 'Termínala antes de que se acabe el tiempo, con 60 % o más.' },
+  { id: 'perfecto', name: 'Sin errores', level: 4, reward: 'f-lava', icon: 'target',
+    desc: '8 seguidas sin fallar. Un error y se acaba.', goal: 'Logra 8 aciertos seguidos.' },
+  { id: 'mezcla', name: 'Mezcla', level: 6, reward: 'corona', icon: 'shuffle',
+    desc: '10 preguntas revueltas. Saca 80 % o más.', goal: 'Acierta el 80 % o más.' },
+  { id: 'maraton', name: 'Maratón', level: 8, reward: 'f-aurora', icon: 'route',
+    desc: 'Una unidad entera de corrido. Saca 80 % o más.', goal: 'Acierta el 80 % o más.' },
 ];
 export const RETO_XP = 2; // por acierto
 // ¿Superó el reto? (para el premio exclusivo)
@@ -162,12 +162,12 @@ export const faseDe = (unit, act) => unit?.fases?.[act.id] || FASE_TIPO[act.type
 
 // Rangos (2026-11-21): agrupan los niveles en escalones con nombre, como las ligas de un juego. Solo motivación.
 export const RANGOS = [
-  { id: 'bronce', name: 'Bronce', desde: 1, icon: '🥉', color: '#c9803f' },
-  { id: 'plata', name: 'Plata', desde: 3, icon: '🥈', color: '#8f9bb3' },
-  { id: 'oro', name: 'Oro', desde: 5, icon: '🥇', color: '#e5a800' },
-  { id: 'platino', name: 'Platino', desde: 7, icon: '💠', color: '#2bb3a8' },
-  { id: 'diamante', name: 'Diamante', desde: 10, icon: '💎', color: '#3b82f6' },
-  { id: 'leyenda', name: 'Leyenda', desde: 14, icon: '👑', color: '#a855f7' },
+  { id: 'bronce', name: 'Bronce', desde: 1, icon: 'medal', color: '#c9803f' },
+  { id: 'plata', name: 'Plata', desde: 3, icon: 'medal', color: '#8f9bb3' },
+  { id: 'oro', name: 'Oro', desde: 5, icon: 'medal', color: '#e5a800' },
+  { id: 'platino', name: 'Platino', desde: 7, icon: 'medal', color: '#2bb3a8' },
+  { id: 'diamante', name: 'Diamante', desde: 10, icon: 'medal', color: '#3b82f6' },
+  { id: 'leyenda', name: 'Leyenda', desde: 14, icon: 'medal', color: '#a855f7' },
 ];
 export const rangoDe = nivel => [...RANGOS].reverse().find(r => nivel >= r.desde);
 export const siguienteRango = nivel => RANGOS.find(r => r.desde > nivel) || null;

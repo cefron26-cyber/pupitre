@@ -764,3 +764,47 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 .racha-dialog .row{justify-content:center; margin-top:14px}
 @media (max-width:420px){ .racha-card{padding:var(--sp-3) var(--sp-4)} .rc-list{width:100%; justify-content:space-between} }
 [data-modo="juego"] .racha-card{box-shadow:inset 0 -5px 0 #ebe4ff, 0 9px 0 #b3a3ee, 0 18px 26px var(--sombra-j)}
+
+/* Cofre resumido y SVG en lugar de emojis (2026-11-27) */
+.chest-txt{display:flex; flex-direction:column; gap:6px}
+.chest-txt .chest-dots{margin-top:0}
+.chest-timer{display:inline-flex; align-items:center; gap:4px; font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.chest-timer svg{width:14px; height:14px}
+.streak-chip svg{width:16px; height:16px; color:#e4572e}
+.streak-chip:not(.on) svg{color:var(--muted)}
+.rc-dias{display:inline-flex; align-items:center; gap:2px}
+.rc-dias svg{width:13px; height:13px; color:#e4572e}
+.rc-lock svg,.rc-check svg{width:12px; height:12px}
+.reto-ico svg{width:28px; height:28px}
+.retos-locked svg{width:18px; height:18px}
+.rk-medalla{display:inline-grid; place-items:center}
+.cu-candado svg{width:24px; height:24px}
+.cu-donde svg{width:16px; height:16px}
+.fb-racha svg{width:14px; height:14px; vertical-align:-2px}
+.racha-dialog .kicker svg,.rs-racha svg{width:18px; height:18px; vertical-align:-3px}
+.leccion-node .node-ico svg{width:30px; height:30px}
+/* Racha que abre la ventana de ropa por racha (2026-11-27) */
+.streak-btn{all:unset; cursor:pointer; display:inline-flex; border-radius:999px}
+.streak-btn:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.streak-btn:hover .streak-chip{filter:brightness(1.05); transform:translateY(-1px)}
+.racha-ver{max-width:420px}
+.racha-ver .racha-card{box-shadow:none; background:transparent; padding:0; flex-direction:column; align-items:center; text-align:center; clip-path:none; border:0}
+.racha-ver .rc-head{align-items:center; flex:none}
+.racha-ver .rc-head b{font-size:20px}
+.racha-ver .rc-list{justify-content:center}
+.insignia{flex:none; display:block}
+.rk-medalla{display:inline-grid; place-items:center}
+.rk-rangos li .insignia{margin:0 auto 4px}
+/* Cada reto con su color (2026-11-27) */
+.reto-ico{--ri:#6a4fd0}
+.reto[data-id="reloj"] .reto-ico{--ri:#e0794a} .reto[data-id="perfecto"] .reto-ico{--ri:#d0457a}
+.reto[data-id="mezcla"] .reto-ico{--ri:#1b9aaa} .reto[data-id="maraton"] .reto-ico{--ri:#6a4fd0}
+.reto.open .reto-ico{color:var(--ri); background:color-mix(in srgb,var(--ri) 16%,#fff)}
+/* Cebollo en las unidades de la lista */
+.type-icon.unit-ceb{background:var(--accent-soft); overflow:hidden; padding:0}
+.type-icon.unit-ceb img{width:100%; height:100%; object-fit:contain; transform:scale(1.15) translateY(4%)}
+/* Botón de idioma ES | EN (2026-11-27) */
+.lang-toggle{display:inline-flex; border:2px solid var(--primary); border-radius:999px; overflow:hidden; flex:none; background:#fff}
+.lang-toggle button{font:700 12px/1 var(--font); border:0; background:transparent; color:var(--primary); padding:7px 10px; cursor:pointer; min-height:32px}
+.lang-toggle button[aria-pressed="true"]{background:var(--primary); color:#fff}
+.lang-toggle button:focus-visible{outline:3px solid var(--accent); outline-offset:-3px}

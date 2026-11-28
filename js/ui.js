@@ -1,3 +1,4 @@
+import { langToggleHTML } from './i18n.js';
 // Utilidades de interfaz compartidas.
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -105,6 +106,27 @@ export const PICTURES = [
   { e: '🦁', n: 'león' }, { e: '🐵', n: 'mono' }, { e: '🐧', n: 'pingüino' }, { e: '🐢', n: 'tortuga' },
 ];
 
+// Insignia de cada rango (2026-11-27, pedido del docente): medallas rellenas para bronce, plata y oro; estrella para
+// platino, diamante para diamante y escudo para leyenda. id = id del rango (logic.js RANGOS).
+const MEDALLA = (c1, c2, c3) => `<path d="M9 2h5l3 8h-5z" fill="#d9483b"/><path d="M23 2h-5l-3 8h5z" fill="#2f6fd0"/>
+  <circle cx="16" cy="19.5" r="10" fill="${c2}"/><circle cx="16" cy="19.5" r="7.6" fill="${c1}"/>
+  <path d="m16 14.2 1.7 3.4 3.7.5-2.7 2.6.6 3.7-3.3-1.7-3.3 1.7.6-3.7-2.7-2.6 3.7-.5z" fill="${c3}"/>
+  <path d="M10.8 16.4a7 7 0 0 1 4.4-3.6" stroke="#fff" stroke-opacity=".7" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+const INSIGNIAS = {
+  bronce: MEDALLA('#d08a4e', '#9a5a2a', '#f6d2ad'),
+  plata: MEDALLA('#d3dae6', '#7f8a9e', '#ffffff'),
+  oro: MEDALLA('#f6c440', '#c98a00', '#fff6c2'),
+  platino: `<path d="M16 2l3 5 5.7-1.3L23.4 11 29 14l-4.4 3.6L27 23l-5.8-.4L19 28l-3-4.6L13 28l-2.2-5.4L5 23l2.4-5.4L3 14l5.6-3-1.3-5.3L13 7z" fill="#2bb3a8" stroke="#13756c" stroke-width="1.2" stroke-linejoin="round"/>
+    <circle cx="16" cy="15.5" r="6.2" fill="#a6eee5"/><path d="m16 11.6 1.3 2.6 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4z" fill="#13756c"/>`,
+  diamante: `<path d="M8 4h16l6 8-14 17L2 12z" fill="#5aa2ff" stroke="#1f5fc4" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M8 4l4 8H2zM24 4l-4 8h10z" fill="#a9d0ff"/><path d="M12 12h8l-4 17z" fill="#3b86f0"/>
+    <path d="M2 12h28M8 4l4 8 4-8 4 8 4-8M12 12l4 17 4-17" stroke="#1f5fc4" stroke-width="1" fill="none" stroke-linejoin="round"/>`,
+  leyenda: `<path d="M16 2l12 4v9c0 7.5-5.2 12.6-12 15C9.2 27.6 4 22.5 4 15V6z" fill="#a855f7" stroke="#6b21a8" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M16 6.2l8 2.7v6.3c0 5-3.4 8.6-8 10.4-4.6-1.8-8-5.4-8-10.4V8.9z" fill="#d3b0fc"/>
+    <path d="M10.5 19l1-6.5 2.7 3.2L16 10.5l1.8 5.2 2.7-3.2 1 6.5z" fill="#ffd23f" stroke="#a87400" stroke-width=".9" stroke-linejoin="round"/>`,
+};
+export const insignia = (id, size = 20) => `<svg class="insignia" viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true">${INSIGNIAS[id] || INSIGNIAS.bronce}</svg>`;
+
 export const icons = {
   search: svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>'),
   quiz: svg('<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.5v.7"/><circle cx="12" cy="17" r=".6" fill="currentColor"/>'),
@@ -139,6 +161,17 @@ export const icons = {
   chart: svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', 20),
   user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', 20),
   lock: svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 16),
+  // Reemplazan los emojis de la vista del estudiante (2026-11-27).
+  flame: svg('<path d="M12 3c.6 3.6 5.5 5.4 5.5 10.5a5.5 5.5 0 0 1-11 0c0-2.6 1.4-4.3 2.6-5.3.1 1.8 1 3 2.2 3.3-.4-3.2-.3-5.8.7-8.5z"/>', 16),
+  check: svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>', 16),
+  medal: svg('<circle cx="12" cy="15" r="6"/><path d="M8.5 10 6 3h4l2 5M15.5 10 18 3h-4l-2 5"/>', 16),
+  bulb: svg('<path d="M9 18h6M10 21.5h4M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.6V16h6v-.1c0-.6.3-1.2.8-1.6A6.5 6.5 0 0 0 12 2.5z"/>', 16),
+  bookOpen: svg('<path d="M2.5 4.5H8a4 4 0 0 1 4 4V21a3 3 0 0 0-3-3H2.5zM21.5 4.5H16a4 4 0 0 0-4 4V21a3 3 0 0 1 3-3h6.5z"/>', 22),
+  timer: svg('<circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V10M10 2.5h4M18.5 6.5 20 5"/>', 22),
+  target: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>', 22),
+  shuffle: svg('<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>', 22),
+  route: svg('<circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H17a3.5 3.5 0 0 0 0-7H7a3.5 3.5 0 0 1 0-7h8.5"/>', 22),
+  trophy: svg('<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v1.5A3.5 3.5 0 0 1 16.5 10M7 5H4v1.5A3.5 3.5 0 0 0 7.5 10"/>', 20),
 };
 
 // Encabezado institucional: espacio de logo + nombre del colegio + plataforma.
@@ -178,10 +211,11 @@ export function headerHTML({ school = {}, user, nav = [], active = '', xp = null
             <button type="button" id="reset-demo" class="danger-txt">Reiniciar demo</button>
             <button type="button" id="logout">Salir</button>
           </div></details>` : `
+        ${langToggleHTML()}
         <div class="user-name"><b>${esc(user.name)}</b>Estudiante</div>
         <button class="btn ghost sm reset-avance" id="reset-progress" type="button" title="Borra tus resultados para hacer las actividades otra vez" aria-label="Reiniciar mi avance"><span aria-hidden="true">↺</span><span class="ra-txt">Reiniciar</span></button>
-        <a class="visitar-cebollo ${active === 'cuarto' ? 'active' : ''}" href="#/s/cuarto" title="Visitar a Cebollo" ${active === 'cuarto' ? 'aria-current="page"' : ''}>
-          <span class="vc-ceb" aria-hidden="true"><span class="vc-halo"></span><img src="img/cebollo/emotes/sonrisa.webp" alt=""></span><span class="vc-txt">Visitar a Cebollo</span></a>
+        <a class="visitar-cebollo ${active === 'cuarto' ? 'active' : ''}" href="#/s/cuarto" title="El cuarto de Cebollo" ${active === 'cuarto' ? 'aria-current="page"' : ''}>
+          <span class="vc-ceb" aria-hidden="true"><span class="vc-halo"></span><img src="img/cebollo/emotes/sonrisa.webp" alt=""></span><span class="vc-txt">Cuarto</span></a>
         <button class="btn ghost sm" id="logout" aria-label="Salir">${icons.logout}<span>Salir</span></button>`}
       </div>
     </div>

@@ -2,7 +2,7 @@
 // autoguardado y protección ante errores (nunca sacar al estudiante de la actividad).
 // Con un estilo visual (js/temas.js) la actividad se juega dentro de un "escenario": portada con ¡Empezar!,
 // barra inferior (avance en puntos, sonido, pantalla completa), chispas al acertar y cierre con estrellas.
-import { el, esc, fmtDuration, evalMode, confirmDialog } from './ui.js';
+import { el, esc, fmtDuration, evalMode, confirmDialog, icons } from './ui.js';
 import { templates } from './templates/index.js';
 import { themeById, themeSound, DEFAULT_THEME, temaPara } from './temas.js';
 import { mostrarEmote, urlEmote, emoteAcierto } from './cebollo.js';
@@ -271,7 +271,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
     racha = ok ? racha + 1 : 0;
     fb.classList.add('franja');
     // Cebollo ya no va dentro de la franja: es el compañero de la esquina (esc-compa), que reacciona solo.
-    if (ok && racha >= 2) fb.querySelector(':scope > span:not(.fb-masc)')?.insertAdjacentHTML('beforeend', ` <span class="fb-racha">🔥 ${racha} seguidas</span>`);
+    if (ok && racha >= 2) fb.querySelector(':scope > span:not(.fb-masc)')?.insertAdjacentHTML('beforeend', ` <span class="fb-racha">${icons.flame} ${racha} seguidas</span>`);
   };
   const franjas = inmersivo ? new MutationObserver(list => list.forEach(m => m.addedNodes.forEach(franja))) : null;
   // ---------- Avance automático (vista previa y actividades sueltas con estilo) ----------

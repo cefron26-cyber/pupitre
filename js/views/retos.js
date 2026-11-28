@@ -56,13 +56,13 @@ export async function retosList(root, { user }) {
       ? `<select class="reto-src" aria-label="Actividad para el contrarreloj">${fin.acts.map(x => `<option value="${x.id}">${esc(x.title)}</option>`).join('')}</select>`
       : r.id === 'maraton' ? `<select class="reto-src" aria-label="Unidad para la maratón">${fin.unitsDone.map(u => `<option value="${u.a.id}">${esc(u.unit.title)}</option>`).join('')}</select>` : '';
     return `<li class="reto ${open ? 'open' : 'locked'}" data-id="${r.id}">
-      <div class="reto-ico" aria-hidden="true">${open ? r.icon : '🔒'}</div>
+      <div class="reto-ico" aria-hidden="true">${open ? icons[r.icon] : icons.lock}</div>
       <div class="reto-txt"><div class="reto-top"><b>${esc(r.name)}</b><span class="badge ${open ? 'done' : 'todo'}">Nivel ${r.level}</span></div>
         <p class="small">${esc(r.desc)}</p>
-        <p class="small muted">${open ? `Meta: ${esc(r.goal)}${b ? ` · Tu récord: <b>${b.score}/${b.maxScore}</b>` : ''}${xpToday(r.id) ? ' · Ya ganaste su XP hoy' : ''}`
-          : `Se abre en el nivel ${r.level}: te faltan ${xpToLevel(total, r.level)} XP.`}</p>
+        ${open ? (b || xpToday(r.id) ? `<p class="small muted">${b ? `Tu récord: <b>${b.score}/${b.maxScore}</b>` : ''}${b && xpToday(r.id) ? ' · ' : ''}${xpToday(r.id) ? 'Hoy ya ganaste sus puntos' : ''}</p>` : '')
+          : `<p class="small muted">Se abre en el nivel ${r.level}</p>`}
         ${open ? (need ? `<div class="row">${picker}<button class="btn sm" type="button" data-play>Jugar</button></div>`
-          : `<p class="small muted">${r.id === 'maraton' ? 'Termina una unidad completa para jugarlo.' : 'Termina una actividad para jugarlo.'}</p>`) : ''}
+          : `<p class="small muted">${r.id === 'maraton' ? 'Primero termina una unidad.' : 'Primero termina una actividad.'}</p>`) : ''}
       </div>
       <div class="reto-prize ${ganado.has(prize.id) ? 'ganado' : 'por-ganar'}" title="Premio exclusivo">${rewardPreview(prize, 48)}<span class="small">${ganado.has(prize.id) ? '¡Ganado!' : esc(prize.name)}</span></div>
     </li>`;
@@ -70,7 +70,7 @@ export async function retosList(root, { user }) {
   const tcard = a => {
     const open = DESBLOQUEADO || level >= a.challengeLevel, tpl = templates[a.type], id = 'act:' + a.id, b = best(id);
     return `<li class="reto ${open ? 'open' : 'locked'}" data-id="${id}">
-      <div class="reto-ico" aria-hidden="true">${open ? tpl.icon : '🔒'}</div>
+      <div class="reto-ico" aria-hidden="true">${open ? tpl.icon : icons.lock}</div>
       <div class="reto-txt"><div class="reto-top"><b>${esc(a.title)}</b><span class="badge ${open ? 'done' : 'todo'}">Nivel ${a.challengeLevel}</span></div>
         <p class="small">${tpl.label} · ${esc(tpl.summary(a.content))}</p>
         <p class="small muted">${open ? `${b ? `Tu récord: <b>${b.score}/${b.maxScore}</b>` : 'Reto de tu docente.'}${xpToday(id) ? ' · Ya ganaste su XP hoy' : ''}` : `Se abre en el nivel ${a.challengeLevel}: te faltan ${xpToLevel(total, a.challengeLevel)} XP.`}</p>
@@ -81,10 +81,10 @@ export async function retosList(root, { user }) {
   // Escalera: primero los abiertos, luego los bloqueados en una lista compacta. Las reglas, en el ⓘ.
   const abiertos = RETOS.filter(r => DESBLOQUEADO || level >= r.level), cerrados = RETOS.filter(r => !DESBLOQUEADO && level < r.level);
   root.innerHTML = `<div class="page-head"><div><h1>Retos</h1>
-      <p class="muted">Nivel ${level} · ${abiertos.length} de ${RETOS.length} abiertos</p></div>
+      <p class="muted">Vas en el nivel ${level}</p></div>
       <details class="info-tip dark"><summary aria-label="Cómo funcionan los retos">i</summary><p>Los retos se abren al subir de nivel. No cuentan para la nota: dan ${RETO_XP} XP por acierto (una vez al día cada reto) y, si lo superas, un premio que no sale del cofre.</p></details></div>
     <ul class="retos">${abiertos.map(card).join('')}</ul>
-    ${cerrados.length ? `<h2 class="task-group">Próximos</h2><ul class="retos-locked">${cerrados.map(r => `<li><span aria-hidden="true">🔒</span><span class="rl-txt"><b>${esc(r.name)}</b><span class="small">${esc(r.desc)}</span></span><span class="badge todo">Nivel ${r.level} · faltan ${xpToLevel(total, r.level)} XP</span><span class="rl-prize">${rewardPreview(byId(r.reward), 32)}<span class="small">${esc(byId(r.reward).name)}</span></span></li>`).join('')}</ul>` : ''}
+    ${cerrados.length ? `<h2 class="task-group">Próximos</h2><ul class="retos-locked">${cerrados.map(r => `<li><span aria-hidden="true">${icons.lock}</span><span class="rl-txt"><b>${esc(r.name)}</b><span class="small">${esc(r.desc)}</span></span><span class="badge todo">Nivel ${r.level}</span><span class="rl-prize">${rewardPreview(byId(r.reward), 32)}<span class="small">${esc(byId(r.reward).name)}</span></span></li>`).join('')}</ul>` : ''}
     ${teacher.length ? `<h2 class="task-group">Retos de tu docente</h2><ul class="retos">${teacher.map(tcard).join('')}</ul>` : ''}`;
   root.querySelectorAll('.reto.open [data-play]').forEach(b => {
     b.onclick = () => {

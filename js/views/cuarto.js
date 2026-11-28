@@ -5,7 +5,7 @@ import { xp, users, userRewards, compras, events, periodos } from '../storage.js
 import { ROPA, SLOTS, VARIOS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO, puestas, ponerPrenda, quitarPrenda, diasRacha } from '../rewards.js';
 import { crearCebollo } from '../cebollo.js';
 import { prefsOf } from './student.js';
-import { esc, $, toast } from '../ui.js';
+import { esc, $, toast, icons } from '../ui.js';
 import { CAJAS, PISO_CEBOLLO } from '../cuarto-cajas.js';
 
 // Caja de cada objeto en % del cuarto (sale de herramientas/arte/recortar_cuarto.py, con su sombra incluida).
@@ -170,7 +170,7 @@ export async function cuarto(root, { user }) {
       if (editando) { if (!e.detail) elegir(b); return; }   // Enter/espacio en el editor: elegirlo
       const l = b.dataset.lugar;
       if (l === 'lampara') { sala.classList.toggle('noche'); decir(sala.classList.contains('noche') ? '¡Qué acogedor!' : '¡Buenos días!'); }
-      if (l === 'pecera') { b.classList.remove('burbujea'); void b.offsetWidth; b.classList.add('burbujea'); decir(azar(['¡Hola, pececitos!', 'Fish! 🐟', 'Blub blub'])); }
+      if (l === 'pecera') { b.classList.remove('burbujea'); void b.offsetWidth; b.classList.add('burbujea'); decir(azar(['¡Hola, pececitos!', 'Fish!', 'Blub blub'])); }
       if (l === 'planta') { b.classList.remove('mece'); void b.offsetWidth; b.classList.add('mece'); decir(azar(['¡Crece, plantita!', 'Plants are cool!'])); }
     });
   }
@@ -357,7 +357,7 @@ export async function cuarto(root, { user }) {
   btnFoto.onclick = async () => {
     btnFoto.disabled = true;
     sala.classList.remove('flash'); void sala.offsetWidth; sala.classList.add('flash');
-    try { await tomarFoto(); decir(azar(['¡Cheese! 📸', 'Say cheese!', '¡Qué buena foto!'])); }
+    try { await tomarFoto(); decir(azar(['¡Cheese!', 'Say cheese!', '¡Qué buena foto!'])); }
     catch (e) { console.error(e); toast('No se pudo tomar la foto'); }
     finally { btnFoto.disabled = false; }
   };
@@ -394,7 +394,7 @@ export async function cuarto(root, { user }) {
         const reto = r.source === 'reto', dr = diasRacha(r.id, periodo);
         const donde = reto ? 'Se gana en un reto' : dr ? `Racha de ${dr} días` : 'Sale del cofre';
         return `<li><a class="cu-tile cu-bloq" href="${reto ? '#/s/retos' : '#/s/collection'}" aria-label="${esc(r.name)}: ${donde}" title="${esc(r.name)} · ${donde}">
-          <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""><span class="cu-candado" aria-hidden="true">🔒</span><span class="cu-donde" aria-hidden="true">${reto ? '🏆' : dr ? '🔥' : '🎁'}</span></a></li>`;
+          <img class="cu-tile-img" src="${urlIconoRopa(r.id)}" alt=""><span class="cu-candado" aria-hidden="true">${icons.lock}</span><span class="cu-donde" aria-hidden="true">${reto ? icons.trophy : dr ? icons.flame : icons.chest}</span></a></li>`;
       }).join('');
     } else {
       lista = DECO.filter(d => d.lugar === pestana).map(d => {

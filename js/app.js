@@ -2,6 +2,7 @@
 import { juegosList, juegoPlay } from './views/juegos.js';
 import { session, users, schools, events, assignments, resetDemo, periodos } from './storage.js';
 import { headerHTML, toast, confirmDialog, icons, FEATURES, $ } from './ui.js';
+import { initLang } from './i18n.js';
 import { coursesView } from './views/courses.js';
 import { retosList, retoPlay } from './views/retos.js';
 import { cuarto } from './views/cuarto.js';
@@ -238,3 +239,6 @@ document.addEventListener('toggle', e => {
 addEventListener('storage-error', () => toast('No se pudo guardar en este navegador (¿espacio lleno?). Tu avance sigue en pantalla.', 'err'));
 addEventListener('hashchange', router);
 router();
+
+// Idioma de la interfaz del estudiante (ES / EN).
+initLang();

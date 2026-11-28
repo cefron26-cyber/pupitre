@@ -326,3 +326,39 @@
 [data-modo="juego"] .badge{font-size:13px}
 [data-modo="juego"] .badge.todo{background:color-mix(in srgb,var(--t-sh),#fff 70%); color:var(--t-ink)}
 [data-modo="juego"] .hero-me .level-row .small{font-size:15px}
+
+/* ---------- Ventana pixel (2026-11-27, pedido del docente) ----------
+   Las tarjetas dejan el "plástico redondeado" y pasan a ventanas de juego retro: contorno tinta de 4 px con la esquina
+   recortada en escalón (clip-path), luz arriba y sombra abajo planas por dentro. La tarjeta importante (sigue con, cofre
+   listo) lleva el contorno dorado. Botones: el azul tinta de siempre, con las mismas esquinas en escalón.
+   La letra sigue siendo la del modo juego (nada de letra pixel en los textos). */
+:root[data-modo="juego"]{
+  --px-step:polygon(4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px),0 4px,4px 4px);
+  --px-borde:#e0a000; --px-fondo:#fff8e8; --px-luz:#fffdf6; --px-sombra:#ecdcb4;
+}
+:root[data-modo="juego"] .card,:root[data-modo="juego"] .next-card,:root[data-modo="juego"] .practice-card,
+:root[data-modo="juego"] .juego-card,:root[data-modo="juego"] .chest-card,:root[data-modo="juego"] .racha-card,
+:root[data-modo="juego"] .list > .item,:root[data-modo="juego"] .reto{
+  border:4px solid var(--px-borde); border-radius:0; clip-path:var(--px-step); background:var(--px-fondo);
+  box-shadow:inset 0 4px 0 var(--px-luz), inset 0 -5px 0 var(--px-sombra);
+}
+:root[data-modo="juego"] .chest-card.ready{border-color:#c98a00}
+:root[data-modo="juego"] .chest-card.ready{background:#fff4cf}
+@media (hover:hover){ :root[data-modo="juego"] .list > .item:hover{transform:translateY(-3px)} }
+/* Las filas de una misma lista se leen como una sola pila de ventanas */
+:root[data-modo="juego"] .list{gap:10px}
+
+/* Botones pixel en azul tinta */
+:root[data-modo="juego"] .main .btn{
+  border-radius:0; clip-path:var(--px-step); background:#1f3a68; color:#fff;
+  box-shadow:inset 0 -4px 0 #0e1d3a, inset 0 3px 0 #3a5a94;
+}
+:root[data-modo="juego"] .main .btn:hover{filter:none; background:#172d52}
+:root[data-modo="juego"] .main .btn:active{transform:translateY(2px); box-shadow:inset 0 -2px 0 #0e1d3a, inset 0 3px 0 #3a5a94}
+:root[data-modo="juego"] .main .btn.ghost{background:#fff; color:#1f3a68; box-shadow:inset 0 0 0 3px #1f3a68, inset 0 -6px 0 #d9e1f0}
+:root[data-modo="juego"] .main .btn.ghost:active{box-shadow:inset 0 0 0 3px #1f3a68}
+
+:root[data-modo="juego"] .reto-ico{border-radius:0; clip-path:var(--px-step)}
+:root[data-modo="juego"] .reto.open .reto-ico{color:var(--ri); background:color-mix(in srgb,var(--ri) 16%,#fff); box-shadow:inset 0 -4px 0 color-mix(in srgb,var(--ri) 30%,#fff)}
+:root[data-modo="juego"] .racha-ver .racha-card{clip-path:none; border:0; box-shadow:none; background:transparent}
+:root[data-modo="juego"] .chest-dots i{border-radius:0}

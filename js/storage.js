@@ -2,6 +2,7 @@
 // Ninguna vista debe tocar localStorage directamente.
 import { quintoPack, CURSO_QUINTO, DANIELA } from './demo-quinto.js';
 import { limpiarExplicacion } from './explicacion.js';
+import { gnextPack, CURSO_GNEXT } from './demo-gnext.js';
 
 const DB_KEY = 'plat.db.v1';
 const SESSION_KEY = 'plat.session.v1';
@@ -137,6 +138,22 @@ function load() {
       }
     }
     cache.estudianteQuintoV1 = true; fixed = true;
+  }
+  // Demo GNext 1 (2026-11-27, pedido del docente, js/demo-gnext.js): "estudiante" pasa a Sexto A y deja de ver lo de Quinto
+  // (las asignaciones de Quinto A siguen ahí, solo que ya no es de ese curso). En Sexto A: 6 unidades de GNext 1 en los
+  // 4 periodos, cada una con 3 actividades sueltas. Una sola vez.
+  if (!cache.gnextV1) {
+    const est = cache.users.find(x => x.id === 'usr-est' || x.username === 'estudiante');
+    const curso = cache.courses.find(c => c.id === CURSO_GNEXT);
+    if (est && est.role === 'student' && curso) {
+      est.courseIds = [curso.id];
+      const doc = cache.users.find(x => x.id === 'usr-doc');
+      if (doc && !doc.courseIds.includes(curso.id)) doc.courseIds.push(curso.id);
+      const pack = gnextPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: curso.id, daysAgo });
+      for (const c of ['activities', 'units', 'assignments'])
+        for (const x of pack[c]) if (!cache[c].some(y => y.id === x.id)) cache[c].push(x);
+    }
+    cache.gnextV1 = true; fixed = true;
   }
   // Explicación y video de la unidad 7 (2026-11-22, pedido del docente): se agregan a la unidad ya guardada si no tiene
   // explicación (no se pisa lo que haya escrito el docente). Una sola vez.
