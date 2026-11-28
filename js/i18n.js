@@ -94,7 +94,7 @@ const PATTERNS = [
   [/^La respuesta era: (.+)$/, 'The answer was: $1'], [/^(\d+) juegos de inglés$/, '$1 English games'], [/^Jugar →$/, 'Play →'],
   [/^(\d)° y (\d)°$/, 'Grades $1 & $2'], [/^(\d)°$/, 'Grade $1'],
   [/^Continuar: (.+)$/, 'Continue: $1'], [/^Intento (\d+) de (\d+)$/, 'Try $1 of $2'], [/^(\d+) de (\d+)$/, '$1 of $2'],
-  [/^Nuevos en (.+)$/, 'New ones in $1'], [/^(.+), actividad (d+) de (d+)$/, '$1, activity $2 of $3'], [/^Revisar respuestas$/, 'Check answers'], [/^(\d+) de (\d+) bien$/, '$1 of $2 right'],
+  [/^Nuevos en (.+)$/, 'New ones in $1'], [/^(.+), actividad (\d+) de (\d+)$/, '$1, activity $2 of $3'], [/^Revisar respuestas$/, 'Check answers'], [/^(\d+) de (\d+) bien$/, '$1 of $2 right'],
   [/^(?:Frase|Oración) (\d+) de (\d+)$/, 'Sentence $1 of $2'], [/^Escribe la palabra que falta$/, 'Write the missing word'],
   [/^Arrastra las palabras hasta ordenar la oración$/, 'Drag the words into the right order'],
   [/^Vence en (\d+) días$/, 'Due in $1 days'],
