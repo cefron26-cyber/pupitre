@@ -1302,5 +1302,8 @@ body:has(.escenario.tematico[data-tema="clasico"][data-tipo="reorder"]) .word.gh
 /* Un solo Cebollo por escena (2026-11-28, pedido del docente): el globo de la instrucción va solo, sin el Cebollo de
    arriba ni la colita; el Cebollo que queda es el que reacciona abajo al responder. */
 .escenario.tematico .consigna.con-ceb{justify-content:center}
-.consigna.con-ceb > p{flex:0 1 auto; margin:0; text-align:center}
+.consigna.con-ceb > p{flex:1 1 auto; margin:0; text-align:center}
 .consigna.con-ceb > p::before{display:none}
+/* El globo ocupa todo el ancho, igual que la ventana de abajo */
+.escenario.tematico .consigna.con-ceb{max-width:640px; width:100%; box-sizing:border-box}
+.escenario.tematico[data-tema="clasico"] .stage div:has(> .q-cuenta),.escenario.tematico[data-tema="clasico"] :is(.reorder,.fill-wrap,.passage,.listen-box){box-sizing:border-box; width:100%}
