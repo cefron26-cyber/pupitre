@@ -74,7 +74,8 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const tpl = templates[activity.type];
   // Instrucción para el estudiante (como en Cambridge One): la del docente/IA o una general del tipo.
   const consigna = (activity.instruction || '').trim() || CONSIGNA[activity.type] || '';
-  // Estilo por defecto en las actividades de unidad (2026-11-28, maqueta aprobada por el docente): Cebollo da la instrucción en un globo,
+  // Estilo por defecto en las actividades de unidad (2026-11-28, maqueta aprobada por el docente): la instrucción va en un globo
+  // (sin Cebollo: un solo Cebollo por escena, el que reacciona abajo al responder),
   // en español grande y debajo la consigna en inglés. Los demás estilos y plantillas siguen con la consigna de siempre.
   const GLOBO = { reorder: 'Ordena la oración', quiz: 'Elige la respuesta correcta', reading: 'Lee el texto y responde',
     listening: 'Escucha y responde', fill: 'Completa la oración' };
@@ -109,7 +110,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
       ${inmersivo && decorado ? botones : ''}
     </div>
     <div class="esc-cuerpo ${decorado ? '' : 'card'}">
-      ${globo ? `<div class="consigna con-ceb">${emoteFig('sonrisa')}<p><b>${globo}</b>${consigna ? `<small>${esc(consigna)}</small>` : ''}</p></div>` : `<p class="consigna">${esc(consigna)}</p>`}
+      ${globo ? `<div class="consigna con-ceb"><p><b>${globo}</b>${consigna ? `<small>${esc(consigna)}</small>` : ''}</p></div>` : `<p class="consigna">${esc(consigna)}</p>`}
       <div class="stage"></div></div>
     ${decorado && !inmersivo ? `<div class="esc-barra">
       <span class="esc-puntos" aria-hidden="true"></span><span class="esc-cuenta"></span>
