@@ -859,3 +859,6 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 [data-modo="serio"] .node.next .node-btn{width:92px; height:92px; border-color:var(--primary); box-shadow:none; animation:none}
 [data-modo="serio"] .leccion-node.done .node-btn{background:var(--primary); border-color:var(--primary); box-shadow:none}
 [data-modo="serio"] .node-btn:hover{transform:none}
+/* Nodo "Explicación" pendiente (2026-11-28): el libro era blanco sobre el botón blanco y no se veía. */
+.leccion-node:not(.done) .node-ico{color:#1f3a68}
+.leccion-node.next .node-ico svg{width:40px; height:40px}
