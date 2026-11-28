@@ -73,6 +73,9 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const tpl = templates[activity.type];
   // Instrucción para el estudiante (como en Cambridge One): la del docente/IA o una general del tipo.
   const consigna = (activity.instruction || '').trim() || CONSIGNA[activity.type] || '';
+  // Estilo por defecto en Ordenar (2026-11-28, maqueta aprobada por el docente): Cebollo da la instrucción en un globo,
+  // en español grande y debajo la consigna en inglés. Los demás estilos y plantillas siguen con la consigna de siempre.
+  const globo = tema === 'clasico' && activity.type === 'reorder' ? 'Ordena la oración' : '';
   let seconds = durationSec || 0;
   let lastInteraction = Date.now();
   let finished = false;
@@ -103,7 +106,7 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
       ${inmersivo && decorado ? botones : ''}
     </div>
     <div class="esc-cuerpo ${decorado ? '' : 'card'}">
-      <p class="consigna">${esc(consigna)}</p>
+      ${globo ? `<div class="consigna con-ceb">${emoteFig('sonrisa')}<p><b>${globo}</b>${consigna ? `<small>${esc(consigna)}</small>` : ''}</p></div>` : `<p class="consigna">${esc(consigna)}</p>`}
       <div class="stage"></div></div>
     ${decorado && !inmersivo ? `<div class="esc-barra">
       <span class="esc-puntos" aria-hidden="true"></span><span class="esc-cuenta"></span>
