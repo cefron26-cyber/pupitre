@@ -13,7 +13,7 @@ const EXACT = {
   // Encabezado y pestañas
   'Misiones': 'Missions', 'Retos': 'Challenges', 'Juegos': 'Games', 'Clasificación': 'Ranking', 'Modo juego': 'Game mode',
   'Modo serio': 'Classic mode', 'Reiniciar': 'Reset', 'Cuarto': 'Room', 'Salir': 'Log out', 'Estudiante': 'Student',
-  'Saltar al contenido': 'Skip to content', 'Idioma': 'Language', 'Reiniciar mi avance': 'Reset my progress',
+  'Saltar al contenido': 'Skip to content', '← Misiones': '← Missions', 'Vuelve a verla cuando quieras': 'Come back to it anytime', 'en curso': 'in progress', 'Ocultar': 'Hide', 'Mostrar': 'Show', 'Ver texto': 'Show text', '¡Perfecto!': 'Perfect!', 'Aciertos': 'Correct', 'día de racha': 'day streak', 'días de racha': 'day streak', 'Tiempo': 'Time', 'Ver la unidad': 'See the unit', 'Tienes el máximo en esta actividad.': 'You have the top score in this activity.', 'Repetir': 'Try again', 'Escucha el audio': 'Listen to the audio', 'Puedes escucharlo las veces que necesites': 'You can listen as many times as you need', 'Lento': 'Slow', 'Idioma': 'Language', 'Reiniciar mi avance': 'Reset my progress',
   // Portada y cofre
   'Hay uno listo': 'One is ready', 'Haz una actividad y gana uno': 'Do an activity to win one',
   'Haz otra actividad y gana el siguiente': 'Do another activity to win the next one', 'Mañana hay más': 'More tomorrow',
@@ -46,6 +46,17 @@ const EXACT = {
   '¡Casi lo logras!': 'Almost there!', '¡Sigue practicando!': 'Keep practicing!', 'Escucha el audio': 'Listen to the audio',
   'Más lento': 'Slower', 'Toca el cofre para abrirlo': 'Tap the chest to open it', '¡Toca el cofre!': 'Tap the chest!',
   '¡Pulsa para abrir!': 'Tap to open!',
+  // Juegos (catálogo de views/juegos.js)
+  'Verbos: presente, pasado y participio': 'Verbs: present, past and past participle',
+  'Corta la fruta con el verbo correcto antes de que caiga. Evita las podridas y las bombas.': 'Slice the fruit with the right verb before it falls. Avoid the rotten ones and the bombs.',
+  'Verbos en presente y pasado': 'Present and past verbs',
+  'Sube por las plataformas eligiendo el verbo correcto y escapa de la marea.': 'Climb the platforms by picking the right verb and escape the tide.',
+  'Comida: contables e incontables, envases, a / an / any': 'Food: countable and uncountable, containers, a / an / any',
+  'Escucha el pedido del cliente, recorre los pasillos y llena la canasta.': 'Listen to the customer’s order, walk the aisles and fill the basket.',
+  'Describir personas: cara, pelo, ojos': 'Describing people: face, hair, eyes',
+  'Lee o escucha la descripción y arma la cara, o adivina quién es entre tres.': 'Read or listen to the description and build the face, or guess who it is out of three.',
+  'Describir personas en presente': 'Describing people in the present',
+  'Habla con los testigos, anota los rasgos del ladrón, arma su retrato y encuéntralo en la rueda.': 'Talk to the witnesses, note the thief’s features, build a sketch and find them in the lineup.',
   // Tipos de actividad
   'Quiz': 'Quiz', 'Emparejar': 'Matching', 'Completar texto': 'Fill in', 'Reordenar oraciones': 'Word order', 'Clasificar': 'Sort',
   'Memoria': 'Memory', 'Lectura': 'Reading', 'Audio': 'Listening', 'Dictado': 'Dictation', 'Sopa de letras': 'Word search',
@@ -70,6 +81,11 @@ const PATTERNS = [
   [/^Empatado en el puesto (\d+)$/, 'Tied for #$1'],
   [/^(\d+) puntos más y pasas a (.+)$/, '$1 more points to pass $2'],
   [/^Pregunta (\d+) de (\d+)$/, 'Question $1 of $2'],
+  [/^La respuesta era: (.+)$/, 'The answer was: $1'], [/^(\d+) juegos de inglés$/, '$1 English games'], [/^Jugar →$/, 'Play →'],
+  [/^(\d)° y (\d)°$/, 'Grades $1 & $2'], [/^(\d)°$/, 'Grade $1'],
+  [/^Continuar: (.+)$/, 'Continue: $1'], [/^Revisar respuestas$/, 'Check answers'], [/^(\d+) de (\d+) bien$/, '$1 of $2 right'],
+  [/^(?:Frase|Oración) (\d+) de (\d+)$/, 'Sentence $1 of $2'], [/^Escribe la palabra que falta$/, 'Write the missing word'],
+  [/^Arrastra las palabras hasta ordenar la oración$/, 'Drag the words into the right order'],
   [/^Vence en (\d+) días$/, 'Due in $1 days'],
   [/^Vence el (\d+) de (\w+)\.?$/, (m, d, mes) => `Due ${MESES[mes.slice(0, 3).toLowerCase()] || mes} ${d}`],
   [/^Vence el (.+)$/, 'Due $1'], [/^Vence mañana, (.+)$/, 'Due tomorrow, $1'], [/^Vence hoy, (.+)$/, 'Due today, $1'],
@@ -78,25 +94,36 @@ const PATTERNS = [
   [/^(\d+) h$/, '$1 h'],
 ];
 
+function frase(s) {
+  if (EXACT[s] !== undefined) return EXACT[s];
+  for (const [re, rep] of PATTERNS) if (re.test(s)) return s.replace(re, rep);
+  return undefined;
+}
 function traducir(t) {
   const s = t.trim();
   if (!s || !/[a-záéíóúñ¡¿]/i.test(s)) return null;
-  let out = EXACT[s];
-  if (out === undefined) for (const [re, rep] of PATTERNS) if (re.test(s)) { out = s.replace(re, rep); break; }
+  let out = frase(s);
+  // Textos armados con " · " (p. ej. "Reordenar oraciones · en curso" o "Unidad · "): se traduce cada parte.
+  if (out === undefined && s.includes('·')) {
+    const partes = s.split(/(\s*·\s*)/);
+    let cambio = false;
+    const tr = partes.map(p => { const q = p.trim(); if (!q || q === '·') return p; const r = frase(q); if (r === undefined) return p; cambio = true; return p.replace(q, r); });
+    if (cambio) out = tr.join('');
+  }
   return out === undefined ? null : t.replace(s, out);
 }
 
 // Zonas que no se tocan: el contenido de las actividades y el texto de las explicaciones.
 const SALTAR = '.escenario .tpl-body, .ex-body, .ex-ficha, textarea, input, script, style, [data-no-i18n]';
 function recorrer(root) {
-  if (!document.querySelector('.lang-toggle')) return; // solo con la vista del estudiante
+  if (!document.documentElement.dataset.modo) return; // solo con la vista del estudiante (app.js pone data-modo)
   if (!root || root.nodeType === 3) { if (root) cambiar(root); return; }
   if (root.nodeType !== 1 || root.closest?.(SALTAR)) return;
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement?.closest(SALTAR) ? 2 : 1 });
   const nodos = []; while (w.nextNode()) nodos.push(w.currentNode);
   nodos.forEach(cambiar);
 }
-function cambiar(n) { if (!document.querySelector('.lang-toggle')) return; const t = traducir(n.nodeValue); if (t !== null && t !== n.nodeValue) n.nodeValue = t; }
+function cambiar(n) { if (!document.documentElement.dataset.modo) return; const t = traducir(n.nodeValue); if (t !== null && t !== n.nodeValue) n.nodeValue = t; }
 
 let obs = null;
 export function initLang() {
