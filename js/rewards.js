@@ -1,10 +1,12 @@
 // Catálogo de premios del cofre (fondos del modo juego y ropa de Cebollo), decoración del cuarto y sorteo. Lógica pura: sin DOM salvo los dibujos SVG.
 
+// dupMonedas: monedas que da un premio repetido. precio: lo que cuesta comprarlo en la colección (2026-11-22: de rara
+// para arriba; las comunes solo salen del cofre).
 export const RARITY = {
-  common:    { label: 'Común',      weight: 64, dupXp: 10, color: '#3fb4f0' },
-  rare:      { label: 'Rara',       weight: 27, dupXp: 20, color: '#2fd39a' },
-  epic:      { label: 'Épica',      weight: 7,  dupXp: 40, color: '#a46bff' },
-  legendary: { label: 'Legendaria', weight: 2,  dupXp: 80, color: '#ffc21a' },
+  common:    { label: 'Común',      weight: 64, dupMonedas: 15,  precio: null, color: '#3fb4f0' },
+  rare:      { label: 'Rara',       weight: 27, dupMonedas: 30,  precio: 150,  color: '#2fd39a' },
+  epic:      { label: 'Épica',      weight: 7,  dupMonedas: 60,  precio: 350,  color: '#a46bff' },
+  legendary: { label: 'Legendaria', weight: 2,  dupMonedas: 120, precio: 800,  color: '#ffc21a' },
 };
 
 // Fondos del modo juego: c1/c2 = degradado; g1-g3 = manchas de luz.
@@ -29,6 +31,9 @@ export const ROPA = [
   { id: 'gorra_roja',        name: 'Gorra roja',          slot: 'sombrero', rarity: 'common' },
   { id: 'gorro_lana',        name: 'Gorro de lana',       slot: 'sombrero', rarity: 'rare' },
   { id: 'sombrero_paja',     name: 'Sombrero de paja',    slot: 'sombrero', rarity: 'epic' },
+  // 2026-11-22: dibujos del docente (capa ancha, ver ROPA_ANCHA).
+  { id: 'bandana_roja',      name: 'Bandana roja',        slot: 'sombrero', rarity: 'rare' },
+  { id: 'sombrero_vaca',     name: 'Sombrero de vaca',    slot: 'sombrero', rarity: 'epic' },
   { id: 'gafas_redondas',    name: 'Gafas redondas',      slot: 'cara',     rarity: 'common' },
   { id: 'gafas_sol',         name: 'Gafas de sol',        slot: 'cara',     rarity: 'rare' },
   { id: 'gafas_estrella',    name: 'Gafas de estrella',   slot: 'cara',     rarity: 'legendary' },
@@ -75,6 +80,11 @@ export const ALIAS = { 'a-veloz': 'tenis_rayo', 'a-diamante': 'corona', 'f-galax
 const ROPA_PNG = new Set(ROPA.filter(p => ['sombrero', 'cara', 'rostro'].includes(p.slot)).map(p => p.id));
 // Dibujadas en SVG (vectoriales): el parche pirata.
 const ROPA_SVG = new Set(['parche']);
+// Capa ancha de 680x920 (120 px a cada lado en vez de 60): la cola de la bandana y el ala de los sombreros salen más allá
+// del borde de la capa normal.
+export const ROPA_ANCHA = new Set(['bandana_roja', 'sombrero_vaca', 'sombrero_paja']);
+// Sombreros altos: en el busto chico la figura baja un poco para que no se corten arriba.
+export const ROPA_ALTA = new Set(['sombrero_vaca', 'sombrero_paja']);
 export const archivoRopa = id => `${id}.${ROPA_SVG.has(id) ? 'svg' : ROPA_PNG.has(id) ? 'png' : 'webp'}`;
 export const urlRopa = id => `img/cebollo/ropa/${archivoRopa(id)}`;
 export const urlIconoRopa = id => `img/cebollo/ropa/icono/${archivoRopa(id)}`;
@@ -104,7 +114,7 @@ export function quitarPrenda(ropa = {}, slot, id) {
   return r;
 }
 
-// Decoración del cuarto de Cebollo: se compra con monedas (1 moneda por cada XP ganado) y va en un lugar fijo.
+// Decoración del cuarto de Cebollo: se compra con monedas (ver compras.saldo en storage.js) y va en un lugar fijo.
 export const LUGARES = { ventana: 'Ventanas', cuadro: 'Cuadros', estante: 'Estantes', planta: 'Plantas', mesa: 'Mesas',
   silla: 'Sillas', pecera: 'Peceras', alfombra: 'Alfombras', lampara: 'Lámparas' };
 export const DECO = [
@@ -146,7 +156,8 @@ const ganados = rewardIds => new Set([...rewardIds.map(id => ALIAS[id] || id), .
 // Premios que puede usar: los ganados, o todos en la demo.
 export const ownedSet = rewardIds => DESBLOQUEADO ? new Set(ALL.map(r => r.id)) : ganados(rewardIds);
 
-// Sorteo: primero la rareza (por peso), luego un premio que aún no tenga. Si ya tiene todos los de esa rareza: repetido → XP.
+// Sorteo: primero la rareza (por peso), luego un premio que aún no tenga. Solo sale repetido cuando ya tiene todos los de
+// esa rareza (p. ej. todas las comunes): entonces da monedas (dupMonedas).
 // periodo: las prendas de la racha de ese periodo no salen del cofre.
 export function rollReward(ownedIds, rnd = Math.random, periodo = null) {
   const owned = ganados(ownedIds);
@@ -158,8 +169,23 @@ export function rollReward(ownedIds, rnd = Math.random, periodo = null) {
   const fresh = pool.filter(r => !owned.has(r.id));
   const pick = (fresh.length ? fresh : pool)[Math.floor(rnd() * (fresh.length || pool.length))];
   const duplicate = !fresh.length;
-  return { reward: pick, duplicate, xp: duplicate ? RARITY[rarity].dupXp : 0 };
+  return { reward: pick, duplicate, monedas: duplicate ? RARITY[rarity].dupMonedas : 0 };
 }
+
+// Premios que se pueden comprar con monedas en la colección: los del cofre de rara para arriba (no los de los retos).
+export const comprable = r => !!r && !r.free && !r.source && !!RARITY[r.rarity]?.precio;
+export const precioDe = r => RARITY[r.rarity]?.precio || 0;
+
+// Moneda de Cebollo: verde menta con el brote de dos hojitas (contadores y precios). Verde a propósito, para que no se
+// confunda con la estrella dorada de la XP (revisión de capturas 2026-11-21).
+export const moneda = (px = 28) => `<svg class="moneda" viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
+  <circle cx="20" cy="21.5" r="16" fill="#1f8a63" stroke="#1a0f4d" stroke-width="2.4"/>
+  <circle cx="20" cy="19" r="16" fill="#5fd3a4" stroke="#1a0f4d" stroke-width="2.4"/>
+  <circle cx="20" cy="19" r="11" fill="#b8f3da" stroke="#2fae7e" stroke-width="2"/>
+  <path d="M19.5 26c0-4 .3-7 1.2-9.6" fill="none" stroke="#1f6b4c" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M20.6 17.2c-3.6-.6-6-2.6-6.6-5.4 3.4-.2 6 1.6 6.6 5.4z" fill="#3cbf8a" stroke="#1f6b4c" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M20.8 16.6c.4-3.8 2.6-6.2 5.6-6.8.4 3.4-1.8 6-5.6 6.8z" fill="#3cbf8a" stroke="#1f6b4c" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M10.5 13.5a11 11 0 0 1 6-5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".85"/></svg>`;
 
 // Probabilidad de cada rareza en texto (para "qué puede salir").
 export const odds = () => Object.values(RARITY).map(r => `${r.label} ${r.weight} %`).join(' · ');

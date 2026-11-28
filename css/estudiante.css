@@ -12,6 +12,9 @@
 /* Cebollo mini: busto quieto y vestido (cebolloMini en js/cebollo.js). Se ve del brote al pecho. */
 .ceb-mini{--s:48px; position:relative; display:inline-block; flex:none; width:var(--s); height:var(--s); overflow:hidden; vertical-align:middle}
 .ceb-mini-fig{position:absolute; left:50%; top:calc(var(--s) * .02); height:calc(var(--s) * 800 / 560); aspect-ratio:440/800; transform:translateX(-50%)}
+/* Sombrero alto (vaca, paja): la figura se aleja un poco (lienzo de 700 px en vez de 560) para que se vea el sombrero
+   entero y algo del cuerpo. */
+.ceb-mini-fig.alto{top:calc(var(--s) * .12); height:calc(var(--s) * 800 / 700)}
 .ceb-mini img{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
 /* Busto vivo: la figura se recorta en su caja y el signo de pregunta (confundido) sale por fuera, arriba a la derecha. */
 .ceb-mini.vivo{overflow:visible}
@@ -71,6 +74,11 @@
 .rt-rarity{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:color-mix(in srgb,var(--rc),#000 40%)}
 .rt-using{font-size:13px; font-weight:700; color:var(--success); min-height:32px; display:grid; place-items:center}
 .reward-tile .btn.sm{min-height:32px}
+/* Comprar con monedas (colección): precio con la moneda; gris si no alcanza. */
+.rt-comprar{display:inline-flex; align-items:center; gap:4px; font-weight:800}
+.rt-comprar .moneda{flex:none}
+.rt-comprar.caro{opacity:.55}
+.coll-monedas{display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:4px 12px 4px 6px; border-radius:999px; background:var(--card); color:#1f6b4c; font-weight:800; font-size:17px; box-shadow:var(--shadow)}
 .bg-swatch{display:block; width:100%; height:100%; border-radius:16px; box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
 
 /* ---------- Diálogo del cofre ---------- */
@@ -102,7 +110,7 @@
 .ch-prev .bg-swatch{width:96px; height:96px}
 .ch-name{font-size:20px}
 .ch-kind{font-size:13px; color:#5b4b9a}
-.ch-dup{font-size:13px; font-weight:700; color:#8a5a00; background:#fff4dc; padding:3px 10px; border-radius:999px}
+.ch-dup{display:inline-flex; align-items:center; gap:4px; white-space:nowrap; font-size:13px; font-weight:700; color:#8a5a00; background:#fff4dc; padding:3px 10px; border-radius:999px}
 .ch-flash{position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:6}
 .ch-beam,.ch-rays{position:absolute; left:50%; top:50%; pointer-events:none; opacity:0}
 .ch-beam{width:min(40vw,180px); height:120vh; margin-left:calc(min(40vw,180px) / -2); transform-origin:50% 0; top:-70vh;
@@ -385,6 +393,8 @@ html,body{overflow-x:clip}
 .cebollo-tronco{transform-origin:50% 100%; animation:cebollo-respira 2.6s ease-in-out infinite}
 /* Ropa: capa de 560x920 = lienzo de 440x800 con 60 px a cada lado y 120 arriba (gorras y sombreros). */
 .cebollo img.cebollo-ropa, .ceb-mini img.cebollo-ropa{left:-13.636%; top:-15%; width:127.273%; height:115%}
+/* Capa ancha (bandana, sombrero de vaca): 680x920 = 120 px a cada lado y 120 arriba. */
+.cebollo img.cebollo-ropa.ancha, .ceb-mini img.cebollo-ropa.ancha{left:-27.273%; width:154.545%}
 /* Zapatos: capa de 560x960 (40 px más abajo para que las suelas no se corten en el borde). */
 .cebollo img.cebollo-ropa[data-ranura="pies"], .ceb-mini img.cebollo-ropa[data-ranura="pies"]{height:120%}
 .cebollo-cabeza{transform-origin:50% 61.5%; animation:cebollo-cabecea 2.6s ease-in-out infinite}
@@ -425,15 +435,25 @@ html,body{overflow-x:clip}
   animation:emote-entra .45s cubic-bezier(.3,1.5,.5,1) both; pointer-events:none}
 .emote-marco{position:absolute; inset:22% 0 0 0; background:linear-gradient(#ffffff,#e9f6ee); border:4px solid var(--ink);
   border-radius:24%; box-shadow:0 5px 0 var(--ink)}
-.emote img{position:absolute; left:0; right:0; bottom:4px; margin:auto; height:108%; max-width:none; transform-origin:50% 100%;
+.emote .emote-fig{position:absolute; left:50%; bottom:4px; translate:-50% 0; height:108%; transform-origin:50% 100%;
   clip-path:inset(-30% -30% 0 -30% round 0 0 calc(var(--tam) * .2) calc(var(--tam) * .2));
   animation:.9s ease-in-out .45s infinite}
-.emote[data-emote="pulgar"] img,.emote[data-emote="ok"] img{animation-name:emote-asiente}
-.emote[data-emote="sonrisa"] img{animation-name:emote-mece; animation-duration:1.4s}
-.emote[data-emote="brazos"] img{animation-name:emote-brinca; animation-duration:.6s}
-.emote[data-emote="copa"] img{animation-name:emote-brinca; animation-duration:.6s}
-.emote[data-emote="triste"] img{animation-name:emote-llora; animation-duration:1.6s}
-.emote[data-emote="enojado"] img{animation-name:emote-tiembla; animation-duration:.18s}
+.emote[data-emote="pulgar"] .emote-fig,.emote[data-emote="ok"] .emote-fig{animation-name:emote-asiente}
+.emote[data-emote="sonrisa"] .emote-fig{animation-name:emote-mece; animation-duration:1.4s}
+.emote[data-emote="brazos"] .emote-fig{animation-name:emote-brinca; animation-duration:.6s}
+.emote[data-emote="copa"] .emote-fig{animation-name:emote-brinca; animation-duration:.6s}
+.emote[data-emote="triste"] .emote-fig{animation-name:emote-llora; animation-duration:1.6s}
+.emote[data-emote="enojado"] .emote-fig{animation-name:emote-tiembla; animation-duration:.18s}
+/* Emote vestido (emoteFig en js/cebollo.js): imagen base, capas de ropa de la cabeza y, encima, lo que va delante
+   (la copa). Cada capa es el lienzo de 440x800 de la cabeza, ubicado y girado según el emote. */
+.emote-fig{position:relative; display:block; aspect-ratio:1}
+.emote-fig > img{position:absolute; inset:0; width:100%; height:100%; max-width:none; pointer-events:none}
+.emote-capa{position:absolute; transform-origin:0 0; pointer-events:none}
+.emote-capa img.cebollo-ropa{position:absolute; left:-13.636%; top:-15%; width:127.273%; height:115%; max-width:none}
+.emote-capa img.cebollo-ropa.ancha{left:-27.273%; width:154.545%}
+/* Caja de tamaño fijo con el emote "contenido" (como object-fit:contain), abajo y al centro. */
+.emote-caja{container-type:size}
+.emote-caja > .emote-fig{position:absolute; left:50%; bottom:0; translate:-50% 0; height:min(100cqh, 100cqw / var(--ar, 1))}
 .emote.sale{animation:emote-sale .25s ease-in forwards}
 
 @keyframes emote-entra{ 0%{transform:scale(0) rotate(-10deg)} 70%{transform:scale(1.1) rotate(3deg)} 100%{transform:scale(1) rotate(0)} }
@@ -445,7 +465,7 @@ html,body{overflow-x:clip}
 @keyframes emote-tiembla{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-1.5%) rotate(-1deg)} 75%{transform:translateX(1.5%) rotate(1deg)} }
 
 @media (prefers-reduced-motion: reduce){
-  .emote, .emote img, .emote.sale{animation:none !important}
+  .emote, .emote .emote-fig, .emote.sale{animation:none !important}
 }
 
 /* ---- Cuarto de Cebollo (js/views/cuarto.js) ----
@@ -702,7 +722,8 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 /* "Visitar a Cebollo" sigue gris claro (pedido del docente), pero con letra de botón y relieve para que no parezca desactivado. */
 .visitar-cebollo{color:var(--primary); border-color:#c3c9d6}
 [data-modo="juego"] .visitar-cebollo{color:var(--primary); box-shadow:inset 0 -3px 0 #d5d9e2, 0 4px 0 #9aa2b4, 0 6px 10px rgba(10,4,40,.18)}
-.next-emote{width:86%; height:86%; object-fit:contain; transform-origin:50% 90%; animation:next-pulgar 2.6s ease-in-out infinite}
+.next-masc{position:relative; container-type:size}
+.next-masc .next-emote{position:absolute; left:50%; top:50%; translate:-50% -50%; height:min(86cqh, 86cqw / var(--ar, 1)); transform-origin:50% 90%; animation:next-pulgar 2.6s ease-in-out infinite}
 @keyframes next-pulgar{0%,70%,100%{transform:rotate(0)} 80%{transform:rotate(-8deg) scale(1.06)} 90%{transform:rotate(4deg)}}
 @media (prefers-reduced-motion:reduce){ .next-emote{animation:none} }
 /* Barra de misión en segmentos (uno por actividad). */

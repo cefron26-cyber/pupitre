@@ -9,7 +9,7 @@
 // Ropa: capas en img/cebollo/ropa/ (herramientas/arte/recortar_ropa.py) sobre el mismo lienzo que el cuerpo, con
 // margen (MARGEN) para que quepan gorras y sombreros. Las del cuerpo respiran con él; las de la cabeza cabecean con ella.
 
-import { archivoRopa, puestas } from "./rewards.js";
+import { archivoRopa, puestas, ROPA_ANCHA, ROPA_ALTA } from "./rewards.js";
 
 const RUTA = new URL("../img/cebollo/anim/", import.meta.url).href;
 const RUTA_ROPA = new URL("../img/cebollo/ropa/", import.meta.url).href;
@@ -17,7 +17,7 @@ const RUTA_ROPA = new URL("../img/cebollo/ropa/", import.meta.url).href;
 // gafas (y parche) y sombrero sobre la cabeza.
 const CAPAS_TRONCO = ["piernas", "pies", "torso"], CAPAS_CABEZA = ["rostro", "cara", "sombrero"];
 const capas = (ropa = {}, ranuras) => ranuras.flatMap(r => puestas(ropa, r)
-  .map(id => `<img class="cebollo-ropa" data-ranura="${r}" src="${RUTA_ROPA}${archivoRopa(id)}" alt="" draggable="false">`)).join("");
+  .map(id => `<img class="cebollo-ropa${ROPA_ANCHA.has(id) ? " ancha" : ""}" data-ranura="${r}" src="${RUTA_ROPA}${archivoRopa(id)}" alt="" draggable="false">`)).join("");
 const vestido = ropa => Object.values(ropa || {}).flat().some(Boolean);
 const CARAS = ["normal", "parpadeo", "sorpresa", "risa"];
 const DURACION = { feliz: 1100, sorpresa: 900, festejo: 1700 };
@@ -98,7 +98,9 @@ export function cebolloMini(ropa = {}, size = 48, { vivo = false, triste = false
   const cabeza = vivo ? CARAS_MINI.map(c => img(c === "normal" ? "cabeza" : "cabeza_" + c, "ceb-cara" + (c === inicial ? " on" : ""))
     .replace("<img", `<img data-cara="${c}"`)).join("") : img("cabeza");
   if (vivo) animarMinis();
-  const fig = `<span class="ceb-mini-fig">${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${cabeza}${capas(ropa, CAPAS_CABEZA)}</span>`;
+  // Sombrero alto (vaca, paja): la figura baja un poco para que no se corte arriba.
+  const alto = puestas(ropa, "sombrero").some(id => ROPA_ALTA.has(id)) ? " alto" : "";
+  const fig = `<span class="ceb-mini-fig${alto}">${img("cuerpo")}${capas(ropa, CAPAS_TRONCO)}${cabeza}${capas(ropa, CAPAS_CABEZA)}</span>`;
   // Vivo: la figura va en su propia caja recortada, para que el signo de pregunta (confundido) pueda salir por fuera.
   return vivo
     ? `<span class="ceb-mini vivo" style="--s:${size}px" aria-hidden="true" data-vivo="${triste ? "triste" : "si"}" data-cara="${inicial}"><span class="ceb-mini-caja">${fig}</span>${DUDA}</span>`
@@ -170,6 +172,7 @@ function animarMinis() {
 // ---- Emotes: Cebollo reacciona al progreso (tarjeta que "salta", estilo emote de juego) ----
 // Arte en img/cebollo/emotes/ (animar_cebollo.py emotes). Estilos .emote en css/estudiante.css.
 //   mostrarEmote(contenedor, "pulgar" | "sonrisa" | "ok" | "brazos" | "triste" | "copa" | "enojado", { duracion: 2400 })   // 0 = se queda
+//   emoteFig(nombre) → HTML del emote vestido con la ropa del estudiante (fijarRopaEmotes).
 export const EMOTES = { pulgar: "¡Bien hecho!", sonrisa: "¡Muy bien!", ok: "¡Perfecto!", brazos: "¡Así se hace!",
   triste: "Ay, casi…", copa: "¡Lo lograste!", enojado: "¡Grr!" };
 // Reacciones de acierto: se turnan al azar para que Cebollo no repita siempre el mismo gesto.
@@ -182,6 +185,49 @@ export function emoteAcierto() {
 const RUTA_EMOTES = new URL("../img/cebollo/emotes/", import.meta.url).href;
 export const urlEmote = nombre => `${RUTA_EMOTES}${nombre}.webp`;
 
+// ---- Emotes vestidos (2026-11-23): la ropa de la cabeza (gorras, gafas, accesorios) va encima de cada emote ----
+// APAGADO a pedido del docente (2026-11-23): varios quedaron bien y otros no tanto; se guarda para retomarlo más
+// adelante. Con EMOTES_VESTIDOS = false los emotes se ven como antes (solo la imagen). Para volver a probarlo: true.
+// Lo que faltaba afinar: el brote asoma por encima de gorras y gorros, el bigote cae sobre la boca (en los emotes la
+// boca está más cerca de los ojos) y en algunos el giro de la cabeza no coincide del todo con el dibujo.
+export const EMOTES_VESTIDOS = false;
+// Los emotes son bustos: se ve la cabeza y las manos, así que solo se visten las ranuras de la cabeza. Para cada emote se
+// midió una vez dónde queda la cabeza del lienzo de 440x800 (ajustando el contorno de cabeza.webp sobre el emote):
+// [escala, giro en grados, x, y] en px del emote. "cabeza" sigue el contorno (gorras y sombreros); "cara" usa la escala
+// de la cabeza pero se centra en los ojos del emote (gafas y accesorios). Un emote nuevo necesita su fila aquí.
+// "frente": lo que va delante de la ropa (la copa y la mano que la sostiene), recortado del mismo emote.
+const POSE = {
+  brazos:  { w: 424, h: 420, cabeza: [0.6257, -5.89, 54.9, 15.7], cara: [0.6257, -2.53, 67.1, -1.3] },
+  copa:    { w: 404, h: 420, cabeza: [0.7042, -8.79, 0, 15.1], cara: [0.7042, -0.94, 43.2, -35.4], frente: true },
+  enojado: { w: 379, h: 420, cabeza: [0.6525, 7.03, 71.2, -16.7], cara: [0.6525, -3.24, 46.6, -3.2] },
+  ok:      { w: 348, h: 420, cabeza: [0.6512, 7.33, 30.1, -15.3], cara: [0.6512, 3.39, 21.7, -26.9] },
+  pulgar:  { w: 300, h: 420, cabeza: [0.6514, 6.59, 27.7, -15.7], cara: [0.6514, -1.73, -5.3, -7.5] },
+  sonrisa: { w: 294, h: 420, cabeza: [0.6527, 6.57, 27.5, -16.2], cara: [0.6527, -1.73, -4.6, -7.9] },
+  triste:  { w: 361, h: 420, cabeza: [0.8043, 6.79, 35.2, -73.1], cara: [0.9008, -1.73, -16.1, -99.2] },
+};
+// Ropa que lleva puesta el estudiante (la fija app.js al entrar y cada vez que se repinta).
+let ropaEmotes = {};
+export const fijarRopaEmotes = ropa => { ropaEmotes = ropa || {}; };
+const pct = v => `${Math.round(v * 1000) / 1000}%`;
+const capaEmote = (p, [s, giro, x, y], ranuras, ropa) => {
+  const html = capas(ropa, ranuras);
+  return html ? `<span class="emote-capa" style="left:${pct(x / p.w * 100)};top:${pct(y / p.h * 100)};width:${pct(440 * s / p.w * 100)};height:${pct(800 * s / p.h * 100)};rotate:${giro}deg">${html}</span>` : "";
+};
+// Figura del emote (base + ropa + frente). Se dimensiona por la altura; el ancho sale del aspect-ratio.
+export function emoteFig(nombre, ropa = ropaEmotes, clase = "") {
+  const p = POSE[nombre];
+  const base = `<img class="emote-base" src="${urlEmote(nombre)}" alt="" draggable="false">`;
+  if (!p) return `<span class="emote-fig ${clase}" data-emote="${nombre}">${base}</span>`;
+  if (!EMOTES_VESTIDOS) return `<span class="emote-fig ${clase}" data-emote="${nombre}" style="aspect-ratio:${p.w}/${p.h};--ar:${(p.w / p.h).toFixed(4)}">${base}</span>`;
+  return `<span class="emote-fig ${clase}" data-emote="${nombre}" style="aspect-ratio:${p.w}/${p.h};--ar:${(p.w / p.h).toFixed(4)}">${base}`
+    + capaEmote(p, p.cara, ["rostro", "cara"], ropa) + capaEmote(p, p.cabeza, ["sombrero"], ropa)
+    + (p.frente && puestas(ropa, "sombrero").length + puestas(ropa, "cara").length
+      ? `<img class="emote-frente" src="${RUTA_EMOTES}${nombre}_frente.webp" alt="" draggable="false">` : "")
+    + `</span>`;
+}
+// Cambia el emote de una figura ya puesta (Cebollo que acompaña en las actividades).
+export function cambiarEmote(fig, nombre) { if (fig) fig.outerHTML = emoteFig(nombre, ropaEmotes, fig.className.replace("emote-fig", "").trim()); }
+
 export function mostrarEmote(contenedor, nombre, { duracion = 2400 } = {}) {
   if (!EMOTES[nombre]) return null;
   const el = document.createElement("div");
@@ -189,9 +235,9 @@ export function mostrarEmote(contenedor, nombre, { duracion = 2400 } = {}) {
   el.dataset.emote = nombre;
   el.setAttribute("role", "img");
   el.setAttribute("aria-label", `Cebollo: ${EMOTES[nombre]}`);
-  el.innerHTML = `<span class="emote-marco"></span><img src="${urlEmote(nombre)}" alt="" draggable="false">`;
+  el.innerHTML = `<span class="emote-marco"></span>${emoteFig(nombre)}`;
   // El marco no aparece vacío mientras llega la imagen.
-  const img = el.querySelector("img");
+  const img = el.querySelector("img.emote-base");
   if (!img.complete && img.decode) { el.style.visibility = "hidden"; img.decode().then(() => { el.style.visibility = ""; }, () => el.remove()); }
   contenedor.appendChild(el);
   if (duracion > 0) {

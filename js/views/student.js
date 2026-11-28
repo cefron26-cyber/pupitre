@@ -1,9 +1,9 @@
 // Vistas del estudiante: Misiones, ruta de la unidad, hacer actividad, resultado.
-import { assignments, activities, units, attempts, xp, events, users, chests, userRewards, periodos, CHESTS_PER_DAY } from '../storage.js';
-import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId, rachaDelPeriodo, diasRacha, urlIconoRopa } from '../rewards.js';
-import { cebolloMini } from '../cebollo.js';
+import { assignments, activities, units, attempts, xp, events, users, chests, userRewards, periodos, compras, CHESTS_PER_DAY } from '../storage.js';
+import { BACKGROUNDS, ROPA, SLOTS, RARITY, DEFAULT_PREFS, ponerPrenda, llevaPuesta, backgroundSwatch, rewardPreview, rollReward, odds, ownedSet, byId, rachaDelPeriodo, diasRacha, urlIconoRopa, comprable, precioDe, moneda } from '../rewards.js';
+import { cebolloMini, emoteFig } from '../cebollo.js';
 import { openChest } from '../chest.js';
-import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast, insignia } from '../ui.js';
+import { esc, el, fmtDate, fmtDue, fmtDuration, grade, pct, icons, $, toast, insignia, confirmDialog } from '../ui.js';
 import { templates } from '../templates/index.js';
 import { templateArt } from '../iconos.js';
 import { mountPlayer } from '../player.js';
@@ -71,9 +71,9 @@ export async function openDailyChest(user) {
   const owned = (await userRewards.list(user.id)).map(r => r.rewardId);
   const result = rollReward(owned, Math.random, (await periodos.actual()).periodo);
   // Se guarda ANTES de animar: si cierran la pestaña a mitad, el premio no se pierde ni se repite el sorteo.
-  await chests.open(user.id, { rewardId: result.reward.id, duplicate: result.duplicate, xp: result.xp });
-  if (result.duplicate) await xp.add(user.id, result.xp, `chest:${result.reward.id}`);
-  else await userRewards.add(user.id, result.reward.id);
+  // Repetido: las monedas quedan guardadas en el cofre (compras.saldo las suma); ya no da XP.
+  await chests.open(user.id, { rewardId: result.reward.id, duplicate: result.duplicate, monedas: result.monedas });
+  if (!result.duplicate) await userRewards.add(user.id, result.reward.id);
   events.log(user.id, 'open_chest', { rewardId: result.reward.id, duplicate: result.duplicate });
   const choice = await openChest({ modo: modoOf(), result });
   if (choice === 'equip') await equipar(await users.get(user.id), result.reward);
@@ -112,7 +112,7 @@ async function revisarPremiosRacha(user) {
   for (const p of premios) {
     const hito = `${desde}:${p.dias}`;
     if (p.dias > mejor || hitos.has(hito)) continue;
-    const r = byId(p.id), bono = tiene.has(p.id) ? RARITY[r.rarity].dupXp : 0;
+    const r = byId(p.id), bono = tiene.has(p.id) ? RARITY[r.rarity].dupMonedas : 0;
     await userRewards.add(user.id, p.id, 'racha', hito);
     if (bono) await xp.add(user.id, bono, `racha:${p.id}`);
     events.log(user.id, 'streak_reward', { rewardId: p.id, dias: p.dias });
@@ -219,6 +219,7 @@ export async function collection(root, { user }) {
   const prefs = prefsOf(user);
   const { state } = await chestState(user.id);
   const { periodo } = await periodos.actual();
+  const saldo = await compras.saldo(user.id);
   const tile = (r, kind) => {
     const has = owned.has(r.id), using = kind === 'ropa' ? llevaPuesta(prefs.ropa, r.slot, r.id) : prefs[kind] === r.id;
     return `<li class="reward-tile ${has ? 'has' : 'locked'} rr-${r.rarity}" style="--rc:${RARITY[r.rarity].color}">
@@ -226,14 +227,16 @@ export async function collection(root, { user }) {
       <b class="rt-name">${esc(r.name)}</b>
       <span class="rt-rarity">${RARITY[r.rarity].label}</span>
       ${has ? (using ? '<span class="rt-using">En uso</span>' : `<button class="btn sm ghost" data-kind="${kind}" data-id="${r.id}">Usar</button>`)
+        : comprable(r) ? `<button class="btn sm rt-comprar ${saldo < precioDe(r) ? 'caro' : ''}" data-comprar="${r.id}" aria-label="Comprar ${esc(r.name)} por ${precioDe(r)} monedas">${moneda(18)}${precioDe(r)}</button>`
         : `<span class="small muted">${r.free ? '' : r.source === 'reto' ? `Supera el reto ${esc(RETOS.find(x => x.reward === r.id)?.name || '')}` : diasRacha(r.id, periodo) ? `${icons.flame} ${diasRacha(r.id, periodo)} días de racha` : 'Sale del cofre'}</span>`}
     </li>`;
   };
   const count = list => list.filter(r => owned.has(r.id)).length;
   const tot = ROPA.length + BACKGROUNDS.length, mine = count(ROPA) + count(BACKGROUNDS);
   root.innerHTML = `<div class="page-head"><div><h1>Mi colección</h1>
-      <div class="coll-prog"><div class="progress"><i style="width:${Math.round(mine / tot * 100)}%"></i></div><b>${mine}/${tot}</b></div></div>
-      <details class="info-tip dark"><summary aria-label="Qué puede salir del cofre">i</summary><p>Cada actividad que terminas te da un cofre (hasta ${CHESTS_PER_DAY} al día). Premios del cofre: ${odds()}. Si te sale uno repetido, ganas XP. Algunos solo se ganan en los <a href="#/s/retos">Retos</a>, y en cada periodo hay ropa que se gana con 5, 10, 15 y 20 días de racha.</p></details>
+      <div class="coll-prog"><div class="progress"><i style="width:${Math.round(mine / tot * 100)}%"></i></div><b>${mine}/${tot}</b></div>
+      <div class="coll-monedas" role="status" aria-label="${saldo} monedas" title="Monedas">${moneda(24)}<b>${saldo}</b></div></div>
+      <details class="info-tip dark"><summary aria-label="Qué puede salir del cofre">i</summary><p>Cada actividad que terminas te da un cofre (hasta ${CHESTS_PER_DAY} al día). Premios del cofre: ${odds()}. Si te sale uno repetido, ganas monedas. Con monedas puedes comprar los premios raros, épicos y legendarios que te falten. Algunos solo se ganan en los <a href="#/s/retos">Retos</a>, y en cada periodo hay ropa que se gana con 5, 10, 15 y 20 días de racha.</p></details>
       ${state === 'ready' ? '<button class="btn chest-open" id="open-chest">Abrir cofre</button>' : ''}</div>
     <div class="card"><h2>Ropa de Cebollo <span class="small muted">${count(ROPA)}/${ROPA.length}</span></h2>
       <p class="small muted" style="margin-top:-6px">Vístelo en el armario de <a href="#/s/cuarto">su cuarto</a>.</p>
@@ -243,6 +246,19 @@ export async function collection(root, { user }) {
       <ul class="reward-grid">${BACKGROUNDS.map(r => tile(r, 'fondo')).join('')}</ul></div>`;
   root.querySelectorAll('[data-kind]').forEach(b => {
     b.onclick = async () => { await equipar(user, { ...byId(b.dataset.id), kind: b.dataset.kind }); dispatchEvent(new Event('plat-refresh')); };
+  });
+  root.querySelectorAll('[data-comprar]').forEach(b => {
+    b.onclick = async () => {
+      const r = byId(b.dataset.comprar), precio = precioDe(r), tengo = await compras.saldo(user.id);
+      if (!comprable(r)) return;
+      if (tengo < precio) { toast(`Te faltan ${precio - tengo} monedas para ${r.name}.`); return; }
+      if (!await confirmDialog(`¿Comprar ${r.name} por ${precio} monedas? Te quedan ${tengo - precio}.`, 'Comprar')) return;
+      await compras.add(user.id, r.id, precio);
+      await userRewards.add(user.id, r.id);
+      events.log(user.id, 'compra_premio', { rewardId: r.id, precio });
+      toast(`¡${r.name} es tuyo!`);
+      dispatchEvent(new Event('plat-refresh'));
+    };
   });
   const o = $('#open-chest', root);
   if (o) o.onclick = () => { o.disabled = true; openDailyChest(user); };
@@ -308,7 +324,7 @@ export async function tasks(root, { user }) {
     const due = fmtDue(a.dueAt);
     const busy = unit ? p.items[k]?.status === 'doing' : p.status === 'doing';
     $('#next', root).append(el(`<div class="next-card">
-      <div class="next-masc" aria-hidden="true"><img class="next-emote" src="img/cebollo/emotes/pulgar.webp" alt=""></div>
+      <div class="next-masc" aria-hidden="true">${emoteFig('pulgar', prefsOf(user).ropa, 'next-emote')}</div>
       <div class="grow"><p class="kicker">Sigue con ${premio(acts, unit)}</p>
         <h2>${esc(unit ? unit.title : act.title)}</h2>
         <div class="small">${unit ? `Actividad ${k + 1} de ${acts.length}` : templates[act.type].label}${a.dueAt ? ` · <span class="${due.cls}">${due.text}</span>` : ''}</div>

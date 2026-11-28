@@ -175,6 +175,21 @@ function load() {
   const sch = cache.schools.find(x => x.id === SCHOOL_ID);
   if (sch && !sch.periodo) { sch.periodo = periodoPorFecha(); sch.periodoDesde = inicioPeriodo(sch.periodo); fixed = true; }
   for (const c of ['units', 'activities']) for (const x of cache[c]) if (!x.periodo) { x.periodo = sch?.periodo || 1; fixed = true; }
+  // Passive voice y adverbs of manner (2026-11-24, pedido del docente): 3 actividades de cada tema para Quinto Pruebas
+  // (Daniela) y para Quinto A (cuenta de demostración). Se agregan a datos ya guardados, una sola vez.
+  if (!cache.gramaticaExtraV1) {
+    const nuevas = a => /^act-q5-(pv|adv)-/.test(a.id);
+    const cursos = [[CURSO_QUINTO.id, 'asg-q5-'], ['crs-5a', 'asg-q5a-']].filter(([id]) => cache.courses.some(c => c.id === id));
+    for (const [cid, pref] of cursos) {
+      const pack = quintoPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: cid, daysAgo });
+      for (const a of pack.activities.filter(nuevas)) if (!cache.activities.some(x => x.id === a.id)) cache.activities.push(a);
+      for (const a of pack.assignments.filter(a => /^asg-q5-(pv|adv)-/.test(a.id))) {
+        const id = a.id.replace('asg-q5-', pref);
+        if (!cache.assignments.some(x => x.id === id)) cache.assignments.push({ ...a, id });
+      }
+    }
+    cache.gramaticaExtraV1 = true; fixed = true;
+  }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
   return cache;
@@ -566,8 +581,9 @@ export const chests = {
   },
   // Cofres que ya abrió hoy (del primero al último).
   async openedToday(userId) { const d = today(); return clone(all('chests').filter(c => c.userId === userId && c.date === d)); },
-  async open(userId, { rewardId, duplicate, xp: bonus = 0 }) {
-    return insert('chests', { userId, date: today(), openedAt: now(), rewardId, duplicate, xp: bonus, trigger: 'activity' });
+  // Repetido: da monedas (2026-11-22). Los cofres de antes guardaban xp (ya sumada a la XP).
+  async open(userId, { rewardId, duplicate, monedas = 0 }) {
+    return insert('chests', { userId, date: today(), openedAt: now(), rewardId, duplicate, monedas, trigger: 'activity' });
   },
 };
 
@@ -577,10 +593,16 @@ export const userRewards = {
   async add(userId, rewardId, source = 'chest', hito = null) { return insert('userRewards', { userId, rewardId, at: now(), source, ...(hito ? { hito } : {}) }); },
 };
 
-// Cuarto de Cebollo: decoración comprada con monedas. Monedas = XP ganado (1 a 1) − lo gastado; el nivel no baja.
+// Compras con monedas: decoración del cuarto y premios del cofre de rara para arriba (colección).
+// Monedas = XP ganado (1 a 1) + monedas de los cofres repetidos − lo gastado; el nivel no baja.
 export const compras = {
   async list(userId) { return clone(all('compras').filter(r => r.userId === userId)); },
   async gastado(userId) { return all('compras').filter(r => r.userId === userId).reduce((s, r) => s + r.precio, 0); },
+  async saldo(userId) {
+    const ganado = all('xpLedger').filter(x => x.userId === userId).reduce((s, x) => s + x.amount, 0)
+      + all('chests').filter(c => c.userId === userId).reduce((s, c) => s + (c.monedas || 0), 0);
+    return ganado - await this.gastado(userId);
+  },
   async add(userId, itemId, precio) { return insert('compras', { userId, itemId, precio, at: now() }); },
 };
 

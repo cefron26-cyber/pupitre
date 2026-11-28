@@ -16,6 +16,7 @@ import { unitStart, unitWizard } from './views/unit-wizard.js';
 import { present } from './views/present.js';
 import { DEFAULT_PREFS, backgroundVars, fijarDesbloqueo } from './rewards.js';
 import { mundoHTML } from './mundo.js';
+import { fijarRopaEmotes } from './cebollo.js';
 import { configurarClave, claveIA } from './ia.js';
 
 const app = document.getElementById('app');
@@ -121,6 +122,7 @@ async function router() {
   if (!s) { currentUser = null; applySkin(null); return renderLogin(app, school, onLogin); }
   currentUser = await users.get(s.userId);
   fijarDesbloqueo(currentUser);
+  fijarRopaEmotes(currentUser.role === 'student' ? { ...DEFAULT_PREFS, ...(currentUser.prefs || {}) }.ropa : {});
   const home = currentUser.role === 'teacher' ? '#/t/home' : '#/s/tasks';
   const m = match(path);
   if (!m || m.role !== currentUser.role) return go(home);

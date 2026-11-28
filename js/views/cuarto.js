@@ -1,8 +1,9 @@
 // Estudiante: el cuarto de Cebollo. Se puede tocar a Cebollo y a algunos objetos, comprar decoración con monedas
 // (tienda) y cambiarle la ropa (armario). Cada lugar del cuarto lleva un objeto a la vez (prefs.cuarto[lugar]).
-// Monedas = XP ganado − lo gastado (storage.compras). La ropa sale del cofre y de los retos (colección).
-import { xp, users, userRewards, compras, events, periodos } from '../storage.js';
-import { ROPA, SLOTS, VARIOS, DECO, LUGARES, RARITY, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO, puestas, ponerPrenda, quitarPrenda, diasRacha } from '../rewards.js';
+// Monedas = XP ganado + monedas de cofres repetidos − lo gastado (compras.saldo). La ropa sale del cofre, de los retos
+// o se compra en la colección.
+import { users, userRewards, compras, events, periodos } from '../storage.js';
+import { ROPA, SLOTS, VARIOS, DECO, LUGARES, RARITY, moneda, urlDeco, urlIconoRopa, ownedSet, DESBLOQUEADO, puestas, ponerPrenda, quitarPrenda, diasRacha } from '../rewards.js';
 import { crearCebollo } from '../cebollo.js';
 import { prefsOf } from './student.js';
 import { esc, $, toast, icons } from '../ui.js';
@@ -63,16 +64,7 @@ const ICONOS = {
     <rect x="27.5" y="15.2" width="3.6" height="2.6" rx="1" fill="#ffd23f" stroke="#1a0f4d" stroke-width="1.6"/></g>`),
 };
 
-// Moneda de Cebollo: verde menta con el brote de dos hojitas (contador y precios). Verde a propósito, para que no se
-// confunda con la estrella dorada de la XP (revisión de capturas 2026-11-21).
-const MONEDA = (px = 28) => `<svg class="moneda" viewBox="0 0 40 40" width="${px}" height="${px}" aria-hidden="true">
-  <circle cx="20" cy="21.5" r="16" fill="#1f8a63" stroke="#1a0f4d" stroke-width="2.4"/>
-  <circle cx="20" cy="19" r="16" fill="#5fd3a4" stroke="#1a0f4d" stroke-width="2.4"/>
-  <circle cx="20" cy="19" r="11" fill="#b8f3da" stroke="#2fae7e" stroke-width="2"/>
-  <path d="M19.5 26c0-4 .3-7 1.2-9.6" fill="none" stroke="#1f6b4c" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M20.6 17.2c-3.6-.6-6-2.6-6.6-5.4 3.4-.2 6 1.6 6.6 5.4z" fill="#3cbf8a" stroke="#1f6b4c" stroke-width="1.6" stroke-linejoin="round"/>
-  <path d="M20.8 16.6c.4-3.8 2.6-6.2 5.6-6.8.4 3.4-1.8 6-5.6 6.8z" fill="#3cbf8a" stroke="#1f6b4c" stroke-width="1.6" stroke-linejoin="round"/>
-  <path d="M10.5 13.5a11 11 0 0 1 6-5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".85"/></svg>`;
+const MONEDA = moneda;
 
 export async function cuarto(root, { user }) {
   let prefs = prefsOf(user);
@@ -105,7 +97,7 @@ export async function cuarto(root, { user }) {
   const { periodo } = await periodos.actual();
   const ropaMia = ownedSet((await userRewards.list(user.id)).map(r => r.rewardId));
   const decoMia = new Set([...DECO.filter(d => d.free || DESBLOQUEADO).map(d => d.id), ...(await compras.list(user.id)).map(c => c.itemId)]);
-  let monedas = (await xp.total(user.id)) - (await compras.gastado(user.id));
+  let monedas = await compras.saldo(user.id);
   let panel = null, pestana = null;
 
   // Sin textos de ayuda (2026-11-21): los niños entienden la escena con mirarla; los nombres quedan para lectores de pantalla.
