@@ -134,8 +134,9 @@ export default {
       clearTimeout(colaT); cola = []; corriendo = false; alVaciar = null; cerrando = false;
       root.innerHTML = '';
       const wrap = el(`<div class="reorder">
-        <div class="small muted" style="margin-bottom:6px">Oración ${st.i + 1} de ${total} · ${alFinal ? 'Ordena las palabras y comprueba' : 'Arrastra las palabras hasta ordenar la oración'}</div>
+        <div class="small muted" style="margin-bottom:6px"><span>Oración ${st.i + 1} de ${total}</span><span class="rd-inst"><span> · </span><span>${alFinal ? 'Ordena las palabras y comprueba' : 'Arrastra las palabras hasta ordenar la oración'}</span></span></div>
         <div class="slots linea" aria-label="Oración desordenada"></div>
+        <p class="rd-pista">${alFinal ? 'Ordena las palabras y comprueba' : 'Arrastra la palabra al lugar correcto'}</p>
         <div class="fb-slot" role="status" aria-live="polite">${alFinal && !st.checked ? `<div class="row end" style="margin-top:20px">
           <button class="btn" type="button" data-check>Comprobar</button></div>` : ''}</div>
       </div>`);

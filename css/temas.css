@@ -1179,3 +1179,57 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .escenario.tematico .stage .btn{clip-path:none !important}
 .escenario.tematico[data-tema="clasico"] .stage .btn.ghost{background:#fff !important; color:#1f3a68 !important;
   border:1px solid #d9deea !important; box-shadow:0 2px 6px rgba(22,33,61,.1) !important}
+
+/* ==================== Ordenar en el mundo del juego (2026-11-28, maqueta aprobada por el docente) ====================
+   Solo el estilo por defecto ("Colores") de Ordenar: el cielo y el suelo pixel del fondo equipado (o el morado),
+   ventana pixel crema, palabras como fichas que se arrastran, verdes al quedar en su lugar, el punto fijo al final y
+   Cebollo dando la instrucción en un globo. Los demás estilos de Ordenar y las demás plantillas no cambian. */
+.rd-pista{display:none}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"]{
+  --e-img:var(--cielo-img, url(../img/mundo/cielo.webp)); --e-bg:var(--fondo-2, #2a1585); --e-bg-solido:var(--fondo-2, #2a1585);
+  --e-ink:#fff; --t-font:"Fredoka",var(--font); --bar:#ffd23f; --tinta-rd:#1a0f4d;
+  --step:polygon(4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px),0 4px,4px 4px)}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .esc-fondo{background:var(--e-img) top/cover no-repeat, var(--e-bg)}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .esc-fondo::after{display:block; content:""; position:absolute; left:0; right:0; bottom:0; height:clamp(70px,14vh,150px);
+  background:var(--suelo-img, url(../img/mundo/suelo.webp)) bottom/100% auto repeat-x; opacity:1}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .progress{height:18px; border-radius:0 !important; background:rgba(0,0,0,.3) !important; box-shadow:0 0 0 3px var(--tinta-rd)}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .progress > i{border-radius:0 !important; background:#ffd23f; box-shadow:inset 0 -4px 0 #f0b800}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .esc-btn{border-radius:0 !important; clip-path:var(--step)}
+
+/* Cebollo con el globo de la instrucción */
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .consigna.con-ceb{display:flex; align-items:flex-end; gap:10px; max-width:640px; margin:0 auto 12px;
+  padding:0; background:none; box-shadow:none; border-radius:0}
+.consigna.con-ceb > .emote-fig{flex:none; width:clamp(64px,16vw,92px); height:auto}
+.consigna.con-ceb > p{position:relative; flex:1; margin:0 0 18px; padding:10px 14px; background:#fff; color:#2a1585; border:3px solid #1a0f4d; border-radius:14px;
+  font-family:"Fredoka",var(--font); line-height:1.25; text-align:left}
+.consigna.con-ceb > p::before{content:""; position:absolute; left:-12px; bottom:14px; border:10px solid transparent; border-right-color:#1a0f4d; border-left:0}
+.consigna.con-ceb > p b{display:block; font-size:clamp(18px,2.6cqi,24px); font-weight:600}
+.consigna.con-ceb > p small{display:block; color:#6b4fa8; font-size:clamp(13px,1.8cqi,16px); font-weight:600}
+
+/* Ventana pixel con la oración (sin clip-path: recortaría la franja de respuesta, que va dentro) */
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .reorder{max-width:640px; margin:0 auto; padding:16px 14px 14px; text-align:center;
+  background:var(--px-fondo,#fff8e8); border:4px solid var(--px-borde,#e0a000);
+  box-shadow:inset 0 4px 0 var(--px-luz,#fffdf6), inset 0 -5px 0 var(--px-sombra,#ecdcb4); color:#2a1585}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .stage > .reorder > .small.muted:first-child{display:table; margin:0 0 12px; padding:3px 10px; border-radius:0;
+  background:#2a1585; color:#fff; font:600 13px/1.3 "Fredoka",var(--font); letter-spacing:.03em; text-transform:uppercase}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .rd-inst{display:none}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .rd-pista{display:block; margin:10px 0 0; color:#6b4fa8; font:600 14px/1.3 "Fredoka",var(--font)}
+
+/* Las palabras: fichas moradas; en su lugar, verdes */
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea{background:none !important; border:0 !important; max-width:none; min-height:120px;
+  justify-content:center; align-content:center; align-items:flex-end; gap:10px; padding:10px 0}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word{min-height:50px; padding:0 16px; border:0; border-radius:0 !important;
+  font:600 clamp(20px,3cqi,26px)/1 "Fredoka",var(--font); color:#fff !important; cursor:grab; filter:none;
+  background:linear-gradient(to top,#5a33c0,#7a4fd1 55%,#9b7ae0) !important; box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 4px 0 #3b1f8a !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word:hover:not(:disabled){filter:brightness(1.08); transform:translateY(-2px)}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word.sel{transform:translateY(-6px); box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 0 0 3px #0f8b8d, 0 8px 10px rgba(10,4,40,.3) !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word.dragging{opacity:.25}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word:is(.fija,.par,.ok){cursor:default; color:#fff !important;
+  background:linear-gradient(to top,var(--ok-vivo-osc),var(--ok-vivo) 55%,var(--ok-vivo-cla)) !important; box-shadow:inset 0 -5px 0 rgba(0,0,0,.16), 0 4px 0 #0a7a33 !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word.fuera{text-decoration:none; background:linear-gradient(to top,#a8202d,#e0394b 55%,#f07a86) !important; box-shadow:inset 0 -5px 0 rgba(0,0,0,.18), 0 4px 0 #7a1420 !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .rd-punto{min-height:50px; margin-left:-6px; align-items:flex-end; padding-bottom:4px;
+  font:600 32px/1 "Fredoka",var(--font); color:#2a1585}
+/* La ficha que se arrastra (va en <body>, fuera del escenario) */
+body:has(.escenario.tematico[data-tema="clasico"][data-tipo="reorder"]) .word.ghost{min-height:50px; padding:0 16px; border:0; border-radius:0;
+  display:inline-grid; place-items:center; font:600 clamp(20px,3cqi,26px)/1 "Fredoka",var(--font); color:#fff; rotate:-4deg; scale:1.08; opacity:1;
+  background:linear-gradient(to top,#5a33c0,#7a4fd1 55%,#9b7ae0); box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 12px 16px rgba(10,4,40,.35)}
