@@ -334,7 +334,10 @@
    La letra sigue siendo la del modo juego (nada de letra pixel en los textos). */
 :root[data-modo="juego"]{
   --px-step:polygon(4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px),0 4px,4px 4px);
-  --px-borde:#e0a000; --px-fondo:#fff8e8; --px-luz:#fffdf6; --px-sombra:#ecdcb4;
+  /* Colores de la ventana tomados del fondo equipado (--t-*, rewards.js): con Morado queda dorada, con Océano
+     coral, con Bosque rosa, etc. (2026-11-28: antes estaban fijos en dorado para todos los fondos). */
+  --px-borde:color-mix(in srgb,var(--t-sh),#000 6%); --px-fondo:color-mix(in srgb,var(--t-card),#fff 55%);
+  --px-luz:color-mix(in srgb,var(--t-card),#fff 85%); --px-sombra:color-mix(in srgb,var(--t-inn),#fff 30%);
 }
 :root[data-modo="juego"] .card,:root[data-modo="juego"] .next-card,:root[data-modo="juego"] .practice-card,
 :root[data-modo="juego"] .juego-card,:root[data-modo="juego"] .chest-card,:root[data-modo="juego"] .racha-card,
