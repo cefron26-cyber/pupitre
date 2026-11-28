@@ -1546,3 +1546,6 @@ h2{font-weight:600}
 /* Interfaz en inglés (2026-11-27): textos que vienen del CSS */
 :root[lang="en"] .passage summary::after{content:"Hide"}
 :root[lang="en"] .passage:not([open]) summary::after{content:"Show text"}
+/* Sin el recuadro de color que Chrome/Brave en Android pintan al tocar algo (2026-11-28: se veía un cuadrado alrededor
+   del cofre al tocarlo). Los botones ya tienen su propio efecto al presionarlos. */
+html{-webkit-tap-highlight-color:transparent}
