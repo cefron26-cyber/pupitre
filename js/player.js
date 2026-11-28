@@ -74,9 +74,11 @@ export function mountPlayer(root, { activity, saved = null, durationSec = 0, onP
   const tpl = templates[activity.type];
   // Instrucción para el estudiante (como en Cambridge One): la del docente/IA o una general del tipo.
   const consigna = (activity.instruction || '').trim() || CONSIGNA[activity.type] || '';
-  // Estilo por defecto en Ordenar (2026-11-28, maqueta aprobada por el docente): Cebollo da la instrucción en un globo,
+  // Estilo por defecto en las actividades de unidad (2026-11-28, maqueta aprobada por el docente): Cebollo da la instrucción en un globo,
   // en español grande y debajo la consigna en inglés. Los demás estilos y plantillas siguen con la consigna de siempre.
-  const globo = tema === 'clasico' && activity.type === 'reorder' ? 'Ordena la oración' : '';
+  const GLOBO = { reorder: 'Ordena la oración', quiz: 'Elige la respuesta correcta', reading: 'Lee el texto y responde',
+    listening: 'Escucha y responde', fill: 'Completa la oración' };
+  const globo = tema === 'clasico' ? GLOBO[activity.type] || '' : '';
   let seconds = durationSec || 0;
   let lastInteraction = Date.now();
   let finished = false;

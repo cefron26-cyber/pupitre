@@ -124,7 +124,7 @@ export default {
       const colorDe = [], libre = bank.map(() => true);
       st.values.forEach((v, k) => { const bi = bank.findIndex((w, j) => libre[j] && w === v); if (bi !== -1) { libre[bi] = false; colorDe[k] = bi % 6; } });
       const wrap = el(`<div class="fill-wrap ${useBank ? 'con-banco' : ''}">
-        <div class="small muted" style="margin-bottom:6px">Frase ${st.i + 1} de ${total} · ${useBank ? 'Toca las palabras para completar' : 'Escribe la palabra que falta'}</div>
+        <div class="small muted" style="margin-bottom:6px"><span>Frase ${st.i + 1} de ${total}</span><span class="rd-inst"><span> · </span><span>${useBank ? 'Toca las palabras para completar' : 'Escribe la palabra que falta'}</span></span></div>
         <p class="fill-text"></p>
         <div class="bank" ${useBank ? '' : 'hidden'}></div>
         <div class="fb-slot" role="status" aria-live="polite"></div>
