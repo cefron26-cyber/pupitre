@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es" data-modo="juego">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prueba de cofres</title>
+<!-- Página de prueba (2026-11-28, pedido del docente): abre el cofre de verdad (js/chest.js) con la rareza que se
+     elija, sin iniciar sesión ni gastar los cofres del día. No guarda nada. Se puede borrar cuando ya no haga falta. -->
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/estudiante.css">
+<link rel="stylesheet" href="css/modo-juego.css">
+<link rel="stylesheet" href="css/temas.css">
+<style>
+  .pc{max-width:520px; margin:0 auto; padding:24px 16px 40px; display:flex; flex-direction:column; gap:14px}
+  .pc h1{color:#ffd23f; text-shadow:3px 3px 0 #e8590c, 5px 5px 0 #1a0f4d; margin:0}
+  .pc p{color:#fff; margin:0; font-weight:600}
+  .pc .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .pc .btn{min-height:56px; font-size:18px}
+  .pc .row{display:flex; gap:10px; align-items:center; color:#fff; font-weight:600}
+  .pc .row input{width:22px; height:22px}
+</style>
+</head>
+<body>
+<main class="pc">
+  <h1>Prueba de cofres</h1>
+  <p>Toca una rareza para abrir un cofre. No se guarda nada.</p>
+  <div class="grid">
+    <button class="btn" data-r="common">Común</button>
+    <button class="btn" data-r="rare">Rara</button>
+    <button class="btn" data-r="epic">Épica</button>
+    <button class="btn" data-r="legendary">Legendaria</button>
+    <button class="btn" data-r="azar">Al azar</button>
+    <button class="btn" data-r="common" data-dup="1">Repetido</button>
+  </div>
+  <label class="row"><input type="checkbox" id="serio"> Modo serio (un solo toque, sin animaciones)</label>
+</main>
+<script type="module">
+  import { openChest } from './js/chest.js';
+  import { ALL, RARITY } from './js/rewards.js';
+  const azar = () => { const ks = Object.keys(RARITY), t = ks.reduce((s, k) => s + RARITY[k].weight, 0); let x = Math.random() * t;
+    for (const k of ks) { x -= RARITY[k].weight; if (x <= 0) return k; } return 'common'; };
+  const btns = document.querySelectorAll('[data-r]');
+  btns.forEach(b => b.onclick = async () => {
+    const r = b.dataset.r === 'azar' ? azar() : b.dataset.r;
+    const pool = ALL.filter(x => x.rarity === r);
+    const reward = pool[Math.floor(Math.random() * pool.length)];
+    const duplicate = !!b.dataset.dup;
+    const serio = document.getElementById('serio').checked;
+    document.documentElement.dataset.modo = serio ? 'serio' : 'juego';
+    btns.forEach(x => x.disabled = true);
+    try { await openChest({ modo: serio ? 'serio' : 'juego', result: { reward, duplicate, monedas: duplicate ? RARITY[r].dupMonedas : 0 } }); }
+    finally { btns.forEach(x => x.disabled = false); document.documentElement.dataset.modo = 'juego'; }
+  });
+</script>
+</body>
+</html>
