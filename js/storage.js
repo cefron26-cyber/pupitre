@@ -190,6 +190,23 @@ function load() {
     }
     cache.gramaticaExtraV1 = true; fixed = true;
   }
+  // Daniela con GNext 1 (2026-11-27, pedido del docente): se le quitan las asignaciones viejas de Quinto Pruebas (Unit 7,
+  // sueltas de 5°, passive voice y adverbs) con sus intentos, y se le asignan las 6 unidades de GNext 1 con sus sueltas.
+  // Las actividades viejas siguen en la biblioteca del docente (Quinto A también las usa). Una sola vez.
+  if (!cache.danielaGnextV1) {
+    if (cache.courses.some(c => c.id === CURSO_QUINTO.id)) {
+      const viejas = new Set(cache.assignments.filter(a => a.courseId === CURSO_QUINTO.id && !a.id.startsWith('asg-gnd-')).map(a => a.id));
+      cache.attempts = cache.attempts.filter(t => !viejas.has(t.assignmentId));
+      cache.assignments = cache.assignments.filter(a => !viejas.has(a.id));
+      const pack = gnextPack({ schoolId: SCHOOL_ID, ownerId: 'usr-doc', courseId: CURSO_QUINTO.id, daysAgo });
+      for (const c of ['activities', 'units']) for (const x of pack[c]) if (!cache[c].some(y => y.id === x.id)) cache[c].push(x);
+      for (const a of pack.assignments) {
+        const id = a.id.replace('asg-gn-', 'asg-gnd-');
+        if (!cache.assignments.some(x => x.id === id)) cache.assignments.push({ ...a, id });
+      }
+    }
+    cache.danielaGnextV1 = true; fixed = true;
+  }
   for (const x of cache.users) if (x.role === 'student' && !x.pictures) { x.pictures = newPictures(); fixed = true; }
   if (fixed) persist();
   return cache;
