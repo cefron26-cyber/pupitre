@@ -862,3 +862,11 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 /* Nodo "Explicación" pendiente (2026-11-28): el libro era blanco sobre el botón blanco y no se veía. */
 .leccion-node:not(.done) .node-ico{color:#1f3a68}
 .leccion-node.next .node-ico svg{width:40px; height:40px}
+/* Misiones (2026-11-28): solo "Sigue con" lleva el botón grande "Empezar"; las demás tarjetas se tocan completas
+   (el enlace cubre toda la tarjeta) y muestran una flecha. */
+.list > .item:has(> .btn.ir){position:relative; cursor:pointer; flex-wrap:nowrap !important; align-items:center}
+.list > .item:has(> .btn.ir) > .info{flex:1 1 auto; min-width:0}
+.list > .item > .btn.ir{position:static; clip-path:none !important; flex:none; width:44px; min-width:44px; min-height:44px; padding:0; display:grid; place-items:center; margin-left:auto}
+.list > .item > .btn.ir::after{content:""; position:absolute; inset:0; z-index:3}
+/* Sin hundirse ni brillar (transform/filter encogerían el área táctil a mitad del toque y el clic se perdería) */
+.list > .item > .btn.ir,.list > .item > .btn.ir:is(:hover,:active){transform:none !important; filter:none !important}

@@ -338,7 +338,8 @@ export async function tasks(root, { user }) {
   const POSES = ['sonrisa', 'ok', 'brazos', 'copa', 'pulgar'];
   let nUnidad = 0;
   for (const row of todas) {
-    // La misión de "Próxima misión" no se repite en la lista.
+    // La misión de "Próxima misión" no se repite en la lista. Solo esa lleva el botón grande "Empezar": las demás
+    // tarjetas se tocan completas y llevan una flecha (2026-11-28, revisión de capturas).
     if (row === open[0]) continue;
     const { a, unit, acts, p } = row;
     const s = statusLabel(p);
@@ -356,7 +357,7 @@ export async function tasks(root, { user }) {
           ${segmentos(p)}
         </div>
         <span class="badge ${s.cls}">${p.status === 'done' ? `${s.label} · ${p.unitPoints}/100` : p.status === 'late' ? `${s.label} · ${p.done}/${p.total}` : `${p.done}/${p.total}`}</span>
-        <a class="btn ${p.status === 'done' ? 'ghost' : ''}" href="#/s/unit/${a.id}">${p.status === 'done' ? 'Ver unidad' : p.done || p.status === 'doing' ? 'Continuar' : 'Empezar'}</a>
+        <a class="btn ir ${p.status === 'done' ? 'ghost' : ''}" href="#/s/unit/${a.id}" aria-label="${p.status === 'done' ? 'Ver unidad' : p.done || p.status === 'doing' ? 'Continuar' : 'Empezar'}: ${esc(unit.title)}">${FLECHA}</a>
       </div>`));
       continue;
     }
@@ -370,10 +371,12 @@ export async function tasks(root, { user }) {
         <div class="meta">${tpl.label}${due}</div>
       </div>
       ${chip ? `<span class="badge ${s.cls}">${chip}${it.best ? ` · ${grade(it.best.score, it.best.maxScore)}` : ''}</span>` : ''}
-      <a class="btn ${p.status === 'done' ? 'ghost' : ''}" href="${href}">${btn}</a>
+      <a class="btn ir ${p.status === 'done' ? 'ghost' : ''}" href="${href}" aria-label="${btn}: ${esc(act.title)}">${FLECHA}</a>
     </div>`));
   }
 }
+
+const FLECHA = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
 
 // XP ganado en la pasada actual por la unidad (se suma actividad tras actividad hasta el resumen final).
 function leerRecorrido(id) {
