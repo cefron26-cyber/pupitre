@@ -192,7 +192,7 @@ async function drawHero(box, user) {
       <a class="hero-avatar" href="#/s/cuarto" aria-label="Ir al cuarto de Cebollo">${cebolloMini(prefs.ropa, 72, { vivo: true, triste: !racha.hoy })}</a>
       <div class="hero-txt">
         <h1 class="hero-hi">Hola, ${first}</h1>
-        <button type="button" class="streak-btn" id="racha-btn" aria-haspopup="dialog" aria-label="Ver la ropa por racha">${streakHTML(racha)}</button>
+        ${modoOf() === 'juego' ? `<button type="button" class="streak-btn" id="racha-btn" aria-haspopup="dialog" aria-label="Ver la ropa por racha">${streakHTML(racha)}</button>` : streakHTML(racha)}
         <a class="rango-chip" href="#/s/ranking" style="--rc:${rango.color}" title="${sig ? `Siguiente rango: ${sig.name} (nivel ${sig.desde})` : 'Rango máximo'}">${insignia(rango.id, 18)}<b>${rango.name}</b></a>
         <div class="level-row"><span class="level-badge">Nivel ${level}</span>
           <div class="level-bar ${cerca ? 'cerca' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="${need}" aria-valuenow="${inLevel}" aria-label="Experiencia del nivel"><i style="width:${Math.round(inLevel / need * 100)}%"></i></div>
@@ -207,7 +207,8 @@ async function drawHero(box, user) {
     </div>
 `;
   // Ropa por racha (2026-11-27, pedido del docente): ya no va en la portada; sale en una ventana al tocar la racha.
-  $('#racha-btn', box).onclick = () => rachaDialog(rachaCardHTML(rp, hitos));
+  const rb = $('#racha-btn', box);
+  if (rb) rb.onclick = () => rachaDialog(rachaCardHTML(rp, hitos));
   const b = $('#open-chest', box);
   if (b) b.onclick = () => { b.disabled = true; openDailyChest(user); };
   // Prenda de racha recién ganada: se celebra encima de la portada ya pintada.
@@ -312,7 +313,7 @@ export async function tasks(root, { user }) {
     ${otros.map(n => { const k = todas.filter(r => perDe(r) === n).length; return `<details class="done-group periodo-group"><summary>Periodo ${n} · ${k} ${k === 1 ? 'misión' : 'misiones'}</summary><div class="list" id="p-${n}"></div></details>`; }).join('')}`;
   await drawHero($('#hero', root), user);
   if (!rows.length) {
-    $('#next', root).innerHTML = `<div class="card empty">Aún no tienes misiones${todas.length ? ` del periodo ${periodo}` : ''}.${review.length ? ' Mientras tanto, puedes repasar.' : ''} <a href="#/s/collection">Mira tu colección</a></div>`;
+    $('#next', root).innerHTML = `<div class="card empty">Aún no tienes misiones${todas.length ? ` del periodo ${periodo}` : ''}.${review.length ? ' Mientras tanto, puedes repasar.' : ''}${modoOf() === 'juego' ? ' <a href="#/s/collection">Mira tu colección</a>' : ''}</div>`;
     if (!todas.length) return;
   }
 
@@ -348,7 +349,7 @@ export async function tasks(root, { user }) {
     const chip = p.status === 'todo' ? '' : p.status === 'doing' ? 'Empezada' : s.label;
     if (unit) {
       box.append(el(`<div class="item unit-item">
-        <div class="type-icon unit unit-ceb" aria-hidden="true"><img src="img/cebollo/emotes/${POSES[(nUnidad++) % POSES.length]}.webp" alt=""></div>
+        ${modoOf() === 'juego' ? `<div class="type-icon unit unit-ceb" aria-hidden="true"><img src="img/cebollo/emotes/${POSES[(nUnidad++) % POSES.length]}.webp" alt=""></div>` : `<div class="type-icon unit">${icons.unit}</div>`}
         <div class="info">
           <p class="title">${esc(unit.title)}</p>
           <div class="meta">Unidad · ${acts.length} actividades${due}</div>

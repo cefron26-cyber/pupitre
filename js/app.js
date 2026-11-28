@@ -189,6 +189,8 @@ async function router() {
       await resetDemo(); location.hash = '#/login'; location.reload();
     }
   };
+  // Modo serio (2026-11-27, pedido del docente): sin Cebollo, cofres ni ropa; el cuarto y la colección no se abren.
+  if (document.documentElement.dataset.modo === 'serio' && /^\/s\/(cuarto|collection)/.test(path)) { navigate('#/s/tasks'); return; }
   events.log(currentUser.id, 'open_section', { path });
   window.scrollTo(0, 0);
   try {
