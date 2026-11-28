@@ -34,13 +34,14 @@ const LIBRARY_TABS = [
   { path: '/t/units', label: 'Unidades' },
   { path: '/t/juegos', label: 'Juegos' },
 ];
-// Gamificación (2026-11-21): Misiones (antes "Mis tareas") y Clasificación. La colección se abre desde el cofre
-// y el cuarto de Cebollo desde el botón "Visitar a Cebollo" del encabezado (ui.js), no desde las pestañas.
+// Gamificación (2026-11-21): Misiones (antes "Mis tareas") y Clasificación. Colección como pestaña (2026-11-27, pedido del
+// docente: ahí se cambian los fondos y la ropa); solo en modo juego. El cuarto de Cebollo, desde "Cuarto" del encabezado.
 const STUDENT_NAV = [
   { key: 'tasks', label: 'Misiones', href: '#/s/tasks' },
   { key: 'retos', label: 'Retos', href: '#/s/retos' },
   { key: 'juegos', label: 'Juegos', href: '#/s/juegos' },
   { key: 'ranking', label: 'Clasificación', href: '#/s/ranking' },
+  { key: 'collection', label: 'Colección', href: '#/s/collection', soloJuego: true },
 ];
 
 // Rutas: patrón → [rol, sección activa, vista]
@@ -67,7 +68,7 @@ const routes = [
   ['/s/play/:id', 'student', 'tasks', student.play],
   ['/s/play/:id/:act', 'student', 'tasks', student.play],
   ['/s/result/:id', 'student', 'tasks', student.result],
-  ['/s/collection', 'student', '', student.collection],
+  ['/s/collection', 'student', 'collection', student.collection],
   ['/s/ranking', 'student', 'ranking', ranking],
   ['/s/cuarto', 'student', 'cuarto', cuarto],
   ['/s/practice', 'student', 'tasks', student.practice],
@@ -145,7 +146,7 @@ async function router() {
   if (inmersivo) app.innerHTML = '<main class="main juego-main" id="main"></main>';
   else app.innerHTML = headerHTML({
     school, user: currentUser, active: m.section, xp, student: info,
-    nav: currentUser.role === 'teacher' ? TEACHER_NAV : STUDENT_NAV,
+    nav: currentUser.role === 'teacher' ? TEACHER_NAV : STUDENT_NAV.filter(n => !n.soloJuego || info?.modo === 'juego'),
   }) + (LIBRARY_TABS.some(t => t.path === path) ? `<nav class="subnav" aria-label="Biblioteca">${LIBRARY_TABS.map(t =>
     `<a href="#${t.path}" class="${t.path === path ? 'active' : ''}" ${t.path === path ? 'aria-current="page"' : ''}>${t.label}</a>`).join('')}</nav>` : '')
     + '<main class="main" id="main"></main>' + (info?.modo === 'juego' ? mundoHTML() : '');

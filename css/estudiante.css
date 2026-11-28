@@ -839,8 +839,8 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 .ajustes-menu[open] .ajustes-btn svg{transform:rotate(60deg)}
 .ajustes-btn svg{transition:transform .3s}
 .ajustes-menu .more-menu{min-width:220px}
-.ajustes-menu .more-menu > button{display:flex; align-items:center; gap:10px; width:100%}
-.ajustes-menu .more-menu > button svg{flex:none}
+.ajustes-menu .more-menu > button,.ajustes-menu .more-menu > a{display:flex; align-items:center; gap:10px; width:100%}
+.ajustes-menu .more-menu > button svg,.ajustes-menu .more-menu > a svg{flex:none}
 .ajustes-menu #reset-progress{color:var(--danger)}
 .ajustes-fila{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 12px; font-weight:600}
 .ajustes-menu .lang-toggle button{display:inline-block; width:auto; padding:7px 12px; border-radius:0}
