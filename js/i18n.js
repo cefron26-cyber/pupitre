@@ -11,7 +11,8 @@ const setLang = l => { try { localStorage.setItem(KEY, l); } catch {} };
 // Frases exactas (sin espacios de los lados).
 const EXACT = {
   // Encabezado y pestañas
-  'Ordena la oración': 'Order the sentence', 'Arrastra la palabra al lugar correcto': 'Drag the word to the right place',
+  'Ordena la oración': 'Order the sentence', 'Elige la respuesta correcta': 'Choose the right answer', 'Lee el texto y responde': 'Read and answer',
+  'Escucha y responde': 'Listen and answer', 'Completa la oración': 'Complete the sentence', 'Arrastra la palabra al lugar correcto': 'Drag the word to the right place',
   'Misiones': 'Missions', 'Retos': 'Challenges', 'Juegos': 'Games', 'Clasificación': 'Ranking', 'Modo juego': 'Game mode',
   'Modo serio': 'Classic mode', 'Reiniciar': 'Reset', 'Cuarto': 'Room', 'Salir': 'Log out', 'Estudiante': 'Student',
   'Saltar al contenido': 'Skip to content', '← Misiones': '← Missions', 'Vuelve a verla cuando quieras': 'Come back to it anytime', 'en curso': 'in progress', 'Ocultar': 'Hide', 'Mostrar': 'Show', 'Ver texto': 'Show text', '¡Perfecto!': 'Perfect!', 'Aciertos': 'Correct', 'día de racha': 'day streak', 'días de racha': 'day streak', 'Tiempo': 'Time', 'Ver la unidad': 'See the unit', 'Tienes el máximo en esta actividad.': 'You have the top score in this activity.', 'Repetir': 'Try again', 'Escucha el audio': 'Listen to the audio', 'Puedes escucharlo las veces que necesites': 'You can listen as many times as you need', 'Lento': 'Slow', 'Idioma': 'Language', 'Reiniciar mi avance': 'Reset my progress',

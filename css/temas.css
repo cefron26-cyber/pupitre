@@ -1180,24 +1180,25 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .escenario.tematico[data-tema="clasico"] .stage .btn.ghost{background:#fff !important; color:#1f3a68 !important;
   border:1px solid #d9deea !important; box-shadow:0 2px 6px rgba(22,33,61,.1) !important}
 
-/* ==================== Ordenar en el mundo del juego (2026-11-28, maqueta aprobada por el docente) ====================
+/* ==================== Actividades de unidad en el mundo del juego (2026-11-28, maqueta aprobada por el docente) ====================
+   Primero Ordenar; luego, a pedido del docente, también Quiz, Lectura, Escucha y Completar (las que suelen ir en una unidad).
    Solo el estilo por defecto ("Colores") de Ordenar: el cielo y el suelo pixel del fondo equipado (o el morado),
    ventana pixel crema, palabras como fichas que se arrastran, verdes al quedar en su lugar, el punto fijo al final y
    Cebollo dando la instrucción en un globo. Los demás estilos de Ordenar y las demás plantillas no cambian. */
 .rd-pista{display:none}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"]{
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]){
   --e-img:var(--cielo-img, url(../img/mundo/cielo.webp)); --e-bg:var(--fondo-2, #2a1585); --e-bg-solido:var(--fondo-2, #2a1585);
   --e-ink:#fff; --t-font:"Fredoka",var(--font); --bar:#ffd23f; --tinta-rd:#1a0f4d;
   --step:polygon(4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px),0 4px,4px 4px)}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .esc-fondo{background:var(--e-img) top/cover no-repeat, var(--e-bg)}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .esc-fondo::after{display:block; content:""; position:absolute; left:0; right:0; bottom:0; height:clamp(70px,14vh,150px);
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .esc-fondo{background:var(--e-img) top/cover no-repeat, var(--e-bg)}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .esc-fondo::after{display:block; content:""; position:absolute; left:0; right:0; bottom:0; height:clamp(70px,14vh,150px);
   background:var(--suelo-img, url(../img/mundo/suelo.webp)) bottom/100% auto repeat-x; opacity:1}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .progress{height:18px; border-radius:0 !important; background:rgba(0,0,0,.3) !important; box-shadow:0 0 0 3px var(--tinta-rd)}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .progress > i{border-radius:0 !important; background:#ffd23f; box-shadow:inset 0 -4px 0 #f0b800}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .esc-btn{border-radius:0 !important; clip-path:var(--step)}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .progress{height:18px; border-radius:0 !important; background:rgba(0,0,0,.3) !important; box-shadow:0 0 0 3px var(--tinta-rd)}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .progress > i{border-radius:0 !important; background:#ffd23f; box-shadow:inset 0 -4px 0 #f0b800}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .esc-btn{border-radius:0 !important; clip-path:var(--step)}
 
 /* Cebollo con el globo de la instrucción */
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .consigna.con-ceb{display:flex; align-items:flex-end; gap:10px; max-width:640px; margin:0 auto 12px;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .consigna.con-ceb{display:flex; align-items:flex-end; gap:10px; max-width:640px; margin:0 auto 12px;
   padding:0; background:none; box-shadow:none; border-radius:0}
 .consigna.con-ceb > .emote-fig{flex:none; width:clamp(64px,16vw,92px); height:auto}
 .consigna.con-ceb > p{position:relative; flex:1; margin:0 0 18px; padding:10px 14px; background:#fff; color:#2a1585; border:3px solid #1a0f4d; border-radius:14px;
@@ -1207,33 +1208,94 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 .consigna.con-ceb > p small{display:block; color:#6b4fa8; font-size:clamp(13px,1.8cqi,16px); font-weight:600}
 
 /* Ventana pixel con la oración (sin clip-path: recortaría la franja de respuesta, que va dentro) */
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .reorder{max-width:640px; margin:0 auto; padding:16px 14px 14px; text-align:center;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .reorder{max-width:640px; margin:0 auto; padding:16px 14px 14px; text-align:center;
   background:var(--px-fondo,#fff8e8); border:4px solid var(--px-borde,#e0a000);
   box-shadow:inset 0 4px 0 var(--px-luz,#fffdf6), inset 0 -5px 0 var(--px-sombra,#ecdcb4); color:#2a1585}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .stage > .reorder > .small.muted:first-child{display:table; margin:0 0 12px; padding:3px 10px; border-radius:0;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .stage > .reorder > .small.muted:first-child{display:table; margin:0 0 12px; padding:3px 10px; border-radius:0;
   background:#2a1585; color:#fff; font:600 13px/1.3 "Fredoka",var(--font); letter-spacing:.03em; text-transform:uppercase}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .rd-inst{display:none}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .rd-pista{display:block; margin:10px 0 0; color:#6b4fa8; font:600 14px/1.3 "Fredoka",var(--font)}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .rd-inst{display:none}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .rd-pista{display:block; margin:10px 0 0; color:#6b4fa8; font:600 14px/1.3 "Fredoka",var(--font)}
 
 /* Las palabras: fichas moradas; en su lugar, verdes */
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea{background:none !important; border:0 !important; max-width:none; min-height:120px;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .slots.linea{background:none !important; border:0 !important; max-width:none; min-height:120px;
   justify-content:center; align-content:center; align-items:flex-end; gap:10px; padding:10px 0}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word{min-height:50px; padding:0 16px; border:0; border-radius:0 !important;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .slots.linea .word{min-height:50px; padding:0 16px; border:0; border-radius:0 !important;
   font:600 clamp(20px,3cqi,26px)/1 "Fredoka",var(--font); color:#fff !important; cursor:grab; filter:none;
   background:linear-gradient(to top,#5a33c0,#7a4fd1 55%,#9b7ae0) !important; box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 4px 0 #3b1f8a !important}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word:hover:not(:disabled){filter:brightness(1.08); transform:translateY(-2px)}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word.sel{transform:translateY(-6px); box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 0 0 3px #0f8b8d, 0 8px 10px rgba(10,4,40,.3) !important}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word.dragging{opacity:.25}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word:is(.fija,.par,.ok){cursor:default; color:#fff !important;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .slots.linea .word:hover:not(:disabled){filter:brightness(1.08); transform:translateY(-2px)}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .slots.linea .word.sel{transform:translateY(-6px); box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 0 0 3px #0f8b8d, 0 8px 10px rgba(10,4,40,.3) !important}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .slots.linea .word.dragging{opacity:.25}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .slots.linea .word:is(.fija,.par,.ok){cursor:default; color:#fff !important;
   background:linear-gradient(to top,var(--ok-vivo-osc),var(--ok-vivo) 55%,var(--ok-vivo-cla)) !important; box-shadow:inset 0 -5px 0 rgba(0,0,0,.16), 0 4px 0 #0a7a33 !important}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .slots.linea .word.fuera{text-decoration:none; background:linear-gradient(to top,#a8202d,#e0394b 55%,#f07a86) !important; box-shadow:inset 0 -5px 0 rgba(0,0,0,.18), 0 4px 0 #7a1420 !important}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .rd-punto{min-height:50px; margin-left:-6px; align-items:flex-end; padding-bottom:4px;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .slots.linea .word.fuera{text-decoration:none; background:linear-gradient(to top,#a8202d,#e0394b 55%,#f07a86) !important; box-shadow:inset 0 -5px 0 rgba(0,0,0,.18), 0 4px 0 #7a1420 !important}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .rd-punto{min-height:50px; margin-left:-6px; align-items:flex-end; padding-bottom:4px;
   font:600 32px/1 "Fredoka",var(--font); color:#2a1585}
 /* La ficha que se arrastra (va en <body>, fuera del escenario) */
 body:has(.escenario.tematico[data-tema="clasico"][data-tipo="reorder"]) .word.ghost{min-height:50px; padding:0 16px; border:0; border-radius:0;
   display:inline-grid; place-items:center; font:600 clamp(20px,3cqi,26px)/1 "Fredoka",var(--font); color:#fff; rotate:-4deg; scale:1.08; opacity:1;
   background:linear-gradient(to top,#5a33c0,#7a4fd1 55%,#9b7ae0); box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 12px 16px rgba(10,4,40,.35)}
 /* «Comprobar» (cuando el docente elige revisar al final): botón pixel azul tinta, como los del modo juego */
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .reorder [data-check]{border-radius:0 !important; clip-path:var(--step) !important;
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .reorder [data-check]{border-radius:0 !important; clip-path:var(--step) !important;
   background:#1f3a68 !important; box-shadow:inset 0 -5px 0 #0e1d3a, inset 0 3px 0 #3a5a94 !important; min-width:200px; min-height:52px; font-family:"Fredoka",var(--font) !important}
-.escenario.tematico[data-tema="clasico"][data-tipo="reorder"] .reorder .row.end{justify-content:center; margin-top:12px !important}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="reorder"],[data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .reorder .row.end{justify-content:center; margin-top:12px !important}
+
+/* ---------- Quiz, Lectura, Escucha y Completar en el mundo del juego (2026-11-28) ----------
+   Misma receta que Ordenar: cielo y suelo del fondo, Cebollo con el globo, ventanas pixel crema y fichas con relieve.
+   Las fichas de respuesta conservan los colores de la paleta (azul tinta, violeta, turquesa, granate), ahora cuadradas.
+   Las ventanas no usan clip-path: recortarían la franja de respuesta, que va dentro. */
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]){
+  --e-img:var(--cielo-img, url(../img/mundo/cielo.webp)); --e-bg:var(--fondo-2, #2a1585); --e-bg-solido:var(--fondo-2, #2a1585);
+  --e-ink:#2a1585; --t-font:"Fredoka",var(--font); --e-title-font:"Fredoka",var(--font)}
+/* Ventanas: la pregunta (con sus opciones), el texto de lectura, el reproductor y la frase para completar */
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .stage div:has(> .q-cuenta),
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-wrap,
+.escenario.tematico[data-tema="clasico"][data-tipo="reading"] .passage,
+.escenario.tematico[data-tema="clasico"][data-tipo="listening"] .listen-box{
+  max-width:640px; margin-left:auto !important; margin-right:auto !important; padding:16px 14px 14px; border-radius:0 !important;
+  background:var(--px-fondo,#fff8e8) !important; border:4px solid var(--px-borde,#e0a000) !important; color:#2a1585 !important;
+  box-shadow:inset 0 4px 0 var(--px-luz,#fffdf6), inset 0 -5px 0 var(--px-sombra,#ecdcb4) !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="reading"] .passage,
+.escenario.tematico[data-tema="clasico"][data-tipo="listening"] .listen-box{margin-bottom:12px !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="reading"] .passage-body{color:#2a1585; font-family:"Fredoka",var(--font)}
+.escenario.tematico[data-tema="clasico"][data-tipo="reading"] .passage summary{color:#2a1585; font-family:"Fredoka",var(--font)}
+.escenario.tematico[data-tema="clasico"][data-tipo="listening"] .listen-box :is(b,.small){font-family:"Fredoka",var(--font)}
+.escenario.tematico[data-tema="clasico"][data-tipo="listening"] .listen-btn{border-radius:0 !important; clip-path:var(--step); background:#1f3a68 !important;
+  box-shadow:inset 0 -5px 0 #0e1d3a, inset 0 3px 0 #3a5a94 !important}
+/* Contador "Pregunta 1 de 2" / "Frase 1 de 2": etiqueta azul tinta, como en Ordenar */
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .q-cuenta,
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-wrap > .small.muted:first-child{display:table !important; margin:0 0 10px !important; padding:3px 10px !important;
+  border-radius:0 !important; background:#2a1585 !important; color:#fff !important; font:600 13px/1.3 "Fredoka",var(--font) !important; letter-spacing:.03em; text-transform:uppercase; text-align:left}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .q-title{color:#2a1585 !important; font-family:"Fredoka",var(--font) !important; text-align:left !important; margin-left:0 !important}
+/* Fichas de respuesta: cuadradas, con relieve y la sombra del mismo color */
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .option,
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .option:hover:not(:disabled){
+  border-radius:0 !important; font-family:"Fredoka",var(--font); text-shadow:none;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.22), 0 4px 0 color-mix(in srgb, var(--tc) 55%, #000) !important}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .option.wrong{border-radius:0 !important;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.18), 0 4px 0 color-mix(in srgb, var(--bad) 55%, #000) !important}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .option.correct{border-radius:0 !important;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.16), 0 0 0 3px #fff, 0 0 0 6px var(--ok-vivo), 0 0 20px 6px var(--ok-halo) !important}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .option.picked{border-radius:0 !important}
+/* Completar: huecos punteados y fichas del banco moradas */
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-text{background:none !important; border:0 !important; box-shadow:none !important; padding:6px 0 !important;
+  color:#2a1585 !important; font-family:"Fredoka",var(--font)}
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-text input.gap{border-radius:0 !important; border:3px dashed #d6a531 !important; background:#fffdf6 !important;
+  color:#2a1585; font-family:"Fredoka",var(--font); box-shadow:none !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-text input.gap:focus{border-style:solid !important; border-color:#7a4fd1 !important; outline:none}
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-text input.gap.lleno{border:0 !important; color:#fff;
+  background:linear-gradient(to top,#5a33c0,#7a4fd1 55%,#9b7ae0) !important; box-shadow:inset 0 -4px 0 rgba(0,0,0,.22) !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-text input.gap:is(.ok,.correct){border:0 !important; color:#fff;
+  background:linear-gradient(to top,var(--ok-vivo-osc),var(--ok-vivo) 55%,var(--ok-vivo-cla)) !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fill-text input.gap:is(.bad,.wrong){border:0 !important; color:#fff;
+  background:linear-gradient(to top,#a8202d,#e0394b 55%,#f07a86) !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .bank .chip{border-radius:0 !important}
+/* Botones dentro de la actividad (Comprobar, Más lento): pixel. La franja de respuesta conserva los suyos. */
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .stage .btn:not(.feedback .btn){
+  border-radius:0 !important; clip-path:var(--step) !important; font-family:"Fredoka",var(--font) !important; min-height:48px}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .stage .btn:not(.ghost):not(.feedback .btn){
+  background:#1f3a68 !important; color:#fff !important; box-shadow:inset 0 -5px 0 #0e1d3a, inset 0 3px 0 #3a5a94 !important; min-width:200px}
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"],[data-tipo="fill"]) .stage .btn.ghost:not(.feedback .btn){
+  background:#fff !important; color:#1f3a68 !important; border:0 !important; box-shadow:inset 0 0 0 3px #1f3a68, inset 0 -6px 0 #d9e1f0 !important}
+.escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fb-slot .row.end{justify-content:center}
+/* Espacio a los lados para la ✓/✗ que se dibuja a la derecha al corregir (no tapa el texto) */
+.escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .option{padding-left:clamp(34px,8%,48px) !important; padding-right:clamp(34px,8%,48px) !important}
