@@ -399,3 +399,11 @@
 :root[data-modo="juego"] details.done-group > summary{display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
   background:rgba(26,20,70,.72); color:#fff; border:3px solid #e0a000; clip-path:var(--px-step); text-shadow:none}
 :root[data-modo="juego"] details.done-group > summary:hover{background:rgba(26,20,70,.88)}
+
+/* ---------- Sombra del título (2026-11-28, pedido del docente) ----------
+   La sombra de "Hola, …" y de los títulos era azul tinta fija: sobre Morado se funde con el cielo oscuro, pero sobre
+   fondos claros (Océano, Bosque, Atardecer…) se veía como una copia negra del texto. Ahora es una sombra translúcida
+   que oscurece lo que haya detrás, así se ve igual de suave en todos los fondos. */
+[data-modo="juego"] .page-head h1,[data-modo="juego"] .hero-hi{
+  text-shadow:3px 0 0 var(--t-tsh),-3px 0 0 var(--t-tsh),0 3px 0 var(--t-tsh),0 -3px 0 var(--t-tsh),
+    2px 2px 0 var(--t-tsh),-2px 2px 0 var(--t-tsh),2px -2px 0 var(--t-tsh),-2px -2px 0 var(--t-tsh),3px 5px 0 rgba(10,4,40,.22)}
