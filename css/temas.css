@@ -1171,3 +1171,11 @@ body.inmersivo:not(:has(.tematico)){background:#fff}
 /* Cada ✓ dura ~1 s: entra con rebote, se queda un momento y se va hacia arriba (la cola de reorder.js espera 1 s entre uno y otro) */
 @keyframes rd-chulito{0%{transform:scale(0); opacity:0} 18%{transform:scale(1.2); opacity:1} 28%{transform:scale(1)} 72%{transform:scale(1); opacity:1} 100%{transform:translateY(-.5em) scale(.85); opacity:0}}
 @media (prefers-reduced-motion: reduce){.escenario.tematico .slots.linea .word.recien::after{animation-duration:.01s}}
+
+/* ---------- Sin rebordes (2026-11-28, pedido del docente) ----------
+   Las fichas de "Colores" llevaban un recuadro interior (::before) que se veía como un reborde blanco, y el botón
+   secundario ("Más lento") una sombra oscura abajo recortada por el clip-path pixel del modo juego: borde negro. */
+.escenario.tematico[data-tema="clasico"] .option::before{display:none}
+.escenario.tematico .stage .btn{clip-path:none !important}
+.escenario.tematico[data-tema="clasico"] .stage .btn.ghost{background:#fff !important; color:#1f3a68 !important;
+  border:1px solid #d9deea !important; box-shadow:0 2px 6px rgba(22,33,61,.1) !important}
