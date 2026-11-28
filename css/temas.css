@@ -1299,3 +1299,8 @@ body:has(.escenario.tematico[data-tema="clasico"][data-tipo="reorder"]) .word.gh
 .escenario.tematico[data-tema="clasico"][data-tipo="fill"] .fb-slot .row.end{justify-content:center}
 /* Espacio a los lados para la ✓/✗ que se dibuja a la derecha al corregir (no tapa el texto) */
 .escenario.tematico[data-tema="clasico"]:is([data-tipo="quiz"],[data-tipo="reading"],[data-tipo="listening"]) .option{padding-left:clamp(34px,8%,48px) !important; padding-right:clamp(34px,8%,48px) !important}
+/* Un solo Cebollo por escena (2026-11-28, pedido del docente): el globo de la instrucción va solo, sin el Cebollo de
+   arriba ni la colita; el Cebollo que queda es el que reacciona abajo al responder. */
+.escenario.tematico .consigna.con-ceb{justify-content:center}
+.consigna.con-ceb > p{flex:0 1 auto; margin:0; text-align:center}
+.consigna.con-ceb > p::before{display:none}

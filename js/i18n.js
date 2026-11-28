@@ -103,7 +103,7 @@ const PATTERNS = [
   [/^Vence el (\d+) de (\w+)\.?$/, (m, d, mes) => `Due ${MESES[mes.slice(0, 3).toLowerCase()] || mes} ${d}`],
   [/^Vence el (.+)$/, 'Due $1'], [/^Vence mañana, (.+)$/, 'Due tomorrow, $1'], [/^Vence hoy, (.+)$/, 'Due today, $1'],
   [/^Venció (.+)$/, 'Was due $1'],
-  [/^(\d+) días seguidos$/, '$1 days in a row'],
+  [/^(\d+) días seguidos$/, '$1 days in a row'], [/^(\d+) seguidas$/, '$1 in a row'],
   [/^(\d+) h$/, '$1 h'],
 ];
 
