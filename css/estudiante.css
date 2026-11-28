@@ -871,3 +871,8 @@ html.cu-agarrando, html.cu-agarrando *{cursor:grabbing !important}
 .list > .item > .btn.ir::after{content:""; position:absolute; inset:0; z-index:3}
 /* Sin hundirse ni brillar (transform/filter encogerían el área táctil a mitad del toque y el clic se perdería) */
 .list > .item > .btn.ir,.list > .item > .btn.ir:is(:hover,:active){transform:none !important; filter:none !important}
+/* Cofre (2026-11-28): al tocarlo varias veces seguidas el teléfono lo "seleccionaba" como imagen y lo tapaba un
+   cuadrado azul. Nada del diálogo del cofre se puede seleccionar ni abre el menú de imagen al mantener presionado. */
+.chest-dialog,.chest-dialog *{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+.chest-dialog img,.chest-mini img{-webkit-user-drag:none; pointer-events:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+.chest-dialog ::selection{background:transparent}
